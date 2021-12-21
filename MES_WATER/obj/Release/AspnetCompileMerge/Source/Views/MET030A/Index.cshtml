@@ -1,0 +1,321 @@
+﻿@using MES_WATER.Models;
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewBag.sPrgCode ?? ViewContext.RouteData.Values["controller"].ToString();
+    //string key = ViewBag.primary_key;
+}
+
+
+@Html.Partial("pPrgName")
+@{
+    Func<object, HelperResult>
+        customBtnTemplate =
+        @<text>
+            @*<div class="pull-left" style="margin-left: 10px">
+                <a id="modata3" class="btn btn-white btn-success btn-bold" role="button" >
+                    <span class=''>產品規格同步</span>
+                </a>
+            </div>
+
+            <button type="button" class="btn btn-white btn-success btn-bold" id="modata5">
+                    產品規格同步
+            </button>*@
+
+            <div class="pull-left" style="margin-left: 10px">
+            <input type="button" class="btn btn-white btn-success btn-bold" value="產品規格同步" id="modata3" />
+            </div>
+
+            <div class="pull-left" style="margin-left: 10px">
+            <input type="button" class="btn btn-white btn-success btn-bold" value="ERP同步" id="modata" />
+            </div>
+
+            @*<div class="pull-left" style="margin-left: 10px">
+                <a id="modata" class="btn btn-white btn-success btn-bold" role="button">
+                    <span class=''>ERP同步</span>
+                </a>
+            </div>*@
+
+            @*<div class="pull-left" style="margin-left: 10px">
+                    <a id="modata2" class="btn btn-white btn-success btn-bold" role="button">
+                        <span class=''>E10同步</span>
+                 </a>
+                </div>*@
+
+            @*<div class="pull-left" style="margin-left: 10px">
+                <div class="btn-group">
+                    <button id=sinline data-toggle="dropdown" class="btn btn-secondary btn-bold dropdown-toggle text-white" aria-expanded="false">
+                        單線
+                    </button>
+                </div>
+            </div>
+            <div class="pull-left" style="margin-left: 10px">
+                <div class="btn-group">
+                    <button id=mulline data-toggle="dropdown" class="btn btn-secondary btn-bold dropdown-toggle text-white" aria-expanded="false">
+                        混線
+                    </button>
+                </div>
+            </div>*@
+            
+            <p id="linecode" value="A" hidden></p>
+
+            
+            <div class="col-sm-2" style="padding-left:20px">
+                    <select class="form-control" id="linetype" name="linetype">
+                        <option value="A">A線</option>
+                        <option value="B">B線</option>
+                        <option value="C">C線</option>
+                        <option value="D">D線</option>
+                        <option value="E">E線</option>
+                    </select>
+                </div>
+
+
+
+        </text>;
+
+    // 在抓資料時另外傳參數
+    string addPostData = ",pLineCode:()=>$('#linetype').val() ";
+
+    string sHeaderBtns = customBtnTemplate.Invoke(null).ToString();
+}
+@* 修改點 以下 *@
+@{
+    List<JqgridButton> btns = new List<JqgridButton>();
+    // 功能欄位的按鈕
+    //let $row = $(this)
+    //let rowId = $row.attr('id')
+    //let rowData = $grid.jqGrid('getRowData', rowId)
+
+    var btn1 = new JqgridButton()
+    {
+        type = "jumpTo",
+        icon_class = "ui-pg-div ui-inline-custom",
+        title = "變成異常工單",
+        url = "/MET030A/UpdateBtn",
+        //data = "rowData[key]"
+    };
+
+    btns.Add(btn1);
+
+    // 改對應的class
+    Html.RenderAction("pJqgrid_A", "jqgrid", new
+    {
+        pModelType = new MET02_0000().GetType(),
+        pPrgCode = sPrgCode,
+        pCustomHtml_header = sHeaderBtns,
+        pAddPostDataJs = addPostData,
+        //pAddBtnsInActionCol = btns
+    });
+
+}
+@* 修改點 以上 *@
+@section footer_plugin{
+<script src="~/Scripts/assets/jQuery-BlockUI/jquery.blockUI.js"></script>
+}
+@Html.Resource(@<script typeof="text/javascript">
+    jQuery(function ($) {
+        
+        //$(document).ready(function () {
+        //    function Cheack_Test() {
+        //        //$('#query_jqGrid').submit();
+        //        $("#mulline").addClass('btn-danger');
+        //    }
+        //})
+        //let default_options = {
+        //    loadComplete: function () {
+        //        let sActionCol = 'myac'
+        //        $(this).find(">tbody>tr.jqgrow>td[aria-describedby$='" + sActionCol + "']")
+        //        .each(function () {
+        //            let rowId = $(this).parent("tr").attr("id")
+        //            let rowData = $selfGrid.jqGrid('getRowData', rowId)
+        //            $("<div>", {
+        //                title: "匯出派工單",
+
+        //                click: function (e) {
+
+        //                }
+        //            }
+        //                ).css({ "margin-right": "8px", float: "left", cursor: "pointer" })
+        //                 .addClass("ui-pg-div ui-inline-custom")
+        //                 .append('<span class="fa fa-file-pdf-o red bigger-130"></span>')
+        //                 .prependTo($(this).children("div"));
+        //        });
+        //    },
+        //}
+        setInterval(function () {
+            $.ajax({
+                async: false,
+                method: 'post',
+                url: '/MET030A/ReloadGrid',
+                data: {},
+                datatype: 'json',
+                success: function (data) {
+                    $('#grid-table').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                },
+                error: function (xhr) {
+                    alert("重整失敗");
+                }
+            })
+        }, 30 * 1000)
+        //ERP同步
+        $('#modata').on('click', function () {
+            $('#modata').attr('disabled',true);
+            $.ajax({
+                async: true,
+                method: 'post',
+                url: '/MET030A/Mo_GetData',
+                data: {},
+                datatype: 'json',
+                success: function (data) {
+                    alert("同步成功")
+                    $('#grid-table').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+
+                    $.ajax({
+                        method: 'get',
+                        async: false,
+                        url: 'http://192.168.0.236:3838/plc/ReLoad?MACHINE_CODE=1001-M1',
+                        data: {
+                        },
+                        success: function (data) {
+
+                        },
+                        error: function (xhr) {
+                            alert("A線PLC重整失敗");
+                        }
+                    })
+
+                    $.ajax({
+                        method: 'get',
+                        async: false,
+                        url: 'http://192.168.0.236:3839/plc/ReLoad?MACHINE_CODE=1001-M2',
+                        data: {
+                        },
+                        success: function (data) {
+
+                        },
+                        error: function (xhr) {
+                            alert("B線PLC重整失敗");
+                        }
+                    })
+                    $('#grid-table').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                },
+                error: function (xhr) {
+                    alert("同步失敗");
+                }
+            }).done(function () {
+                $('#modata').removeAttr('disabled');
+            })
+        
+        })
+
+        //產品規格同步
+        $('#modata3').on('click', function () {
+            //$('#modata3').attr('disabled', true);
+            //$(this).off('click');
+            $.ajax({
+                async: true,
+                method: 'post',
+                url: '/MET030A/Mo_GetData2',
+                data: {},
+                datatype: 'json',
+                success: function (data) {
+                    alert("同步成功")
+                    $('#grid-table').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                },
+                error: function (xhr) {
+                    alert("同步失敗");
+                }
+            })
+            //    .done(function () {
+            //    $('#modata3').removeAttr('disabled');
+            //})
+        })
+        //E10同步
+        $('#modata2').on('click', function () {
+            $.ajax({
+                async: false,
+                method: 'post',
+                url: '/MET030A/Mo_PostData',
+                data: {},
+                datatype: 'json',
+                success: function (data) {
+                    alert("同步成功")
+                },
+                error: function (xhr) {
+                    alert("同步失敗");
+                }
+            })
+        })
+        //「排成別」所有欄位改成A
+        $('#sinline').on('click', function () {
+            document.getElementById('linecode').value = 'A'
+            $.ajax({
+                async: false,
+                method: 'post',
+                url: '/MET030A/Change_line',
+                data: { id: 'A' },
+                datatype: 'json',
+                success: function (data) {
+                    //window.location.reload();
+                    $('#grid-table').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                    $("#sinline").addClass('btn-danger');
+                    $("#mulline").removeClass('btn-danger');
+                    //Cheack_Test();
+                },
+                error: function (xhr) {
+                    alert("error");
+                }
+            })
+        })
+        //「排成別」所有欄位改成B
+        $('#mulline').on('click', function () {
+            //document.getElementById('linecode').value = 'B'
+            //$.ajax({
+            //    async: false,
+            //    method: 'post',
+            //    url: '/MET030A/Change_line',
+            //    data: { id: 'B' },
+            //    datatype: 'json',
+            //    success: function (data) {
+            //        //window.location.reload();
+            //        $('#grid-table').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+            //        $("#mulline").addClass('btn-danger');
+            //        $("#sinline").removeClass('btn-danger');
+            //        //Cheack_Test();
+            //    },
+            //    error: function (xhr) {
+            //        alert("error");
+            //    }
+            //})
+        })
+        $('#linetype').on('change', function () {
+        $('#grid-table').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+        })
+    })
+
+    //function Clear_Class() {
+    //    $("#sinline").RemoveClass('btn-danger');
+    //    $("#sinline").RemoveClass('btn-muted');
+    //    $("#mulline").RemoveClass('btn-danger');
+    //    $("#mulline").RemoveClass('btn-muted');
+    //}
+    //$("#sinline").click(function () {
+    //    // btn-danger   btn-muted
+    //    Clear_Class()
+    //    $("#sinline").addClass('btn-muted');
+    //    //$("#sinline").css("background", "red");
+    //    //$("#mulline").css("background", "white");
+    //});
+    //$("#mulline").click(function () {
+    //    Clear_Class()
+    //    //$("#mulline").css("background", "red");
+    //    //$("#sinline").css("background", "white");
+    //    $("#sinline").addClass('btn-danger');
+    //});
+    </script>
+, "js")

@@ -1,0 +1,93 @@
+﻿<script>
+    function Get_Data(T, K, KF, F) {
+        var val = ""
+        $.ajax({
+            method: 'post',
+            async: false,
+            url: '@Url.Action("Get_Data")',
+            data: {
+                T: function () { return T; },
+                K: function () { return K; },
+                KF: function () { return KF; },
+                F: function () { return F; },
+            },
+            success: function (data) {
+                if (data != "") {
+                    val = data
+                }
+            }
+        })
+        return val
+    }
+
+    function Upd_Data(table_code, key_code, key_value, field_code, field_value) {
+        $.ajax({
+            method: 'post',
+            async: false,
+            url: '@Url.Action("Upd_Data")',
+            data: {
+                pTableCode: function () { return table_code; },
+                pKeyCode: function () { return key_code; },
+                pKeyValue: function () { return key_value; },
+                pFieldCode: function () { return field_code; },
+                pFieldValue: function () { return field_value; },
+            },
+        })
+    }
+
+
+    function ParseToDecimel_G29(Str) {
+        var val = ""
+        $.ajax({
+            method: 'post',
+            async: false,
+            url: '@Url.Action("ParseToDecimel_G29")',
+            data: {
+                pString: function () { return Str; },
+            },
+            success: function (data) {
+                if (data != "") {
+                    val = data
+                }
+            }
+        })
+        return val
+    }
+
+    function IsDate(str) {        
+        var val = false
+        $.ajax({
+            method: 'post',
+            async: false,
+            url: '@Url.Action("IsDate")',
+            data: {
+                strDate: function () { return str; },
+            },
+            success: function (data) {
+                if (data == "True") {
+                    val = true
+                }
+            }
+        })
+        return val
+    }
+
+
+    var delay = function (s) {
+        return new Promise(function (resolve, reject) {
+            setTimeout(resolve, s);
+        });
+    };
+
+
+
+
+
+
+
+
+
+
+
+
+</script>

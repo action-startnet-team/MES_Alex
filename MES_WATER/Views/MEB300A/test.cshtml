@@ -1,0 +1,616 @@
+﻿@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@model MES_WATER.Models.MEB30_0000
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //公用函數庫
+    Comm comm = new Comm();
+    GetModelValidation gmv = new GetModelValidation();
+    DynamicTable DT = new DynamicTable();
+    MEB300AController CT = new MEB300AController();
+
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string sTkCode = Request.QueryString["K"];
+
+    //Ajax函示庫
+    Html.RenderAction("AjaxFunction", "AjaxFunction");
+
+}
+<!-- page specific plugin styles -->
+<link rel="stylesheet" href="~/Content/assets/css/jquery-ui.min.css" />
+<link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+<link rel="stylesheet" href="~/Content/assets/css/ui.jqgrid.min.css" />
+<link rel="stylesheet" href="~/Content/assets/css/fonts.googleapis.com.css" />
+<link rel="stylesheet" href="~/Content/assets/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style" />
+<link rel="stylesheet" href="~/Content/assets/css/ace-skins.min.css" />
+<link rel="stylesheet" href="~/Content/assets/css/ace-rtl.min.css" />
+<link rel="stylesheet" href="~/Content/assets/css/ui.multiselect.css" />
+
+<div class="row">
+    <ul class="nav nav-tabs" id="myTab">
+        <li class="active">
+            <a data-toggle="tab" href="#home">
+                <i class="green ace-icon fa fa-home bigger-120"></i>
+                主檔
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="home" class="tab-pane fade in active">
+            @using (Html.BeginForm("Update", sPrgCode, FormMethod.Post, new { @class = "form-horizontal", id = "validation_form", role = "form" }))
+            {
+
+                <div id="errMsgSummary" class="alert alert-danger @( (ViewBag.showErrMsg ?? false ) ? "" : "hidden" )">
+                    <button type="button" class="close" data-dismiss="alert">
+                        <i class="ace-icon fa fa-times"></i>
+                    </button>
+                    <strong>
+                        <i class="ace-icon fa fa-times"></i>
+                        系統訊息!
+                    </strong>
+                    @Html.ValidationSummary("", new { @class = "text-danger" })
+                    <br />
+                </div>
+                @*修改點 向下 主檔輸入畫面編排*@
+                <div class="row">
+                    <div class="col-sm-offset-2 col-md-6">
+                        
+                        <br />
+                    </div>
+                </div>
+                @*修改點 向上 主檔輸入畫面編排*@
+                <br />
+                <div class="clearfix">
+                    <div class="col-md-offset-5 col-md-7">
+                        <input type="submit" value="儲存" class="btn btn-white btn-info btn-bold" />
+                        &nbsp;
+                        <a class="btn btn-white btn-pink btn-round" href=@Url.Action("Index", sPrgCode)>
+                            <i class="ace-icon fa fa-undo "></i>
+                            返回
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<div style="clear:both"></div>
+<br/>
+
+
+<div class="row">
+    <div class="col-xs-12">
+        <table id="grid-table"></table>
+        <div id="grid-pager"></div>
+    </div>
+</div>
+
+<script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+<script src="~/Scripts/assets/js/jquery.jqGrid.min.js"></script>
+<script src="~/Scripts/assets/js/grid.locale-cn.js"></script>
+<script src="~/Scripts/assets/js/ace-elements.min.js"></script>
+<script src="~/Scripts/assets/js/ui.multiselect.js"></script>
+
+<script type="text/javascript">
+    jQuery(function ($) {
+        var grid_selector = "#grid-table";
+        var pager_selector = "#grid-pager";
+        var parent_column = $(grid_selector).closest('[class*="col-"]');
+
+        
+
+        //回傳參數
+        let PostData = {}
+        PostData = {
+
+        }
+
+        //函式位置
+        let PostUrl = "@Url.Action("Get_QmtValue")"
+
+        //動態抓取datatable欄位
+        let FieldArray = '@DT.Get_SqlField(CT.Get_QmtValue_DataTable())'
+        let FieldObject = []
+        for (let i = 0; i < FieldArray.split(",").length; i++) {
+            let field = FieldArray.split(",")[i]
+            FieldObject.push(field)
+        }
+
+        let ColInfo = []
+        $.ajax({
+            async: false,
+            type: "POST",
+            url: PostUrl,
+            data: PostData,
+        }).done(function (data) {
+            try {
+                let o = JSON.parse(data)[0]
+                //let keys = Object.keys(o)
+
+                //前面先加功能列
+                ColInfo = [{
+                    label: '(功能)',
+                    name: 'myac', index: '', width: 75, sortable: false, fixed: true, //resize: false,
+                    search: false,
+                    formatter: 'actions',
+                    formatoptions: {
+                        //keys: true,
+                        onSuccess: function () {
+                            $(this).setGridParam({ datatype: 'json' }).trigger('reloadGrid');
+                        },
+                        delbutton: true,
+                        editbutton: true,
+                        delOptions: {
+                            recreateForm: true,
+                            beforeShowForm: beforeDeleteCallback,
+                            url: "@Url.Action("Delete_D1")",
+                            mtype: 'post',
+                            delData: {
+                                qmt04_0110: function () {
+                                    //Get data from selected row
+                                    let id = jQuery(grid_selector).jqGrid('getGridParam', 'selrow');
+                                    let data = jQuery(grid_selector).jqGrid('getRowData', id);
+                                    return data["qmt04_0110"];
+                                }
+                            }
+                        },
+                    }
+                }].concat(FieldObject.map(function (item, index) {
+                    var CanEdit = true
+                    var ReadOnly = false
+                    var IsHide = false
+                    var FieldName = item
+                    var Width = 50
+
+                    switch (item) {
+                        case "usr_name":
+                            Width = 100
+                            break
+                    }
+
+                    let o = {
+                        name: item,
+                        width:Width,
+                        label: FieldName,
+                        editable: CanEdit,
+                        hidden: IsHide,
+                        editoptions: {
+                            readonly: ReadOnly,
+                        }
+                    }
+
+                    return o
+                }))
+
+            } catch (e) {
+                console.log(e.message)
+            }
+        })
+
+        jQuery(grid_selector).jqGrid({
+            url: PostUrl,
+            type: "POST",
+            datatype: "json",
+            height: 'auto',
+            postData: PostData,
+            colModel: ColInfo,
+            viewrecords: true,
+            rowNum: 10,
+            rowList: [10, 20, 30],
+            pager: pager_selector,
+            altRows: true,
+            multiselect: true,
+            multiboxonly: true,
+            multiselectWidth: -30,
+            loadonce: true,
+            loadComplete: function () {
+                var table = this;
+                setTimeout(function () {
+                    styleCheckbox(table);
+                    updateActionIcons(table);
+                    updatePagerIcons(table);
+                    enableTooltips(table);
+                }, 0);
+
+                //$(document).on('hide', '.ui-icon-pencil')
+                //$('.ui-icon-pencil').hide()
+            },
+            editurl: "@Url.Action("Update_D1")",
+        });
+
+        //以上Jqgrid設定---------------------------------------------------------------------------------------------------
+
+        //resize to fit page size
+        $(window).on('resize.jqGrid', function () {
+            $(grid_selector).jqGrid('setGridWidth', parent_column.width());
+        })
+
+        //resize on sidebar collapse/expand
+        $(document).on('settings.ace.jqGrid', function (ev, event_name, collapsed) {
+            if (event_name === 'sidebar_collapsed' || event_name === 'main_container_fixed') {
+                //setTimeout is for webkit only to give time for DOM changes and then redraw!!!
+                setTimeout(function () {
+                    $(grid_selector).jqGrid('setGridWidth', parent_column.width());
+                }, 20);
+            }
+        })
+
+        $(window).triggerHandler('resize.jqGrid');//trigger window resize to make the grid get the correct size
+
+        //switch element when editing inline
+        function aceSwitch(cellvalue, options, cell) {
+            setTimeout(function () {
+                $(cell).find('input[type=checkbox]')
+                    .addClass('ace ace-switch ace-switch-6')
+                    .after('<span class="lbl"></span>');
+            }, 0);
+        }
+        //enable datepicker
+        function pickDate(cellvalue, options, cell) {
+            setTimeout(function () {
+                $(cell).find('input[type=text]')
+                    .datepicker({ format: 'yyyy-mm-dd', autoclose: true });
+            }, 0);
+        }
+
+
+        //navButtons
+        jQuery(grid_selector).jqGrid('navGrid', pager_selector,
+            { 	//navbar options
+                edit: false,
+                editicon: 'ace-icon fa fa-pencil blue',
+                add: true,
+                addicon: 'ace-icon fa fa-plus-circle purple',
+                del: false,
+                delicon: 'ace-icon fa fa-trash-o red',
+                search: true,
+                searchicon: 'ace-icon fa fa-search orange',
+                refresh: true,
+                refreshicon: 'ace-icon fa fa-refresh green',
+                view: true,
+                viewicon: 'ace-icon fa fa-search-plus grey',
+            },
+            {
+                //edit record form
+                closeAfterEdit: true,
+                width: 700,
+                recreateForm: true,
+                beforeShowForm: function (e) {
+                    var form = $(e[0]);
+                    form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+                    style_edit_form(form);
+                }
+            },
+            {
+                //new record form
+                width: 700,
+                closeAfterAdd: true,
+                recreateForm: true,
+                viewPagerButtons: false,
+                beforeShowForm: function (e) {
+                    var form = $(e[0]);
+                    form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar')
+                    .wrapInner('<div class="widget-header" />')
+                    style_edit_form(form);
+                },
+                afterSubmit: function () { $(this).jqGrid('setGridParam', { datatype: 'json' }); return [true, ""] },
+                url: "@Url.Action("Insert_D1")?pTkCode=@sTkCode"
+            },
+            {
+                //delete record form
+                recreateForm: true,
+                beforeShowForm: function (e) {
+                    var form = $(e[0]);
+                    if (form.data('styled')) return false;
+
+                    form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+                    style_delete_form(form);
+
+                    form.data('styled', true);
+                },
+                onClick: function (e) {
+
+                }
+            },
+            {
+                //search form
+                recreateForm: true,
+                afterShowSearch: function (e) {
+                    var form = $(e[0]);
+                    form.closest('.ui-jqdialog').find('.ui-jqdialog-title').wrap('<div class="widget-header" />')
+                    style_search_form(form);
+                },
+                afterRedraw: function () {
+                    style_search_filters($(this));
+                }
+                ,
+                multipleSearch: true,
+                /**
+                multipleGroup:true,
+                showQuery: true
+                */
+            },
+            {
+                //view record form
+                recreateForm: true,
+                beforeShowForm: function (e) {
+                    var form = $(e[0]);
+                    form.closest('.ui-jqdialog').find('.ui-jqdialog-title').wrap('<div class="widget-header" />')
+                }
+            }
+        )
+
+
+
+        function style_edit_form(form) {
+            //enable datepicker on "sdate" field and switches for "stock" field
+            //form.find('input[name=sdate]').datepicker({ format: 'yyyy-mm-dd', autoclose: true })
+
+            //don't wrap inside a label element, the checkbox value won't be submitted (POST'ed)
+            //.addClass('ace ace-switch ace-switch-5').wrap('<label class="inline" />').after('<span class="lbl"></span>');
+
+            //form.find('input[name=qtest_item_code]').val(sQtestItemCode)
+            //form.find('input[name=qtest_item_name]').val(sQtestItemName)
+
+            //update buttons classes
+            var buttons = form.next().find('.EditButton .fm-button');
+            buttons.addClass('btn btn-sm').find('[class*="-icon"]').hide();//ui-icon, s-icon
+            buttons.eq(0).addClass('btn-primary').prepend('<i class="ace-icon fa fa-check"></i>');
+            buttons.eq(1).prepend('<i class="ace-icon fa fa-times"></i>')
+
+            buttons = form.next().find('.navButton a');
+            buttons.find('.ui-icon').hide();
+            buttons.eq(0).append('<i class="ace-icon fa fa-chevron-left"></i>');
+            buttons.eq(1).append('<i class="ace-icon fa fa-chevron-right"></i>');
+        }
+
+        function style_delete_form(form) {
+            var buttons = form.next().find('.EditButton .fm-button');
+            buttons.addClass('btn btn-sm btn-white btn-round').find('[class*="-icon"]').hide();//ui-icon, s-icon
+            buttons.eq(0).addClass('btn-danger').prepend('<i class="ace-icon fa fa-trash-o"></i>');
+            buttons.eq(1).addClass('btn-default').prepend('<i class="ace-icon fa fa-times"></i>')
+        }
+
+        function style_search_filters(form) {
+            form.find('.delete-rule').val('X');
+            form.find('.add-rule').addClass('btn btn-xs btn-primary');
+            form.find('.add-group').addClass('btn btn-xs btn-success');
+            form.find('.delete-group').addClass('btn btn-xs btn-danger');
+        }
+        function style_search_form(form) {
+            var dialog = form.closest('.ui-jqdialog');
+            var buttons = dialog.find('.EditTable')
+            buttons.find('.EditButton a[id*="_reset"]').addClass('btn btn-sm btn-info').find('.ui-icon').attr('class', 'ace-icon fa fa-retweet');
+            buttons.find('.EditButton a[id*="_query"]').addClass('btn btn-sm btn-inverse').find('.ui-icon').attr('class', 'ace-icon fa fa-comment-o');
+            buttons.find('.EditButton a[id*="_search"]').addClass('btn btn-sm btn-purple').find('.ui-icon').attr('class', 'ace-icon fa fa-search');
+        }
+
+        function beforeDeleteCallback(e) {
+            var form = $(e[0]);
+            if (form.data('styled')) return false;
+
+            form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+            style_delete_form(form);
+
+            form.data('styled', true);
+        }
+
+        function beforeEditCallback(e) {
+            var form = $(e[0]);
+            form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+            style_edit_form(form);
+        }
+
+
+
+        //it causes some flicker when reloading or navigating grid
+        //it may be possible to have some custom formatter to do this as the grid is being created to prevent this
+        //or go back to default browser checkbox styles for the grid
+        function styleCheckbox(table) {
+            /**
+                $(table).find('input:checkbox').addClass('ace')
+                .wrap('<label />')
+                .after('<span class="lbl align-top" />')
+
+
+                $('.ui-jqgrid-labels th[id*="_cb"]:first-child')
+                .find('input.cbox[type=checkbox]').addClass('ace')
+                .wrap('<label />').after('<span class="lbl align-top" />');
+            */
+        }
+
+
+        //unlike navButtons icons, action icons in rows seem to be hard-coded
+        //you can change them like this in here if you want
+        function updateActionIcons(table) {
+            /**
+            var replacement =
+            {
+                'ui-ace-icon fa fa-pencil' : 'ace-icon fa fa-pencil blue',
+                'ui-ace-icon fa fa-trash-o' : 'ace-icon fa fa-trash-o red',
+                'ui-icon-disk' : 'ace-icon fa fa-check green',
+                'ui-icon-cancel' : 'ace-icon fa fa-times red'
+            };
+            $(table).find('.ui-pg-div span.ui-icon').each(function(){
+                var icon = $(this);
+                var $class = $.trim(icon.attr('class').replace('ui-icon', ''));
+                if($class in replacement) icon.attr('class', 'ui-icon '+replacement[$class]);
+            })
+            */
+        }
+
+        //replace icons with FontAwesome icons like above
+        function updatePagerIcons(table) {
+            var replacement =
+            {
+                'ui-icon-seek-first': 'ace-icon fa fa-angle-double-left bigger-140',
+                'ui-icon-seek-prev': 'ace-icon fa fa-angle-left bigger-140',
+                'ui-icon-seek-next': 'ace-icon fa fa-angle-right bigger-140',
+                'ui-icon-seek-end': 'ace-icon fa fa-angle-double-right bigger-140'
+            };
+            $('.ui-pg-table:not(.navtable) > tbody > tr > .ui-pg-button > .ui-icon').each(function () {
+                var icon = $(this);
+                var $class = $.trim(icon.attr('class').replace('ui-icon', ''));
+
+                if ($class in replacement) icon.attr('class', 'ui-icon ' + replacement[$class]);
+            })
+        }
+
+        function enableTooltips(table) {
+            $('.navtable .ui-pg-button').tooltip({ container: 'body' });
+            $(table).find('.ui-pg-div').tooltip({ container: 'body' });
+        }
+
+        // nav add custom btn
+        jQuery(grid_selector)
+            .jqGrid('navButtonAdd', pager_selector, {
+                caption: "",
+                title: "儲存欄位設定",
+                buttonicon: "ace-icon fa fa-floppy-o ",
+                onClickButton: function () {
+                    let gridId = $(this).jqGrid('getGridParam', 'id')
+
+                    saveStateInDB(gridId)
+                },
+                //position: "first"
+            })
+            .jqGrid('navButtonAdd', pager_selector, {
+                caption: "",
+                title: "欄位調整",
+                buttonicon: "ace-icon fa fa-table blue bigger-140",
+                onClickButton: function () {
+                    let gridId = $(this).jqGrid('getGridParam', 'id')
+
+                    CallColumnChooser(gridId)
+
+                },
+                //position: "first"
+            })
+            .jqGrid('navButtonAdd', pager_selector, {
+                caption: "",
+                title: "自動調整寬度 (100%)",
+                buttonicon: "fa fa-arrows-h grey",
+                onClickButton: function () {
+                    let gridId = $(this).jqGrid('getGridParam', 'id')
+
+                    $(this).jqGrid('setGridWidth', parent_column.width(), true);
+                    saveGridState(gridId)
+                },
+                //position: "first"
+            })
+            .jqGrid('navButtonAdd', pager_selector, {
+                caption: "",
+                title: "自動調整寬度 (200%)",
+                buttonicon: "fa fa-arrows-h ",
+                onClickButton: function () {
+                    let gridId = $(this).jqGrid('getGridParam', 'id')
+
+                    $(this).jqGrid('setGridWidth', 2 * parent_column.width(), true);
+                    saveGridState(gridId)
+                },
+                //position: "first"
+            })
+            .jqGrid('navButtonAdd', pager_selector, {
+                caption: "",
+                title: "還原預設欄位",
+                buttonicon: "fa fa-undo orange",
+                onClickButton: function () {
+                    let gridId = $(this).jqGrid('getGridParam', 'id')
+
+                    //
+                    removeGridState(gridId)
+
+                    // remove state in db
+                    deleteStateInDB('grid-table')
+
+                    history.go(0)
+
+                    // 有時重置會失敗 ( 不知道為什麼)
+                    //
+                    //$.jgrid.gridUnload(gridId)
+                    //// default options
+                    //init_jqGrid(true)
+
+                    //// default adjust grid width
+                    //$(grid_selector).jqGrid('setGridWidth', parent_column.width(), true);
+
+                },
+                //position: "first"
+            });
+
+        function removeGridState(gridId, isSubgrid) {
+            let state = ""
+            if (isSubgrid === true) {
+                //let parseId = gridId.split('_')[0]
+                localStorage.removeItem(`subjqGrid_${gridId}_${location.pathname}`)
+            } else {
+                localStorage.removeItem(`jqGrid_${gridId}_${location.pathname}`)
+            }
+        }
+
+        $.extend(true, $.ui.multiselect, {
+            locale: {
+                // addAll btn has problem
+                addAll: '',
+                removeAll: '',
+                itemsCount: '個選擇欄位'
+            }
+        });
+
+        function CallColumnChooser(gridId, isSubgrid) {            
+            if (isSubgrid) {
+                gridId += '_'
+            }
+            let grid_selector = 'table[id^="' + gridId + '"]'
+            let $grid = $(grid_selector)
+
+            if ($grid.length > 0) {
+                console.log($grid)
+                $grid.jqGrid('columnChooser', {
+                    modal: true,
+                    done: function (perm) {
+                        
+                        if (perm) {
+                            let $grid = this
+                            //let orig_param = JSON.parse(JSON.stringify($grid.jqGrid("getGridParam")))
+                            //let current_colModel = $grid.jqGrid("getGridParam", 'colModel');
+
+                            let id = $grid.jqGrid("getGridParam", 'id');
+
+                            // remapColumns會改變colModel順序
+                            // params => permutation: array, updateCells: bool, keepHeader: bool
+                            $grid.jqGrid("remapColumns", perm, true, false);
+
+                            saveGridState(id, isSubgrid)
+
+                            // reset grid width
+                            // column chooser在隱藏欄位時會自己計算，但是顯示欄位時不會
+                            resetGridWidth(this)
+                            
+                        }
+                    }
+                })
+            } else {
+                switch (gridId) {
+                    case 'grid-table':
+                        msg = '請查詢主檔資料! '
+                        break;
+                    case 'grid-table_':
+                        msg = '請打開明細! '
+                        break;
+                    default:
+                        msg = '當前畫面沒有秀出表格! '
+                        break;
+                }
+                alert(msg)
+            }
+        }
+
+
+        
+    });
+</script>

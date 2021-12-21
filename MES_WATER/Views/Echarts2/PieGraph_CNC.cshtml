@@ -1,0 +1,155 @@
+﻿@*<div class="col-md-4 col-sm-4 col-xs-12">
+    </div>*@
+@*<div class="x_panel" style="border: 1px black solid">
+        <div class="x_title">
+            <h2>Pie Graph</h2>
+            <ul class="nav navbar-right panel_toolbox">
+                <li>
+                    <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li>
+                            <a href="#">Settings 1</a>
+                        </li>
+                        <li>
+                            <a href="#">Settings 2</a>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <a class="close-link"><i class="fa fa-close"></i></a>
+                </li>
+            </ul>
+            <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+            <div id="testpite" style="height:350px;"></div>
+        </div>
+    </div>*@
+<div id="pieCNC_@ViewBag.date" style="height:350px;"></div>
+
+@Html.Resource(
+    @<script>
+        if ($('#pieCNC_@ViewBag.date').length) {
+
+            //var echartPie = echarts.init(document.getElementById('pieCNC_@ViewBag.date'), echarts_theme);
+            let option = {
+                title: {
+                    text: "委外加工分佈 - 圓餅圖",
+                    x: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: "{a} <br/>{b} : {c} ({d}%)"
+                },
+                legend: {
+                    //x: 'center',
+                    //y: 'bottom',
+                    orient: 'vertical',
+                    right: 10,
+                    top: 40,
+                    data: ['A', 'B', 'C', 'D', 'E'],
+                    textStyle: {
+                        fontSize: 24
+                    }
+                },
+                toolbox: {
+                    show: true,
+
+                    feature: {
+                        magicType: {
+                            show: true,
+                            type: ['pie', 'funnel'],
+                            option: {
+                                funnel: {
+                                    x: '25%',
+                                    width: '50%',
+                                    funnelAlign: 'left',
+                                    max: 1548
+                                }
+                            }
+                        },
+                        restore: {
+                            show: true,
+                            title: "復原",
+                        },
+                        saveAsImage: {
+                            show: true,
+                            title: "儲存圖像"
+                        }
+                    }
+                },
+                calculable: true,
+                series: [{
+                    name: '访问来源',
+                    type: 'pie',
+                    radius: '65%',
+                    //radius: '55%',
+                    center: ['50%', '48%'],
+                    "label": {
+                        "normal": {
+                            "show": true,
+                            "textStyle": {
+                                "fontSize": 24
+                            }
+                        }
+                    },
+                    data: [{
+                        value: 335,
+                        name: 'A',
+
+                    }, {
+                        value: 310,
+                        name: 'B'
+                    }, {
+                        value: 234,
+                        name: 'C'
+                    }, {
+                        value: 135,
+                        name: 'D'
+                    }, {
+                        value: 1548,
+                        name: 'E'
+                    }]
+                }]
+            }
+            echarts.init(document.getElementById('pieCNC_@ViewBag.date'), echarts_theme).setOption(option, true);
+
+            var dataStyle = {
+                normal: {
+                    label: {
+                        show: false,
+
+                    },
+
+                    labelLine: {
+                        show: false,
+                    }
+                }
+            };
+
+            var placeHolderStyle = {
+                normal: {
+                    color: 'rgba(0,0,0,0)',
+                    label: {
+                        show: false
+                    },
+                    labelLine: {
+                        show: false
+                    }
+                },
+                emphasis: {
+                    color: 'rgba(0,0,0,0)'
+                }
+            };
+
+            setInterval(function () {
+                echarts.init(document.getElementById('pieCNC_@ViewBag.date'), echarts_theme).clear();
+                echarts.init(document.getElementById('pieCNC_@ViewBag.date'), echarts_theme).setOption(option, true)
+            }, 1000 * 10)
+
+        }
+
+    </script>, "js")

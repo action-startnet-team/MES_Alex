@@ -1,0 +1,87 @@
+﻿@using MES_WATER.Models;
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewBag.sPrgCode ?? ViewContext.RouteData.Values["controller"].ToString();
+}
+
+
+@Html.Partial("pPrgName")
+
+
+@* 修改點 以下 *@
+@{
+    Func<object, HelperResult> customBtnTemplate = @<text></text>;  // 塞在上面按鈕那列
+    Func<object, HelperResult> customJsTemplate = @<text></text>;  // 賽在整個js最下面
+    Func<object, HelperResult> onLoadComplete = @<text></text>;  // 塞在jqgrid event: loadComplete的(function)裡面
+
+
+    List<object> addBtnsInActionCol = new List<object>();  // 放在功能欄位裡 (其實也是在loadComplete裡面)
+
+    var btn1 = new
+    {
+        type = "jumpTo",
+        icon_class = "ui-icon ui-icon-pencil red",
+        title = "測試1",
+        url = "/BDP070A"
+    };
+
+    var btn2 = new
+    {
+        type = "jumpTo",
+        icon_class = "ui-icon ui-icon-pencil orange",
+        title = "測試2",
+        url = "/BDP230B"
+    };
+
+    var btn3 = new
+    {
+        type = "jumpTo",
+        icon_class = "ui-icon ui-icon-pencil green",
+        title = "測試3",
+        url = ""
+    };
+
+    //addBtnsInActionCol.Add(btn1);
+    //addBtnsInActionCol.Add(btn2);
+    //addBtnsInActionCol.Add(btn3);
+
+
+    /* 自訂義html和js 的範例*/
+    @*customBtnTemplate =
+        @<text>
+        <div class="pull-left" style="margin-left: 10px">
+            <a href="/WMB010B/Upload" class="btn btn-white btn-warning btn-bold" role="button">
+                <span>匯入</span>
+            </a>
+        </div>
+        </text>;*@
+
+    @*customJsTemplate =
+        @<text>
+            console.log('test insert js from partial view. ')
+        </text>;*@
+
+    @*onLoadComplete =
+        @<text>
+            console.log('test loadComplete js from partial view. ')
+        </text>;*@
+
+    // 改對應的class
+    // Note: pCustomBtnTemplate以下屬性不可省略 ! 省略會出錯，目前不知道怎麼設定成可以預設
+    Html.RenderAction("pJqgrid_A", "jqgrid", new
+    {
+        pModelType = new MEB05_0000().GetType(),
+        pPrgCode = sPrgCode,
+        pCustomBtnTemplate = customBtnTemplate,
+        pCustomJsTemplate = customJsTemplate,
+        pAddBtnsInActionCol = addBtnsInActionCol,
+        pOnLoadComplete = onLoadComplete
+    });
+
+}
+@* 修改點 以上 *@

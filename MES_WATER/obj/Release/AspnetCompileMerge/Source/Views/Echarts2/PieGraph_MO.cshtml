@@ -1,0 +1,206 @@
+﻿
+
+
+@*<div class="col-md-4 col-sm-4 col-xs-12">
+</div>*@
+@*<div class="x_panel" style="border: 1px black solid">
+    <div class="x_title">
+        <h2>Pie Graph</h2>
+        <ul class="nav navbar-right panel_toolbox">
+            <li>
+                <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+            </li>
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                <ul class="dropdown-menu" role="menu">
+                    <li>
+                        <a href="#">Settings 1</a>
+                    </li>
+                    <li>
+                        <a href="#">Settings 2</a>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <a class="close-link"><i class="fa fa-close"></i></a>
+            </li>
+        </ul>
+        <div class="clearfix"></div>
+    </div>
+    <div class="x_content">
+        <div id="testpite" style="height:350px;"></div>
+    </div>
+</div>*@
+
+@{
+    string pTkCode = ViewData["pTkCode"].ToString();
+}
+
+<div id="pie_@pTkCode" style="height:100%"></div>
+
+@Html.Resource(
+    @<script>
+        if ($('#pie_@pTkCode').length) {
+
+
+            // init instance
+            var echartPie_@pTkCode = echarts.init(document.getElementById('pie_@pTkCode'), echarts_theme)
+
+            // option
+            var defaultOption = {
+                title: {
+                    text: "",
+                    //text: "生產分佈 - 圓餅圖",
+                    x: 'center'
+                },
+                tooltip: {
+                    trigger: 'item',
+                    formatter: "{a} <br/>{b} : {c} ({d}%)"
+                },
+                legend: {
+                    //x: 'center',
+                    //y: 'bottom',
+                    orient: 'vertical',
+                    //right: 10,
+                    left: 10,
+                    //top: 40,
+                    data: [],
+                    //data: ['A', 'B', 'C', 'D', 'E'],
+
+                    textStyle: {
+                        fontSize: 16,
+                        //fontSize: 24,
+
+                    }
+                },
+                toolbox: {
+                    show: true,
+
+                    feature: {
+                        magicType: {
+                            show: true,
+                            type: ['pie', 'funnel'],
+                            option: {
+                                funnel: {
+                                    x: '25%',
+                                    width: '50%',
+                                    funnelAlign: 'left',
+                                    max: 1548
+                                }
+                            }
+                        },
+                        restore: {
+                            show: true,
+                            title: "復原",
+                        },
+                        saveAsImage: {
+                            show: true,
+                            title: "儲存圖像"
+                        }
+                    }
+                },
+                calculable: true,
+                series: [{
+                    name: '',
+                    //name: '生產分佈',
+                    type: 'pie',
+                    radius: '65%',
+                    //radius: '55%',
+
+                    //center: ['50%', '48%'],
+                    center: ['50%', '60%'],
+                    "label": {
+                        "normal": {
+                            "show": true,
+                            "textStyle": {
+                                "fontSize": 16
+                                //"fontSize": 18
+                            },
+                            formatter: `{b} \n : {d}%`
+                            //formatter: "{b} : {c} ({d}%)"
+                        },
+                    },
+                    //data: [{
+                    //    value: 335,
+                    //    name: 'A',
+
+                    //}, {
+                    //    value: 310,
+                    //    name: 'B'
+                    //}, {
+                    //    value: 234,
+                    //    name: 'C'
+                    //}, {
+                    //    value: 135,
+                    //    name: 'D'
+                    //}, {
+                    //    value: 1548,
+                    //    name: 'E'
+                    //}]
+                    data: []
+                }]
+            }
+
+            
+
+            // first set graph
+            Ajax_PieData(function (data) {
+
+                refreshGraph(echartPie_@pTkCode, data)
+            })
+
+            // refresh graph per N seconds
+            setInterval(function () {
+
+                Ajax_PieData(function (data) {
+
+                    refreshGraph(echartPie_@pTkCode, data)
+                })
+
+            }, 1000 * 10)
+
+            function Ajax_PieData(succssFunc) {
+                $.ajax({
+                    method: 'post',
+                    url: '/MES/Get_PieData_MO',
+                    data: {
+                        pDateTime: "@DateTime.Now.ToString("yyyy/MM/dd")",
+                        pLineCode: "@pTkCode%",
+                    }
+                }).done(function (data) {
+                    succssFunc(data)
+                }).fail(function (data) {
+                    alert('Ajax Error! ')
+                })
+            }
+
+
+            function getUpdateOption(data) {
+
+                let tempOption = $.extend({}, defaultOption)
+
+                tempOption.title.text = data.title.text
+                tempOption.legend.data = data.seriesItem.data.map(x => x.name)
+                tempOption.series[0].data = data.seriesItem.data
+                tempOption.series[0].name = data.seriesItem.name
+                return tempOption
+            }
+
+            function refreshGraph(echart, data) {
+                if (!echart) {
+                    return;
+                }
+
+                let updateOption = getUpdateOption(data)
+
+                // 旁邊莫名跑出一個綠色直條圖
+                //let tmp = chart.getOption();
+
+                echart.clear();
+                echart.setOption(updateOption, true)
+
+            }
+
+        }
+
+    </script>, "js")

@@ -1,0 +1,18 @@
+﻿[
+  {
+    "outputFile": "Content/assets/css/StyleSheet1.css",
+    "inputFile": "Content/assets/css/StyleSheet1.scss"
+  },
+  {
+    "outputFile": "Content/assets/StyleSheet1.css",
+    "inputFile": "Content/assets/StyleSheet1.scss"
+  },
+  {
+    "outputFile": "Content/assets/RptQueryForm.css",
+    "inputFile": "Content/assets/RptQueryForm.scss"
+  },
+  {
+    "outputFile": "Content/RptQueryForm.css",
+    "inputFile": "Content/RptQueryForm.scss"
+  }
+]

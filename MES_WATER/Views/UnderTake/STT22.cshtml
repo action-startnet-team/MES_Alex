@@ -1,0 +1,317 @@
+﻿@using MES_WATER.Controllers;
+@using MES_WATER.Models;
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string sAction = ViewContext.RouteData.Values["action"].ToString() + "_A";
+
+    UnderTakeController Control = new UnderTakeController();
+    Comm comm = new Comm();
+    UnderTake UT = new UnderTake();
+
+    string ALLUsr = UT.Get_Usr();
+    string ALLSup = UT.Get_SupCode();
+    string VBData = ViewBag.SorCode;
+    string VBTableDataStr = UT.Get_TableDataStr("STT22_0000");
+    string ListField = "單號,日期,產品編號,名稱,可取量,數量,單位";
+    string ListValue = "inq_code,inq_date,pro_code,cpro_name,sor_qty2,pro_qty,cpro_unit";
+    string KeyField = "inq_code";
+}
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/jquery-ui.custom.min.css" />
+}
+
+@*不知為啥放在plugin裡面會顯示錯誤*@
+<link rel="stylesheet" href="~/Content/assets/css/bootstrap-multiselect.min.css" />
+
+
+@Html.Partial("pPrgName")
+
+<form id="validation-form" action=@Url.Action(ViewContext.RouteData.Values["action"].ToString(), sPrgCode) method="post" class="form-horizontal" role="form">
+
+    <div class="row">
+        <div class="form-group">
+            <label class="col-sm-3 control-label no-padding-right">
+                來源作業
+            </label>
+            <div class="col-sm-2">
+                @*<input type="text" name="link" id="link" value="@ViewBag.Link" readonly />*@
+                <select class="chosen-select" name="link" id="link">
+                    <option value="@ViewBag.Link" selected>@ViewBag.Link - @comm.Get_Data("BDB04_0000", ViewBag.Link, "prg_code", "prg_name")</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label no-padding-right">
+                來源單號
+            </label>
+            <div class="col-sm-9">
+                <input type="text" name="ut_code" id="ut_code" value="@ViewBag.TkCode" readonly />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label no-padding-right">
+                承接作業
+            </label>
+            <div class="col-sm-2">
+                @*<input type="text" name="link" id="link" value="@ViewBag.Link" readonly />*@
+                <select class="chosen-select" name="sor_link" id="sor_link">
+                    <option value="@sAction" selected>@sAction - @comm.Get_Data("BDB04_0000", sAction, "prg_code", "prg_name")</option>
+                </select>
+            </div>
+        </div>
+
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label no-padding-right">
+                承接人員
+            </label>
+            <div class="col-sm-2">
+                <select class="chosen-select" name="per_code" id="per_code">
+                    <option value="">--請選擇--</option>
+                    @for (int i = 0; i < ALLUsr.Split(',').Length; i++)
+                    {
+                        string sUsr = ALLUsr.Split(',')[i];
+
+                        if (sUsr == ViewBag.QueryPerCode)
+                        {
+                            <option value="@sUsr" selected>@sUsr - @comm.Get_Data("STB18_0000", sUsr, "per_code", "per_name")</option>
+                        }
+                        else
+                        {
+                            <option value="@sUsr">@sUsr - @comm.Get_Data("STB18_0000", sUsr, "per_code", "per_name")</option>
+                        }
+                    }
+                </select>
+            </div>
+        </div>
+
+        @*<div class="form-group">
+                <label class="col-sm-3 control-label no-padding-right">
+                    承接廠商
+                </label>
+                <div class="col-sm-2">
+                    <select class="chosen-select" name="sup_code" id="sup_code">
+                        <option value="">--請選擇--</option>
+                        @for (int i = 0; i < ALLSup.Split(',').Length; i++)
+                        {
+                            string sSup = ALLSup.Split(',')[i];
+
+                            if (sSup == ViewBag.QuerySupCode)
+                            {
+                                <option value="@sSup" selected>@sSup - @comm.Get_Data("STB10_0000", sSup, "sup_code", "sup_name")</option>
+                            }
+                            else
+                            {
+                                <option value="@sSup">@sSup - @comm.Get_Data("STB10_0000", sSup, "sup_code", "sup_name")</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <br />
+
+            <div class="form-group">
+                <label class="col-sm-3 control-label no-padding-right">
+                    發票號碼
+                </label>
+                <div class="col-sm-9">
+                    <input type="text" name="k_inv_no" id="k_inv_no" value="@ViewBag.QueryKInvNo" />
+                </div>
+            </div>*@
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label no-padding-right">
+                單據編號
+            </label>
+            <div class="col-sm-9">
+                <input type="text" name="sor_code" id="sor_code" value="@ViewBag.QuerySorCode" />
+            </div>
+        </div>
+
+
+
+        <div class="form-group">
+            <label class="col-sm-3 control-label no-padding-right">
+                單據日期
+            </label>
+            <div style="width:70%">
+                <div class="col-sm-2">
+                    <input type="text" class="datepicker" value="@ViewBag.QuerySDate" name="s_date" id="s_date" />
+                </div>
+
+                <div class="col-sm-4">
+                    <div style="float:left">
+                        <label class="col-sm-2 control-label">
+                            至
+                        </label>
+                        <input type="text" class="datepicker" value="@ViewBag.QueryEDate" name="e_date" id="e_date" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-lg-offset-3">
+                <button class="btn btn-white btn-info btn-round" name="submit" id="search" value="search">
+                    查詢
+                </button>
+                &nbsp;
+                @*<a class="btn btn-white btn-success btn-round" href=@(Url.Action("Retrieve", sPrgCode) + "?pTkCode=" + ViewBag.TkCode + "")>
+                        取回
+                    </a>*@
+                <button class="btn btn-white btn-success btn-round" name="submit" id="Retrieve" value="Retrieve" onsubmit="return check()">
+                    取回
+                </button>
+                &nbsp;
+                <a class="btn btn-white btn-pink btn-round" href=@(Url.Action("Update", ViewBag.Link) + "?pTkCode=" + ViewBag.TkCode + "")>
+                    <i class="ace-icon fa fa-undo "></i>
+                    返回
+                </a>
+                &nbsp;
+                因考量網頁速度，一次最多只會顯示500筆資料，請善用查詢條件
+            </div>
+        </div>
+
+    </div>
+    <hr />
+    <div class="row">
+        <div class="col-xs-12">
+            <table id="simple-table" class="table  table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th style="text-align: center">取回量</th>
+                        <th>
+                            <input name="field-checkbox" class="ace input-lg" type="checkbox" checked />
+                            <span class="lbl bigger-120">核取</span>
+                        </th>
+                        @for (int i = 0; i < ListField.Split(',').Length; i++)
+                        {
+                            <th style="text-align: center">@ListField.Split(',')[i]</th>
+                        }
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @if (VBData != "")
+                    {
+                        for (int i = 0; i < VBData.Split(',').Length; i++)
+                        {
+                            string sSorCode = VBData.Split(',')[i].ToString();
+
+                            <tr>
+                                <td width="100">
+                                    <input class="col-xs-12" type="text" name="sq2_@sSorCode" value="@UT.Get_SorData(VBTableDataStr,KeyField,sSorCode,"sor_qty")" oninput="value=value.replace(/[^\d]/g,'')" />
+                                </td>
+                                <td width="80">
+                                    <input name="checkbox" class="ace input-lg" type="checkbox" value="@sSorCode" checked />
+                                    <span class="lbl bigger-120" />
+                                </td>
+                                @for (int u = 0; u < ListValue.Split(',').Length; u++)
+                                {
+                                    <td>@UT.Get_SorData(VBTableDataStr, KeyField, sSorCode, ListValue.Split(',')[u])</td>
+                                }
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div><!-- /.span -->
+    </div>
+
+</form>
+
+
+@section footer_plugin{
+    <!-- page specific plugin scripts -->
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-multiselect.min.js"></script>
+}
+
+@section footer_script{
+    <script type="text/javascript">
+        jQuery(function ($) {
+
+            $(".datepicker").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true });
+
+            var active_class = 'active';
+            $('#simple-table > thead > tr > th input[type=checkbox]').eq(0).on('click', function () {
+                var th_checked = this.checked;//checkbox inside "TH" table header
+
+                $(this).closest('table').find('tbody > tr').each(function () {
+                    var row = this;
+
+                    if (th_checked) $(row).addClass(active_class).find('input[type=checkbox]').eq(0).prop('checked', true);
+                    else $(row).removeClass(active_class).find('input[type=checkbox]').eq(0).prop('checked', false);
+
+                });
+            });
+
+            if (!ace.vars['touch']) {
+                $('.chosen-select').chosen({ allow_single_deselect: true });
+                //resize the chosen on window resize
+
+                $(window)
+                .off('resize.chosen')
+                .on('resize.chosen', function () {
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                }).trigger('resize.chosen');
+                //resize chosen on sidebar collapse/expand
+                $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                    if (event_name != 'sidebar_collapsed') return;
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                });
+
+
+                $('#chosen-multiple-style .btn').on('click', function (e) {
+                    var target = $(this).find('input[type=radio]');
+                    var which = parseInt(target.val());
+                    if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                    else $('#form-field-select-4').removeClass('tag-input-style');
+                });
+            }
+
+
+            $('.multiselect').multiselect({
+                enableFiltering: true,
+                enableHTML: true,
+                allSelectedText: false,
+                numberDisplayed: 10,
+                includeSelectAllOption: true,
+                maxHeight: 450,
+                buttonWidth: 300,
+                buttonClass: 'btn btn-white btn-primary',
+                templates: {
+                    button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"><span class="multiselect-selected-text"></span> &nbsp;<b class="fa fa-caret-down"></b></button>',
+                    ul: '<ul class="multiselect-container dropdown-menu"></ul>',
+                    filter: '<li class="multiselect-item filter"><div class="input-group"><span class="input-group-addon"><i class="fa fa-search"></i></span><input class="form-control multiselect-search" type="text"></div></li>',
+                    filterClearBtn: '<span class="input-group-btn"><button class="btn btn-default btn-white btn-grey multiselect-clear-filter" type="button"><i class="fa fa-times-circle red2"></i></button></span>',
+                    li: '<li><a tabindex="0"><label></label></a></li>',
+                    divider: '<li class="multiselect-item divider"></li>',
+                    liGroup: '<li class="multiselect-item multiselect-group"><label></label></li>'
+                }
+            });
+
+
+        })
+    </script>
+}
+
+

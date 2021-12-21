@@ -1,0 +1,256 @@
+﻿@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@{
+    ViewBag.Title = "Title";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Comm comm = new Comm();
+    GetData GD = new GetData();
+    DynamicTable DT = new DynamicTable();
+    Review RV = new Review();
+    MED080AController CT = new MED080AController();
+
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string sAction = ViewContext.RouteData.Values["action"].ToString();
+
+    string sDate = DateTime.Now.ToString("yyyy/MM/dd");
+    if (!string.IsNullOrEmpty(ViewBag.Date)) { sDate = ViewBag.Date; }
+}
+
+<link rel="stylesheet" href="/Content/assets/css/bootstrap-datepicker3.min.css" />
+
+@Html.Partial("pPrgName")
+
+<form id="validation-form" method="post" action="@Url.Action(sAction, sPrgCode)" class="form-horizontal" role="form">
+
+
+    <div class="form-group">
+        <label class="col-sm-5 control-label no-padding-right" for="form-field-1">
+            請選擇數據日期
+        </label>
+        <div class="col-sm-3">
+            <input type="text" class="date-picker" id="" name="ins_date" value="@sDate" />
+        </div>        
+    </div>
+   
+    <div id="err" class="form-group error" style="display:none">
+        <label class="col-sm-6 control-label pull-left" style="color:red">
+            輸入日期格式錯誤
+        </label>
+    </div>
+    
+    <div class="col-lg-offset-5">
+        <button class="btn btn-white btn-info btn-round" name="" id="save" value="">
+            查詢
+        </button>
+    </div>
+
+    <hr />
+
+
+    <div class="col-lg-offset-3 col-sm-6">
+        <div class="widget-box text-center">
+            <div class="widget-header widget-header-flat">
+                <h3 class="widget-title">報工數據收集列表</h3>
+            </div>
+
+            <div class="widget-body">
+                <div class="widget-main">
+                    <div class="row">
+
+                        <div class="row text-center">                         
+                            <div class="col-sm-4">
+                                <a href="/MED010A/Index" target="_blank" class="btn btn-grey btn-app" id="MED010A" name="MED01_0000">
+                                    <i class="ace-icon fa fa-users bigger-230"></i>
+                                    上下工
+                                    @if (CT.Get_DataCount("MED01_0000", sDate, "Y") > 0)
+                                    {
+                                        <span class="label label-danger">@CT.Get_DataCount("MED01_0000", sDate, "Y")</span>
+                                    }
+                                    @if (CT.Get_DataCount("MED01_0000", sDate) > 0)
+                                    {
+                                        <span class="badge badge-warning badge-left">@CT.Get_DataCount("MED01_0000", sDate)</span>
+                                    }
+                                </a>
+                            </div>
+
+                            <div class="col-sm-4">
+                                <a href="/MED030A/Index"  target="_blank" class="btn btn-app btn-primary" id="MED030A" name="MED03_0000">
+                                    <i class="ace-icon fa fa-exclamation-triangle bigger-230"></i>
+                                    不良報工
+                                    @if (CT.Get_DataCount("MED03_0000", sDate, "Y") > 0)
+                                    {
+                                        <span class="label label-danger">@CT.Get_DataCount("MED03_0000", sDate, "Y")</span>
+                                    }
+                                    @if (CT.Get_DataCount("MED03_0000", sDate) > 0)
+                                    {
+                                        <span class="badge badge-warning badge-left">@CT.Get_DataCount("MED03_0000", sDate)</span>
+                                    }
+                                </a>
+                            </div>
+
+                            <div class="col-sm-4">
+                                <a href="/MED040A/Index" target="_blank" class="btn btn-app btn-success" id="MED040A" name="MED04_0000">
+                                    <i class="ace-icon fa fa-ban bigger-230"></i>
+                                    停機原因
+                                    @if (CT.Get_DataCount("MED04_0000", sDate, "Y") > 0)
+                                    {
+                                        <span class="label label-danger">@CT.Get_DataCount("MED04_0000", sDate, "Y")</span>
+                                    }
+                                    @if (CT.Get_DataCount("MED04_0000", sDate) > 0)
+                                    {
+                                        <span class="badge badge-warning badge-left">@CT.Get_DataCount("MED04_0000", sDate)</span>
+                                    }
+                                </a>
+                            </div>
+                        </div>
+
+                        <div style="clear:both"></div>
+                        <hr />
+
+                        <div class="row text-center">
+                            <div class="col-sm-4">
+                                <a href="/MED050A/Index" target="_blank" class="btn btn-app btn-warning" id="MED050A" name="MED05_0000">
+                                    <i class="ace-icon fa fa-comments bigger-230"></i>
+                                    除外工時
+                                    @if (CT.Get_DataCount("MED05_0000", sDate, "Y") > 0)
+                                    {
+                                        <span class="label label-danger">@CT.Get_DataCount("MED05_0000", sDate, "Y")</span>
+                                    }
+                                    @if (CT.Get_DataCount("MED05_0000", sDate) > 0)
+                                    {
+                                        <span class="badge badge-warning badge-left">@CT.Get_DataCount("MED05_0000", sDate)</span>
+                                    }
+                                </a>
+                            </div>
+
+                            <div class="col-sm-4">
+                                <a href="/MED060A/Index" target="_blank" class="btn btn-app btn-purple" id="MED060A" name="MED06_0000">
+                                    <i class="ace-icon fa fa-download bigger-230"></i>
+                                    上料
+                                    @if (CT.Get_DataCount("MED06_0000", sDate, "Y") > 0)
+                                    {
+                                        <span class="label label-danger">@CT.Get_DataCount("MED06_0000", sDate, "Y")</span>
+                                    }
+                                    @if (CT.Get_DataCount("MED06_0000", sDate) > 0)
+                                    {
+                                        <span class="badge badge-warning badge-left">@CT.Get_DataCount("MED06_0000", sDate)</span>
+                                    }
+                                </a>
+                            </div>
+
+                            <div class="col-sm-4">
+                                <a href="/MED070A/Index" target="_blank" class="btn btn-app btn-info" id="MED070A" name="MED07_0000">
+                                    <i class="ace-icon fa fa-share bigger-230"></i>
+                                    退料
+                                    @if (CT.Get_DataCount("MED07_0000", sDate, "Y") > 0)
+                                    {
+                                        <span class="label label-danger">@CT.Get_DataCount("MED07_0000", sDate, "Y")</span>
+                                    }
+                                    @if (CT.Get_DataCount("MED07_0000", sDate) > 0)
+                                    {
+                                        <span class="badge badge-warning badge-left">@CT.Get_DataCount("MED07_0000", sDate)</span>
+                                    }
+                                </a>
+                            </div>
+                        </div>
+
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</form>
+
+@section footer_plugin{
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="/Scripts/assets/js/jquery-ui.min.js"></script>
+    <script src="/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+    <script src="/Scripts/assets/js/bootstrap-multiselect.min.js"></script>
+}
+
+
+@section footer_script{
+    <script type="text/javascript">
+
+        $('#save').click(function () {
+            if (!Chk_IsDate($('[name=ins_date]'))) { return false }
+        })
+
+
+        $('[name=ins_date]').change(function () {
+            Chk_IsDate($(this))
+        })
+
+        $('.widget-body a').click(function () {
+            if (!Chk_IsDate($('[name=ins_date]'))) { return false }
+            id = $(this).attr('id')
+            val = $('[name=ins_date]').val()
+            name = $(this).attr('name')
+
+            Get_Query(id, name + ".ins_date", val)
+        })
+
+        $(".date-picker").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr("autocomplete", 'off');
+
+
+        function Chk_IsDate(t) {
+            var d = t.val()
+            var bool
+            $.ajax({
+                method: 'post',
+                async: false,
+                url: '@Url.Action("Chk_IsDate", sPrgCode)',
+                data: {
+                    pDate: function () { return d; },
+                },
+                success: function (data) {
+                    if (data == "False") {
+                        $('#err').attr('style', 'display:block');
+                        t.focus()
+                        t.parents('.form-group').find('label').css({ "color": "red" })
+                        bool = false
+                    }
+                    else {
+                        $('#err').attr('style', 'display:none');
+                        t.parents('.form-group').find('label').removeAttr('style')
+                        bool = true
+                    }
+                }
+            })
+            return bool
+        }
+
+
+        function Get_Query(t, f, d) {
+            //建立查詢條件 t:作業 f:欄位 d:日期
+            let json = localStorage.getItem('query_datas_' + t)
+            let obj 
+            if (json == null) {
+                let init = [
+                    { query_type: '', query_conditions: []}
+                ]               
+                obj = init
+            } else
+            {
+                obj = JSON.parse(json)
+            }           
+
+            obj[0].query_conditions.length = 0
+            obj[0].query_conditions.push({
+                field_code: f,
+                field_operator: 'eq',
+                field_value: d
+            })
+            json = JSON.stringify(obj)
+            localStorage.setItem('query_datas_' + t, json)            
+        }
+        
+
+
+        
+    </script>
+}

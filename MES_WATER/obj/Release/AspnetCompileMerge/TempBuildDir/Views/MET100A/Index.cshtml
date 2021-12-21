@@ -1,0 +1,105 @@
+﻿@using MES_WATER.Models;
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewBag.sPrgCode ?? ViewContext.RouteData.Values["controller"].ToString();
+}
+
+
+@Html.Partial("pPrgName")
+@{
+    Func<object, HelperResult>
+        customBtnTemplate =
+        @<text>
+            @*<div class="pull-left" style="margin-left: 10px">
+                    <a id="modata2" class="btn btn-white btn-success btn-bold" role="button">
+                        <span class=''>E10同步</span>
+                 </a>
+                </div>*@
+
+            @*<div class="pull-left" style="margin-left: 10px">
+                    <div class="btn-group">
+                        <button id=sinline data-toggle="dropdown" class="btn btn-secondary btn-bold dropdown-toggle text-white" aria-expanded="false">
+                            單線
+                        </button>
+                    </div>
+                </div>
+                <div class="pull-left" style="margin-left: 10px">
+                    <div class="btn-group">
+                        <button id=mulline data-toggle="dropdown" class="btn btn-secondary btn-bold dropdown-toggle text-white" aria-expanded="false">
+                            混線
+                        </button>
+                    </div>
+                </div>*@
+
+            <p id="linecode" value="A" hidden></p>
+
+
+            <div class="col-sm-2" style="padding-left:20px">
+                <select class="form-control" id="linetype" name="linetype">
+                    <option value="A">A線</option>
+                    <option value="B">B線</option>
+                    <option value="C">C線</option>
+                    <option value="D">D線</option>
+                    <option value="E">E線</option>
+                </select>
+            </div>
+
+
+
+        </text>;
+
+    // 在抓資料時另外傳參數
+    string addPostData = ",pLineCode:()=>$('#linetype').val() ";
+
+    string sHeaderBtns = customBtnTemplate.Invoke(null).ToString();
+}
+
+@* 修改點 以下 *@
+@{
+    // 改對應的class
+    Html.RenderAction("pJqgrid_A", "jqgrid", new
+    {
+        pModelType = new MBA_E10().GetType(),
+        pPrgCode = sPrgCode,
+        pCustomHtml_header = sHeaderBtns,
+        pAddPostDataJs = addPostData,
+    });
+
+}
+@* 修改點 以上 *@
+
+@Html.Resource(@<script typeof="text/javascript">
+    jQuery(function ($) {
+
+        setInterval(function () {
+            $.ajax({
+                method: "post",
+                url: '/MET030A/Mo_PostData',
+                data: {},
+                success: function (json) {
+                    $('#grid-table').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                },
+                error: function (xhr) {
+                    alert("同步失敗")
+                },
+            })
+        }, 30 * 1000)
+
+
+        $('#linetype').on('change', function () {
+                    $('#grid-table').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+        })
+        //setInterval(function () {
+        //    //Session["usr_name"] = usr_name;
+        //    //Session["usr_code"] = usr_code;
+        //     window.location.reload();
+        //}, 300 * 1000)
+    })
+</script>
+, "js")
+

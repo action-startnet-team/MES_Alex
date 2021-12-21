@@ -1,0 +1,327 @@
+﻿@*修改點 向下*@
+@model MES_WATER.Models.ECB04_0000
+@*修改點 向上*@
+@using MES_WATER.Models;
+@using System.Data;
+
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Update";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //公用函數庫
+    Comm comm = new Comm();
+    GetModelValidation gmv = new GetModelValidation();
+
+    //公用變數
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string limit_str = comm.Get_LimitByUsrCode(User.Identity.Name, sPrgCode);
+
+    //修改點 向下//
+    // 主檔的Model名稱
+    string key = gmv.GetKey(new ECB04_0000());
+
+    // 明細的Model名稱
+    ECB04_0100 obj_D1 = new ECB04_0100();
+    List<string> DisplayNameList_D1 = gmv.Get_DisplayNames(obj_D1);
+    List<ColumnInfo> ColumnInfoList = gmv.Get_ColumnInfoList(obj_D1);
+    string key_D1 = gmv.GetKey(obj_D1);
+
+    //下拉選項的來源
+    List<DDLList> dev_code = comm.Get_DDLOption("EMB07_0000", "dev_code", "dev_name");
+    List<DDLList> sor_code = comm.Get_DDLOption("EMT05_0000", "call_code", "call_date");
+
+    // jqgrid也會用到的下拉
+    List<DDLList> chk_item_code = comm.Get_DDLOption("EMB21_0000", "chk_item_code", "chk_item_name");
+    List<DDLList> is_ok = comm.Get_DDLOption("is_ok_ECB04_0100");
+    List<DDLList> cus_code_DDL = comm.Get_DDLOption("ECB01_0000", "CUSTOMER_CODE", "CUSTOMER_NAME");
+    List<DDLList> erp_field_code_DDL = comm.Get_DDLOptionBySql("select ERP_FIELD_CODE as field_code,ERP_FIELD_NAME as field_name from ECB05_0000 where is_edit='Y'");
+    //A~AZ下拉
+    List<DDLList> excel_code_list = new List<DDLList>();
+    for (int I = 0; I <= 25; I++)
+    {
+        DDLList data = new DDLList();
+        data.field_code = Convert.ToChar(65 + I).ToString();
+        data.field_name = "";
+        data.show_type = "B";
+        excel_code_list.Add(data);
+    }
+    for (int I = 0; I <= 25; I++)
+    {
+        DDLList data = new DDLList();
+        data.field_code = "A"+Convert.ToChar(65 + I).ToString();
+        data.field_name = "";
+        data.show_type = "B";
+        excel_code_list.Add(data);
+    }
+    //修改點 向上//
+}
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-multiselect.min.css" />
+    @*<link rel="stylesheet" href="~/Content/assets/css/jquery-ui.min.css" />
+        <link rel="stylesheet" href="~/Content/assets/css/ui.jqgrid.min.css" />*@
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+
+    <link rel="stylesheet" href="~/Scripts/assets/jquery-ui-1.12.1/jquery-ui.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/ui.multiselect.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/ui.jqgrid.css" />
+}
+
+@Html.Partial("pPrgName")
+<!-- 表單 -->
+<div class="row">
+    <ul class="nav nav-tabs" id="myTab">
+        <li class="active">
+            <a data-toggle="tab" href="#home">
+                <i class="green ace-icon fa fa-home bigger-120"></i>
+                主檔
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="home" class="tab-pane fade in active">
+            @using (Html.BeginForm("Update", sPrgCode, FormMethod.Post, new { @class = "form-horizontal", id = "validation_form", role = "form" }))
+            {
+
+                <div id="errMsgSummary" class="alert alert-danger @( (ViewBag.showErrMsg ?? false ) ? "" : "hidden" )">
+                    <button type="button" class="close" data-dismiss="alert">
+                        <i class="ace-icon fa fa-times"></i>
+                    </button>
+                    <strong>
+                        <i class="ace-icon fa fa-times"></i>
+                        系統訊息!
+                    </strong>
+                    @Html.ValidationSummary("", new { @class = "text-danger" })
+                    <br />
+                </div>
+                @*修改點 向下 主檔輸入畫面編排*@
+                <div class="row">
+                    <div class="col-sm-offset-2 col-md-6">
+                        <div class="row" id="@(Model.GetType().Name)-SALES_CUSTOMER_CODE_EDITION">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "SALES_CUSTOMER_CODE_EDITION", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.SALES_CUSTOMER_CODE_EDITION, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.SALES_CUSTOMER_CODE_EDITION, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row" id="@(Model.GetType().Name)-CUSTOMER_CODE">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "CUSTOMER_CODE", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-sm-8 col-xs-7">
+                                    <select class="chosen-select" id="CUSTOMER_CODE" name="CUSTOMER_CODE">
+                                        @CustomHelper.Get_Option(cus_code_DDL, Model.CUSTOMER_CODE, true)
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.CUSTOMER_CODE, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row" id="@(Model.GetType().Name)-EDITION">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "EDITION", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.EDITION, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.EDITION, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                    </div>
+                </div>
+                @*修改點 向上 主檔輸入畫面編排*@
+                <br />
+                <div class="clearfix">
+                    <div class="col-md-offset-5 col-md-7">
+                        <input type="submit" value="儲存" class="btn btn-white btn-info btn-bold" />
+                        &nbsp;
+                        <a class="btn btn-white btn-pink btn-round" href=@Url.Action("Index", sPrgCode)>
+                            <i class="ace-icon fa fa-undo "></i>
+                            返回
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<br />
+<br />
+<!-- jqGrid begin -->
+<table id="grid-table"></table>
+<div id="grid-pager"></div>
+<!-- jqGrid end -->
+<!-- Chk_Upd_D1 Message -->
+<div id="dialog" class="alert alert-danger hidden" style="">
+</div>
+<style>
+    .FormGrid .EditTable tr:first-child {
+        display: table-row;
+    }
+
+    
+.chosen-search:after .chosen-search:before {
+        /*display:none !important;*/
+        position: relative;
+        z-index: 1010;
+        margin: 0;
+        padding: 3px 4px;
+        white-space: nowrap;
+        box-sizing: border-box;
+        display: block;
+    }
+</style>
+
+@section footer_plugin {
+    @* validate? *@
+    <script src="~/Scripts/assets/js/jquery-ui.min.js"></script>
+    <script src="~/Scripts/assets/js/wizard.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery-additional-methods.min.js"></script>
+    <script src="~/Scripts/assets/js/bootbox.js"></script>
+    <script src="~/Scripts/assets/js/jquery.maskedinput.min.js"></script>
+    <script src="~/Scripts/assets/js/select2.min.js"></script>
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="~/Scripts/assets/js/autosize.min.js"></script>
+    @* validate? *@
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.jqGrid.min.js"></script>
+    <script src="~/Scripts/assets/js/grid.locale-cn.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+}
+@section footer_script{
+}
+
+<script type="text/javascript">
+    jQuery(function ($) {
+        $(document).ready(function () {
+            $('#add_grid-table').click(function () {
+                //$('.FormElement#ctr_type').change()
+                //$('#editcntgrid-table > #ERP_FIELD_CODE').attr('style', 'chosen-select')
+                //$('#editcntgrid-table > #ERP_FIELD_CODE').attr('style', 'chosen-search')
+
+            })
+
+
+        })
+
+
+        @*修改點 向下 控制項輸入控制參考*@
+
+        //$("input[name=pur_date]").datepicker( { language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true } ).attr('autocomplete','off');
+        $("input[name=dev_check_date]").datepicker( { language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true } ).attr('autocomplete','off');
+
+        @*修改點 向上 控制項輸入控制參考*@
+
+
+        // checkbox value ( Y/N )
+        $('form').find($('input[type="checkbox"]')).each(function(){
+            // default
+            if ($(this).prop('checked')){
+                // set checked value
+                $(this).val('Y')
+            } else {
+                // set unchecked value
+                $(this).before($('<input type="hidden" value="N" name="' + $(this).attr('name') + '" />'))
+            }
+            // change state
+            $(this).change(function(){
+                if (this.checked){
+                    // set checked value and remove hidden input for unchecked value
+                    $(this).val('Y')
+                    $(this).prev('input[type="hidden"]').remove()
+                }else{
+                    // set unchecked value
+                    $(this).before($('<input type="hidden" value="N" name="' + $(this).attr('name') + '" />'))
+                }
+            })
+        })
+
+        // form validate, show error msg
+        $("#validation_form").bind("invalid-form.validate", function () {
+            $("#errMsgSummary").removeClass('hidden');
+        });
+        // prevent twice submit
+        $('#validation_form').submit(function () {
+            if ($(this).valid()) {
+                $('form input:submit').attr('disabled', 'disabled');
+            } else {
+                $('form input:submit').removeAttr('disabled')
+            }
+        });
+
+        // chosen select
+        if (!ace.vars['touch']) {
+            $('.chosen-select').chosen({ allow_single_deselect: true });
+            //resize the chosen on window resize
+
+            $(window)
+            .off('resize.chosen')
+            .on('resize.chosen', function () {
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            }).trigger('resize.chosen');
+            //resize chosen on sidebar collapse/expand
+            $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                if (event_name != 'sidebar_collapsed') return;
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            });
+
+            $('#chosen-multiple-style .btn').on('click', function (e) {
+                var target = $(this).find('input[type=radio]');
+                var which = parseInt(target.val());
+                if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                else $('#form-field-select-4').removeClass('tag-input-style');
+            });
+        }
+
+        autosize($('textarea[class*=autosize]'));
+        $(document).one('ajaxloadstart.page', function(e) {
+            autosize.destroy('textarea[class*=autosize]')
+
+            $('.limiterBox,.autosizejs').remove();
+            $('.daterangepicker.dropdown-menu,.colorpicker.dropdown-menu,.bootstrap-datetimepicker-widget.dropdown-menu').remove();
+        });
+
+    })
+</script>
+
+@* JqGrid script *@
+@{
+    //Dictionary<string, List<DDLList>> dropdowns = new Dictionary<string, List<DDLList>>();
+    Dictionary<string, List<DDLList>> dropdowns = new Dictionary<string, List<DDLList>>();
+
+    dropdowns.Add("ERP_FIELD_CODE", erp_field_code_DDL);
+    dropdowns.Add("EXCEL_CODE", excel_code_list);
+
+    Html.RenderAction("Update", "jqgrid", new
+    {
+        pModelType = new ECB04_0100().GetType(),  //model of details
+        pPrgCode = sPrgCode,
+        pForeignKey = gmv.GetKey<ECB04_0000>(),
+        pTkCode = ViewBag.pTkCode,
+        pDropDowns = dropdowns
+    });
+
+}
+
+

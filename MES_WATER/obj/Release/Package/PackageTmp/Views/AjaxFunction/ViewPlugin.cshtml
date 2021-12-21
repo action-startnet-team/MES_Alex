@@ -1,0 +1,82 @@
+﻿<link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+<link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+<link rel="stylesheet" href="/Content/assets/css/bootstrap-multiselect.min.css" />
+
+<script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+<script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+<script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+<script src="~/Scripts/assets/js/bootstrap-multiselect.min.js"></script>
+
+
+<script>
+    //所有插件類初始設定都要放在這邊，因為插件類都會最先建置
+    $(document).ready(function () {
+        $(".datepicker").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr('autocomplete', 'off');
+        Set_Chosen()
+
+
+        //多選模組
+        $('.multiselect').multiselect({
+            enableFiltering: true,
+            enableHTML: true,
+            allSelectedText: "全選",
+            nonSelectedText: "尚未選擇",
+            selectAllText: "全部勾選",
+            numberDisplayed: 10,
+            includeSelectAllOption: true,
+            maxHeight: 450,
+            buttonWidth: 300,
+            buttonClass: 'btn btn-white btn-primary',
+            templates: {
+                button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"><span class="multiselect-selected-text"></span> &nbsp;<b class="fa fa-caret-down"></b></button>',
+                ul: '<ul class="multiselect-container dropdown-menu"></ul>',
+                filter: '<li class="multiselect-item filter"><div class="input-group"><span class="input-group-addon"><i class="fa fa-search"></i></span><input class="form-control multiselect-search" type="text"></div></li>',
+                filterClearBtn: '<span class="input-group-btn"><button class="btn btn-default btn-white btn-grey multiselect-clear-filter" type="button"><i class="fa fa-times-circle red2"></i></button></span>',
+                li: '<li><a tabindex="0"><label></label></a></li>',
+                divider: '<li class="multiselect-item divider"></li>',
+                liGroup: '<li class="multiselect-item multiselect-group"><label></label></li>'
+            }
+        });
+
+
+    })
+
+    //更新chosen內容
+    function UpdateChosen(chosen_obj, value) {
+        chosen_obj.val(value)
+        chosen_obj.trigger("chosen:updated");
+    }
+
+    
+
+    //設定chosen，如果外觀跑掉，可拿來重新畫出chosen
+    function Set_Chosen() {
+        if (!ace.vars['touch']) {
+            $('.chosen-select').chosen({ allow_single_deselect: true });
+
+            $(window)
+            .off('resize.chosen')
+            .on('resize.chosen', function () {
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            }).trigger('resize.chosen');
+
+            $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                if (event_name != 'sidebar_collapsed') return;
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            });
+        }
+    }
+
+
+
+
+
+
+</script>
+

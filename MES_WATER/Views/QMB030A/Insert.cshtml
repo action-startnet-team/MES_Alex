@@ -1,0 +1,341 @@
+﻿@using MES_WATER.Models;
+@using System.Reflection;
+@using System.ComponentModel.DataAnnotations;
+@using System.ComponentModel.DataAnnotations.Schema;
+
+@*修改點 以下*@
+@model MES_WATER.Models.QMB03_0000
+@*修改點 以上*@
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Insert";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //公用函數庫
+    Comm comm = new Comm();
+    GetModelValidation gmv = new GetModelValidation();
+
+    //公用變數
+    string sPrgCode = ViewBag.prg_code;
+    string key = gmv.GetKey<QMB03_0000>(new QMB03_0000());
+
+    //修改點 向下//
+    QMB03_0000 obj = new QMB03_0000();
+
+    //取得畫面上下拉選單的選項值
+    List<DDLList> qtest_level_code_list = comm.Get_DDLOption("QMB09_0000", "qtest_level_code", "qtest_level_name");
+    List<DDLList> ins_level_code_list = comm.Get_DDLOption("QMB10_0000", "ins_level_code", "ins_level_name");
+    List<DDLList> work_code_list = comm.Get_DDLOption("MEB30_0000", "work_code", "work_name");
+    List<DDLList> epb_code_list = comm.Get_DDLOption("EPB02_0000", "epb_code", "epb_name");
+    List<DDLList> qsheet_type_list = comm.Get_DDLOption("qsheet_type");
+    List<DDLList> pro_code = comm.Get_DDLOption("MEB20_0000", "pro_code", "pro_name");
+    List<DDLList> pro_code_list = comm.Get_DDLOptionBySql(@"
+            select distinct WMT0200.pro_code as field_code, '' as field_name
+            from wmt0200
+            union
+            select distinct MEB20_0000.pro_code as field_code, MEB20_0000.pro_name as field_name
+            from MEB20_0000
+    ", "A");
+    //修改點 向上//
+}
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-multiselect.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/jquery-ui.custom.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+
+}
+
+@Html.Partial("pPrgName")
+<div class="row">
+    <ul class="nav nav-tabs" id="myTab">
+        <li class="active">
+            <a data-toggle="tab" href="#home">
+                <i class="green ace-icon fa fa-home bigger-120"></i>
+                主檔
+            </a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div id="home" class="tab-pane fade in active">
+            @using (Html.BeginForm("Insert", sPrgCode, FormMethod.Post, new { @class = "form-horizontal", id = "validation_form", role = "form" }))
+            {
+                <div id="errMsgSummary" class="alert alert-danger @( (ViewBag.showErrMsg ?? false ) ? "" : "hidden" )">
+                    <button type="button" class="close" data-dismiss="alert">
+                        <i class="ace-icon fa fa-times"></i>
+                    </button>
+                    <strong>
+                        <i class="ace-icon fa fa-times"></i>
+                        系統訊息!
+                    </strong>
+                    @Html.ValidationSummary("", new { @class = "text-danger" })
+                    <br />
+                </div>
+                @*修改點 向下 輸入畫面編排*@
+                <div class="row">
+                    <div class="col-sm-offset-2 col-md-6">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "qsheet_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.qsheet_code, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.qsheet_code, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "qsheet_name", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.qsheet_name, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.qsheet_name, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "pro_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-sm-8 col-xs-7">
+                                    <select class="chosen-select" id="pro_code" name="pro_code">
+                                        @CustomHelper.Get_Option(pro_code_list, Model.pro_code, true)
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.pro_code, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "qsheet_memo", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-6">
+                                    <div class="clearfix">
+                                        <textarea id="qsheet_memo" name="qsheet_memo" class="col-xs-12" form="validation_form">@Model.qsheet_memo</textarea>
+                                    </div>
+                                    @Html.ValidationMessageFor(model => model.qsheet_memo, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "qsheet_type", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-sm-8 col-xs-6">
+                                    <select class="chosen-select" id="qsheet_type" name="qsheet_type">
+                                        @CustomHelper.Get_Option(qsheet_type_list, Model.qsheet_type, true)
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.qsheet_type, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "version", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.version, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.version, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row work_code">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "work_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-sm-8 col-xs-6">
+                                    <select class="chosen-select" id="work_code" name="work_code">
+                                        @CustomHelper.Get_Option(work_code_list, Model.work_code, true)
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.work_code, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <div class="work_code">
+                            <br />
+                        </div>
+                        @*<div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "epb_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-sm-8 col-xs-6">
+                                        <select class="chosen-select" id="epb_code" name="epb_code">
+                                            @CustomHelper.Get_Option(epb_code_list, Model.epb_code, true)
+                                        </select>
+                                        @Html.ValidationMessageFor(model => model.epb_code, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>*@
+                    </div>
+                </div>
+                @*修改點 向上 輸入畫面編排*@
+                <br />
+                <div class="clearfix">
+                    <div class="col-md-offset-5 col-md-7">
+                        <input type="submit" value="儲存" class="btn btn-white btn-info btn-bold" />
+                        &nbsp;
+                        <a class="btn btn-white btn-pink btn-round" href=@Url.Action("Index", sPrgCode)>
+                            <i class="ace-icon fa fa-undo "></i>
+                            返回
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section footer_plugin{
+    <script src="~/Scripts/assets/js/wizard.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery-additional-methods.min.js"></script>
+    <script src="~/Scripts/assets/js/bootbox.js"></script>
+    <script src="~/Scripts/assets/js/jquery.maskedinput.min.js"></script>
+    <script src="~/Scripts/assets/js/select2.min.js"></script>
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="~/Scripts/assets/js/autosize.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+}
+@section footer_script{
+    <script type="text/javascript">
+        jQuery(function ($) {
+            @*修改點 向下 控制項輸入控制參考*@
+            $(document).ready(function(){
+                $('.work_code').hide();
+                //$('#qsheet_type_chosen').click(function(){
+                //    console.log($('#qsheet_type_chosen > a > span').text());
+                //    if($('#qsheet_type_chosen > a > span').text() =='IQC'){
+
+                //    }
+                //});
+            })
+
+            $('#qsheet_type').change(function(){
+                var qsheet_type = $(this).val();
+                if(qsheet_type == "IPQC" || qsheet_type == "FQC"){
+                    $('.work_code').show();
+                }
+                else{
+                    $('.work_code').hide();
+                }
+            })
+
+
+            // 鍵值的唯讀
+            @*$('input[name=@key]').attr('readonly', 'readonly');*@
+
+            //下拉的編號帶名稱
+            //$('#pro_code').change(function () {
+            //    $.get('Get_ProData?pProCode=' + $('#pro_code').val() + '&pType=pro_spc', function (data) {
+            //        $('#pro_spc').val(data);
+            //    });
+            //});
+
+            // 報價人 (廠商-連絡人)
+            //$("select[name=sup_code]").change(function () {
+            //    $.get("Get_SupAtn?sup_code=" + $(this).val(), function (data) {
+            //        $('select[name=inq_per]').empty()
+            //        if (data.length > 0) {
+            //            for (let i = 0 ; i < data.length ; i++) {
+            //                let inq_per = data[i].per_name + '(' + data[i].ext_no + ')'
+            //                let option = $('<option value="' + data[i].per_name + '">' + inq_per + '</option>')
+            //                $('select[name=inq_per]').append(option)
+            //            }
+            //        } else {
+            //            $('select[name=inq_per]').append($('<option value="">沒有連絡人!</option>'))
+            //        }
+            //        $('select[name=inq_per]').trigger("chosen:updated");
+
+            //    });
+            //})
+
+            // 日期的輸入控制
+            //$("input[name=inq_date]").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr('autocomplete', 'off');
+            //$("input[name=can_date]").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr('autocomplete', 'off');
+
+            @*修改點 向上 控制項輸入控制參考*@
+
+            $("#validation_form").bind("invalid-form.validate", function () {
+                $("#errMsgSummary").removeClass('hidden');
+            });
+            $('#validation_form').submit(function () {
+                if ($(this).valid()) {
+                    $('form input:submit').attr('disabled', 'disabled');
+                } else {
+                    $('form input:submit').removeAttr('disabled')
+                }
+            });
+
+            $("input[name='@key']").change(function () {
+                $.ajax({
+                    method: "post",
+                    url: '@Url.Action("Check_Data", sPrgCode)',
+                    data: { @key: function() { return $("input[name='@key']").val(); } },
+                    success: function (data) {
+                        if (data.IsSuccess) {
+                            let validator = $('#validation_form').validate();
+                            validator.showErrors(data.ModelStateErrors)
+                            $('form input:submit').attr('disabled', 'disabled');
+                        }
+                        else {
+                            $('form input:submit').removeAttr('disabled')
+                        }
+                    },
+                    error: function () {
+                        alert("error");
+                    }
+                });
+            })
+
+            autosize($('textarea[class*=autosize]'));
+            $(document).one('ajaxloadstart.page', function (e) {
+                autosize.destroy('textarea[class*=autosize]')
+
+                $('.limiterBox,.autosizejs').remove();
+                $('.daterangepicker.dropdown-menu,.colorpicker.dropdown-menu,.bootstrap-datetimepicker-widget.dropdown-menu').remove();
+            });
+
+            if (!ace.vars['touch']) {
+                $('.chosen-select').chosen({ allow_single_deselect: true });
+                //resize the chosen on window resize
+
+                $(window)
+                .off('resize.chosen')
+                .on('resize.chosen', function () {
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                }).trigger('resize.chosen');
+                //resize chosen on sidebar collapse/expand
+                $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                    if (event_name != 'sidebar_collapsed') return;
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                });
+
+                $('#chosen-multiple-style .btn').on('click', function (e) {
+                    var target = $(this).find('input[type=radio]');
+                    var which = parseInt(target.val());
+                    if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                    else $('#form-field-select-4').removeClass('tag-input-style');
+                });
+            }
+
+        })
+    </script>
+}

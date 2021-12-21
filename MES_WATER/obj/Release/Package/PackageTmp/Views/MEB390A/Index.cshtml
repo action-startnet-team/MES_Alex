@@ -1,0 +1,35 @@
+﻿
+@using MES_WATER.Models;
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewBag.sPrgCode ?? ViewContext.RouteData.Values["controller"].ToString();
+}
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-timepicker.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datetimepicker.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+
+}
+
+@Html.Partial("pPrgName")
+
+@* 修改點 以下 *@
+@{
+
+
+    // 改對應的class
+    Html.RenderAction("pJqgrid_C", "jqgrid", new
+    {
+        pMasterModelType = new MEB38_0000().GetType(),
+        pDetailModelType = new MEB37_0000().GetType(),
+        pPrgCode = sPrgCode,
+    });
+
+}
+@* 修改點 以上 *@

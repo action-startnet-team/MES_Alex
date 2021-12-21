@@ -1,0 +1,475 @@
+﻿@using MES_WATER.Models;
+@using System.Reflection;
+@using System.ComponentModel.DataAnnotations;
+@using System.ComponentModel.DataAnnotations.Schema;
+
+@*修改點 以下*@
+@model MES_WATER.Models.ECB02_0000
+@*修改點 以上*@
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Insert";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //公用函數庫
+    Comm comm = new Comm();
+    GetModelValidation gmv = new GetModelValidation();
+
+    //公用變數
+    string sPrgCode = ViewBag.prg_code;
+    string key = gmv.GetKey<ECB02_0000>(new ECB02_0000());
+
+    @*修改點 向下*@
+ECB02_0000 obj = new ECB02_0000();
+
+//取得畫面上下拉選單的選項值
+List<DDLList> cus_code_DDL = comm.Get_DDLOption("ECB01_0000", "CUSTOMER_CODE", "CUSTOMER_NAME");
+    @*修改點 向上*@
+}
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-multiselect.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/jquery-ui.custom.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+
+}
+
+@Html.Partial("pPrgName")
+<div class="row">
+    <ul class="nav nav-tabs" id="myTab">
+        <li class="active">
+            <a data-toggle="tab" href="#home">
+                <i class="green ace-icon fa fa-home bigger-120"></i>
+                主檔
+            </a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div id="home" class="tab-pane fade in active">
+            @using (Html.BeginForm("Insert", sPrgCode, FormMethod.Post, new { @class = "form-horizontal", id = "validation_form", role = "form" }))
+            {
+                <div id="errMsgSummary" class="alert alert-danger @( (ViewBag.showErrMsg ?? false ) ? "" : "hidden" )">
+                    <button type="button" class="close" data-dismiss="alert">
+                        <i class="ace-icon fa fa-times"></i>
+                    </button>
+                    <strong>
+                        <i class="ace-icon fa fa-times"></i>
+                        系統訊息!
+                    </strong>
+                    @Html.ValidationSummary("", new { @class = "text-danger" })
+                    <br />
+                </div>
+                @*修改點 向下 輸入畫面編排*@
+                <div class="row">
+                    <div class="col-sm-offset-2 col-md-6 col-xs-12 ">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "CUSTOMER_CODE_EDITION", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.CUSTOMER_CODE_EDITION, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.CUSTOMER_CODE_EDITION, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "CUSTOMER_CODE", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-sm-8 col-xs-7">
+                                    <select class="chosen-select" id="CUSTOMER_CODE" name="CUSTOMER_CODE">
+                                        @CustomHelper.Get_Option(cus_code_DDL, Model.CUSTOMER_CODE, true)
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.CUSTOMER_CODE, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "CUSTOMER_NAME", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.CUSTOMER_NAME, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.CUSTOMER_NAME, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "EDITION", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.EDITION, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.EDITION, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "ORDER_NO_MAPPING", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-sm-8 col-xs-7">
+                                    <select class="chosen-select" id="ORDER_NO_MAPPING" name="ORDER_NO_MAPPING">
+                                        <option value=''>--請選擇--</option>
+                                        @for (int i = 0; i <= 25; i++)
+                                        {
+                                            <option value='@Convert.ToChar(65 + i).ToString()'>@Convert.ToChar(65 + i).ToString()</option>
+                                        }
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.ORDER_NO_MAPPING, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "ORDER_DETAIL_NO", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-sm-8 col-xs-7">
+                                    <select class="chosen-select" id="ORDER_DETAIL_NO" name="ORDER_DETAIL_NO">
+                                        <option value=''>--請選擇--</option>
+                                        @for (int i = 0; i <= 25; i++)
+                                        {
+                                            <option value='@Convert.ToChar(65 + i).ToString()'>@Convert.ToChar(65 + i).ToString()</option>
+                                        }
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.ORDER_DETAIL_NO, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "ITEM_ID_MAPPING", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-sm-8 col-xs-7">
+                                    <select class="chosen-select" id="ITEM_ID_MAPPING" name="ITEM_ID_MAPPING">
+                                        <option value=''>--請選擇--</option>
+                                        @for (int i = 0; i <= 25; i++)
+                                        {
+                                            <option value='@Convert.ToChar(65 + i).ToString()'>@Convert.ToChar(65 + i).ToString()</option>
+                                        }
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.ITEM_ID_MAPPING, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "PACKING_QTY_MAPPING", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-sm-8 col-xs-7">
+                                    <select class="chosen-select" id="PACKING_QTY_MAPPING" name="PACKING_QTY_MAPPING">
+                                        <option value=''>--請選擇--</option>
+                                        @for (int i = 0; i <= 25; i++)
+                                        {
+                                            <option value='@Convert.ToChar(65 + i).ToString()'>@Convert.ToChar(65 + i).ToString()</option>
+                                        }
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.PACKING_QTY_MAPPING, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "NEED_DELIVERY_DATE_MAPPING", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-sm-8 col-xs-7">
+                                    <select class="chosen-select" id="NEED_DELIVERY_DATE_MAPPING" name="NEED_DELIVERY_DATE_MAPPING">
+                                        <option value=''>--請選擇--</option>
+                                        @for (int i = 0; i <= 25; i++)
+                                        {
+                                            <option value='@Convert.ToChar(65 + i).ToString()'>@Convert.ToChar(65 + i).ToString()</option>
+                                        }
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.NEED_DELIVERY_DATE_MAPPING, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "CUSTOMER_REMARK", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-sm-8 col-xs-7">
+                                    <select class="chosen-select" id="CUSTOMER_REMARK" name="CUSTOMER_REMARK">
+                                        <option value=''>--請選擇--</option>
+                                        @for (int i = 0; i <= 25; i++)
+                                        {
+                                            <option value='@Convert.ToChar(65 + i).ToString()'>@Convert.ToChar(65 + i).ToString()</option>
+                                        }
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.CUSTOMER_REMARK, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "PRODUCTION_REMARK1", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-sm-8 col-xs-7">
+                                    <select class="chosen-select" id="PRODUCTION_REMARK1" name="PRODUCTION_REMARK1">
+                                        <option value=''>--請選擇--</option>
+                                        @for (int i = 0; i <= 25; i++)
+                                        {
+                                            <option value='@Convert.ToChar(65 + i).ToString()'>@Convert.ToChar(65 + i).ToString()</option>
+                                        }
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.PRODUCTION_REMARK1, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "PRODUCTION_REMARK2", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-sm-8 col-xs-7">
+                                    <select class="chosen-select" id="PRODUCTION_REMARK2" name="PRODUCTION_REMARK2">
+                                        <option value=''>--請選擇--</option>
+                                        @for (int i = 0; i <= 25; i++)
+                                        {
+                                            <option value='@Convert.ToChar(65 + i).ToString()'>@Convert.ToChar(65 + i).ToString()</option>
+                                        }
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.PRODUCTION_REMARK2, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "SETUP_ROLE", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.SETUP_ROLE, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.SETUP_ROLE, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "SETUP_DATE2", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.SETUP_DATE2, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.SETUP_DATE2, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                    </div>
+                </div>
+
+                @*修改點 向上 輸入畫面編排*@
+                <br />
+                <div class="clearfix">
+                    <div class="col-md-offset-5 col-md-7">
+                        <input type="submit" value="儲存" class="btn btn-white btn-info btn-bold" />
+                        &nbsp;
+                        <a class="btn btn-white btn-pink btn-round" href=@Url.Action("Index", sPrgCode)>
+                            <i class="ace-icon fa fa-undo "></i>
+                            返回
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section footer_plugin{
+    <script src="~/Scripts/assets/js/wizard.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery-additional-methods.min.js"></script>
+    <script src="~/Scripts/assets/js/bootbox.js"></script>
+    <script src="~/Scripts/assets/js/jquery.maskedinput.min.js"></script>
+    <script src="~/Scripts/assets/js/select2.min.js"></script>
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="~/Scripts/assets/js/autosize.min.js"></script>
+
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+}
+@section footer_script{
+    <script type="text/javascript">
+        jQuery(function ($) {
+            @*修改點 向下 控制項輸入控制參考*@
+            @*
+            // 鍵值的唯讀
+            $('input[name=@key]').attr('readonly', 'readonly');
+
+            //下拉的編號帶名稱
+            $('#pro_code').change(function () {
+                $.get('Get_ProData?pProCode=' + $('#pro_code').val() + '&pType=pro_spc', function (data) {
+                    $('#pro_spc').val(data);
+                });
+            });
+
+            // 報價人 (廠商-連絡人)
+            $("select[name=alm_code]").change(function () {
+                $.get("Get_SupAtn?alm_code=" + $(this).val(), function (data) {
+                    $('select[name=inq_per]').empty()
+                    if (data.length > 0) {
+                        for (let i = 0 ; i < data.length ; i++) {
+                            let inq_per = data[i].per_name + '(' + data[i].ext_no + ')'
+                            let option = $('<option value="' + data[i].per_name + '">' + inq_per + '</option>')
+                            $('select[name=inq_per]').append(option)
+                        }
+                    } else {
+                        $('select[name=inq_per]').append($('<option value="">沒有連絡人!</option>'))
+                    }
+                    $('select[name=inq_per]').trigger("chosen:updated");
+
+                });
+            })
+ *@
+            // 日期的輸入控制
+            //$("input[name=SETUP_DATE]").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true}).attr('autocomplete', 'off');
+            //$("input[name=SETUP_DATE]").val("");
+            //$("input[name=can_date]").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr('autocomplete', 'off');
+
+
+            @*修改點 向上 控制項輸入控制參考*@
+
+            $('#CUSTOMER_CODE').change(function(){
+                var cus_code = $(this).val()
+                if (cus_code != ""){
+                    $.ajax({
+                        method: "post",
+                        url: '@Url.Action("GetCustomerName", sPrgCode)',
+                        data: { cus_code: cus_code, },
+                        success: function (data) {
+                            $('#CUSTOMER_NAME').val(data)
+                        },
+                        error: function () {
+                            alert("ajax-error")
+                        }
+                    })
+                }
+            })
+
+
+            $("input[name='@key']").change(function () {
+                $.ajax({
+                    method: "post",
+                    url: '@Url.Action("Check_Data", sPrgCode)',
+                    data: { @key: function() { return $("input[name='@key']").val(); } },
+                    success: function (data) {
+                        if (data.IsSuccess) {
+                            let validator = $('#validation_form').validate();
+                            validator.showErrors(data.ModelStateErrors)
+                            $('form input:submit').attr('disabled', 'disabled');
+                        }
+                        else {
+                            $('form input:submit').removeAttr('disabled')
+                        }
+                    },
+                    error: function () {
+                        alert("error");
+                    }
+                });
+            })
+
+
+            $('#upper_limit').hide();
+            $('#lower_limit').hide();
+            $('#alm_formula').hide();
+            $('#alm_type').change(function(){
+                var test =$('#alm_type :selected').text();
+                if($('#alm_type :selected').text()=="B - 公式")
+                {
+                    $('#upper_limit').hide();
+                    $('.upper_limit').val(0);
+                    $('#lower_limit').hide();
+                    $('.lower_limit').val(0);
+                    $('#alm_formula').show();
+                }
+                else{
+                    $('#upper_limit').show();
+                    $('#lower_limit').show();
+                    $('#alm_formula').hide();
+                    $('.alm_formula').val("");
+                }
+            })
+
+            $("#validation_form").bind("invalid-form.validate", function () {
+                $("#errMsgSummary").removeClass('hidden');
+            });
+            $('#validation_form').submit(function () {
+                if ($(this).valid()) {
+                    $('form input:submit').attr('disabled', 'disabled');
+                } else {
+                    $('form input:submit').removeAttr('disabled')
+                }
+            });
+
+            //$('input').change(function () {
+            //    $('#alm_table').val($('#alm_table').val().toUpperCase())
+            //    $('#alm_field').val($('#alm_field').val().toUpperCase())
+            //})
+
+            autosize($('textarea[class*=autosize]'));
+            $(document).one('ajaxloadstart.page', function (e) {
+                autosize.destroy('textarea[class*=autosize]')
+
+                $('.limiterBox,.autosizejs').remove();
+                $('.daterangepicker.dropdown-menu,.colorpicker.dropdown-menu,.bootstrap-datetimepicker-widget.dropdown-menu').remove();
+            });
+
+            if (!ace.vars['touch']) {
+                $('.chosen-select').chosen({ allow_single_deselect: true });
+                //resize the chosen on window resize
+
+                $(window)
+                .off('resize.chosen')
+                .on('resize.chosen', function () {
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                }).trigger('resize.chosen');
+                //resize chosen on sidebar collapse/expand
+                $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                    if (event_name != 'sidebar_collapsed') return;
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                });
+
+                $('#chosen-multiple-style .btn').on('click', function (e) {
+                    var target = $(this).find('input[type=radio]');
+                    var which = parseInt(target.val());
+                    if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                    else $('#form-field-select-4').removeClass('tag-input-style');
+                });
+            }
+
+        })
+    </script>
+}

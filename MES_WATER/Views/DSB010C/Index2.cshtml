@@ -1,0 +1,830 @@
+﻿@using System.Data;
+@using MES_DASHBOARD.Models;
+@using MES_DASHBOARD.Controllers;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string mac_code = ViewBag.mac_code;
+    string mac_name = ViewBag.mac_name;
+    string controllerName = ViewContext.RouteData.Values["controller"].ToString();
+
+    Comm comm = new Comm();
+    DSH010AController Control = new DSH010AController();
+}
+<style>
+    .alarm {
+        border-radius: 10px;
+        height: 50px;
+        background-color: #eee;
+        line-height: 50px;
+        text-align: center;
+        color: #eee;
+        font-size: 16px;
+    }
+
+    .alarm-header {
+        background-color: #428BCA;
+    }
+
+    .alarm-cell {
+        background-color: #6f42c1;
+    }
+
+    .alarm-error {
+        background-color: #FF3333;
+        color: aliceblue;
+        border-radius: 10px;
+        line-height: 50px;
+        height: 50px;
+    }
+
+    .alarmyaw {
+        border-radius: 10px;
+        height: 50px;
+        background-color: #eee;
+        line-height: 50px;
+        text-align: center;
+        color: #3C3C3C;
+        font-size: 16px;
+    }
+
+    .alarm-yaw {
+        background-color: #FFBF00;
+        border-radius: 10px;
+        line-height: 50px;
+        height: 50px;
+    }
+
+
+    .alarm-correct {
+        background-color: #22C32E;
+        color: aliceblue;
+        border-radius: 10px;
+        line-height: 50px;
+        height: 50px;
+    }
+
+    .alarm-caption {
+        font-size: 20px;
+        background-color: #09134d;
+    }
+
+    .block {
+        border-radius: 10px;
+        height: 100px;
+        color: #eee;
+        /*background-color: #eee;*/
+        background-color: #428BCA;
+        text-align: center;
+        line-height: 100px;
+    }
+
+    .mac_img {
+        width: 84%;
+        height: auto;
+        border-radius: 10px;
+    }
+
+
+    .block-text {
+        /*color: #5599FF;*/
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .block-state-completed {
+        background-color: #28a745;
+    }
+
+    .block-state-working {
+        background-color: #dc3545;
+    }
+
+    .work-order [class*="col-"] {
+        padding-right: 0px;
+        /*padding-left: 5px;*/
+    }
+
+    .message-board {
+        text-align: center;
+        line-height: 60px;
+        /*display: flex;
+        justify-content: center;
+        align-items: center;*/
+        background-color: grey;
+        background-clip: content-box;
+        color: #eee;
+        height: 60px;
+        font-size: 21px;
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .pause-hover:hover {
+        animation-play-state: paused;
+        -webkit-animation-play-state: paused;
+    }
+
+    .marguee-Yaxis {
+        width: 100%;
+        position: absolute;
+        /*-moz-animation: marquee 15s linear infinite;
+        -webkit-animation: marquee 15s linear infinite;*/
+        /*animation: marquee-Yaxis 3s linear infinite;*/
+        animation-delay: 2s;
+    }
+
+    .marguee-Xaxis {
+        position: absolute;
+        display: flex;
+        width: 100%;
+    }
+
+        .marguee-Xaxis div {
+            flex-shrink: 0;
+            width: 100%;
+        }
+
+    .marguee-Xaxis {
+        /*-moz-animation: marquee 15s linear infinite;
+        -webkit-animation: marquee 15s linear infinite;*/
+        animation: marquee-Xaxis 15s linear infinite;
+        animation-delay: 2s;
+    }
+
+    /* Move it (define the animation) */
+    /*@@-moz-keyframes marquee {
+        0%   { left: 100%; }
+        100% { left: 0%; -moz-transform: translateX(-100%); }
+    }
+    @@-webkit-keyframes marquee {
+        0%   { left: 100%; }
+        100% { left: 0%; -webkit-transform: translateX(-100%); }
+    }*/
+    @@keyframes marquee-Yaxis {
+        0% {
+            /*bottom: 100%;*/
+            /* Firefox bug fix */
+            /*-moz-transform: translateY(0%);
+            -webkit-transform: translateY(0%);*/
+            transform: translateY(0%);
+        }
+
+        100% {
+            /*bottom: 0%;*/
+            transform: translateY(-50%); /* 實際整個元素的長度是畫面的兩倍 */
+        }
+    }
+
+    @@keyframes marquee-Xaxis {
+        0% {
+            /*bottom: 100%;*/
+            /* Firefox bug fix */
+            /*-moz-transform: translateY(0%);
+            -webkit-transform: translateY(0%);*/
+            transform: translateX(0%);
+        }
+
+        100% {
+            /*bottom: 0%;*/
+            transform: translateX(-100%); /* 畫面的元素寬度 */
+        }
+    }
+</style>
+
+
+<div class="row">
+    <div class="col-xs-12">
+        <div class="row">
+            @*第一線*@
+            <div class="col-xs-6">
+                <div class="row">
+                    <div class="work-order-header">
+                        <h2>第一線</h2>
+                    </div>
+                </div>
+                <br />
+                @*表頭*@
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-header">
+                            工單號碼
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="alarm alarm-header">
+                            產品名稱
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-header">
+                            預計產量
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-header">
+                            實際產量
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-header">
+                            工單狀態
+                        </div>
+                    </div>
+                </div>
+                <br />
+                @*表身*@
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            M100002
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="alarm alarm-cell">
+                            多喝水-2000ML
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            500
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            500
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-correct ">
+                            完成
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            M100001
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="alarm alarm-cell">
+                            多喝水-2000ML
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            1900
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            1900
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-correct ">
+                            完成
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            M100002
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="alarm alarm-cell">
+                            多喝水-2000ML
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            1200
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            1200
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-correct ">
+                            完成
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            M100003
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="alarm alarm-cell">
+                            多喝水-2000ML
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            2300
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            2300
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-correct ">
+                            完成
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            M100004
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="alarm alarm-cell">
+                            多喝水-2000ML
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            800
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            500
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-error ">
+                            異常
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            M100005
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="alarm alarm-cell">
+                            多喝水-2000ML
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            1600
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            0
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarmyaw alarm-yaw ">
+                            未開始
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            M100006
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="alarm alarm-cell">
+                            多喝水-2000ML
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            1500
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            0
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarmyaw alarm-yaw ">
+                            未開始
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @*第二線*@
+            <div class="col-xs-6">
+                <div class="row">
+                    <div class="work-order-header">
+                        <h2>第二線</h2>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-header">
+                            工單號碼
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="alarm alarm-header">
+                            產品名稱
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-header">
+                            預計產量
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-header">
+                            狀態
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-header">
+                            工單狀態
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            M200002
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="alarm alarm-cell">
+                            多喝水-2000ML
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            1200
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            1200
+                        </div>
+                    </div>
+
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-correct  ">
+                            完成
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            M200001
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="alarm alarm-cell">
+                            多喝水-2000ML
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            5900
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            5900
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-correct ">
+                            完成
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            M200002
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="alarm alarm-cell">
+                            多喝水-2000ML
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            700
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            700
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-correct ">
+                            完成
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            M200003
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="alarm alarm-cell">
+                            多喝水-2000ML
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            5200
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            5200
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-correct   ">
+                            完成
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            M200004
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="alarm alarm-cell">
+                            多喝水-2000ML
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            200
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            200
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-correct ">
+                            完成
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            M200005
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="alarm alarm-cell">
+                            多喝水-2000ML
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            2300
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            1000
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-error  ">
+                            異常
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row">
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            M200006
+                        </div>
+                    </div>
+                    <div class="col-sm-4">
+                        <div class="alarm alarm-cell">
+                            多喝水-2000ML
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            1500
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarm alarm-cell">
+                            0
+                        </div>
+                    </div>
+                    <div class="col-sm-2">
+                        <div class="alarmyaw alarm-yaw ">
+                            未開始
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<br />
+<footer>
+    <div class="row">
+        <div class="col-sm-12 message-board message-board">
+            <div class="marguee-Xaxis pause-hover">
+                <div>公告訊息跑馬燈</div>
+                <div>公告訊息跑馬燈</div>
+            </div>
+        </div>
+    </div>
+    <div class="space-6"></div>
+    <div class="row">
+        <div class="col-sm-12 message-board">
+            <div class="marguee-Yaxis pause-hover">
+                <div>工單資訊</div>
+                <div>工單資訊</div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+
+
+<script type="text/javascript" src="~/Scripts/assets/echarts/echarts.min.js"></script>
+
+<script type="text/javascript">
+
+
+
+
+    //And for the first simple table, which doesn't have TableTools or dataTables
+    //select/deselect all rows according to table header checkbox
+    var active_class = 'active';
+    $('#simple-table > thead > tr > th input[type=checkbox]').eq(0).on('click', function () {
+        var th_checked = this.checked;//checkbox inside "TH" table header
+
+        $(this).closest('table').find('tbody > tr').each(function () {
+            var row = this;
+            if (th_checked) $(row).addClass(active_class).find('input[type=checkbox]').eq(0).prop('checked', true);
+            else $(row).removeClass(active_class).find('input[type=checkbox]').eq(0).prop('checked', false);
+        });
+    });
+
+    //select/deselect a row when the checkbox is checked/unchecked
+    $('#simple-table').on('click', 'td input[type=checkbox]', function () {
+        var $row = $(this).closest('tr');
+        if ($row.is('.detail-row ')) return;
+        if (this.checked) $row.addClass(active_class);
+        else $row.removeClass(active_class);
+    });
+
+    // 初始化
+
+    function Get_DSB01_0000() {
+        $.ajax({
+            method: "get",
+            url: "@Url.Action("Get_DSB01_0000", controllerName)",
+            data: { mac_code: "@mac_code" },
+            success: function (data) {
+                $('#utilization_rate').find('span').text(data.utilization_rate + "%");
+                $('#capacity_efficiency').find('span').text(data.capacity_efficiency + "%");
+                $('#yield').find('span').text(data.yield + "%");
+                $('#OEE').find('span').text(data.OEE + "%");
+                $('#TodayCount').find('span').eq(0).text(data.all_qty);
+            },
+            error: function (xhr) {
+                console.log("Ajax Error: " + xhr.status + ": " + xhr.statusText);
+            },
+        })
+    }
+
+    function Get_ErrorState() {
+        @for (int i = 0; i < Control.Get_ExtremeMemory().Split(',').Length; i++) {
+            string sExMemo = Control.Get_ExtremeMemory().Split(',')[i];
+            <text>
+        @*$.ajax({
+                    method: "post",
+                    url: "@Url.Action("Get_ErrorState", controllerName)",
+                    data: {
+                        mac_code: "@mac_code",
+                        para_code: "@sExMemo",
+                    },
+                    success: function (data) {
+                        switch (data) {
+                            case "1":
+                                $('#th_@sExMemo').addClass('alarm-error')
+                                break;
+                            case "a":
+                                $('#th_@sExMemo').find('span').html("<span class='badge' style='background: lightgreen'>1</span>")
+                                break;
+                            case "b":
+                                $('#th_@sExMemo').find('span').html("<span class='badge'>0</span>")
+                                break;
+                            default:
+                                $('#th_@sExMemo').attr('class', 'alarm')
+                                break;
+
+                        }
+                    },
+                })*@
+        //$('#th_M1009').addClass('alarm-error')
+
+        </text>
+        }
+    }
+
+    // 預設停機狀態
+    function Get_LightState() {
+        @*$.ajax({
+                method: "get",
+                url: "@Url.Action("Get_LightState", controllerName)",
+            data: { pTkCode: "@mac_code" },
+            success: function (data) {
+                switch (data) {
+            case "red":
+                $("#LightState").css('background-color', 'red');
+                $("#LightState").text("異常")
+                break;
+            case "yellow":
+                $("#LightState").css('background-color', '#ffc107');
+                $("#LightState").text("停機")
+                break;
+            case "green":
+                $("#LightState").css('background', '#00DD00');
+                $("#LightState").text("運作中")
+                break;
+            default:
+                $("#LightState").css('background-color', '#ffc107');
+                $("#LightState").text("停機")
+                    break;
+                }
+
+        },
+        error: function (xhr) {
+            console.log("Ajax Error: " + xhr.status + ": " + xhr.statusText);
+            },
+        })*@
+        // tmp
+        $("#LightState").css('background-color', '#ffc107');
+        $("#LightState").text("停機")
+    }
+
+    @*function Get_TodayCount() {
+        $.ajax({
+            method: "get",
+            url: "@Url.Action("Get_TodayCount", controllerName)",
+            data: { pTkCode: "@mac_code" },
+        success: function (data) {
+            $('#TodayCount').find('span').eq(0).text(data);
+        },
+        error: function (xhr) {
+            console.log("Ajax Error: " + xhr.status + ": " + xhr.statusText);
+        },
+        })
+    }*@
+
+
+</script>
+
+
+

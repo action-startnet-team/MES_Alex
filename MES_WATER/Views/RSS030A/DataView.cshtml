@@ -1,0 +1,444 @@
+﻿@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@{
+    ViewBag.Title = "Title";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string sAction = ViewContext.RouteData.Values["action"].ToString();
+
+    RSS030AController CT = new RSS030AController();
+    Comm comm = new Comm();
+    GetData GD = new GetData();
+    Review RV = new Review();
+
+    string pubFieldTable = CT.epbTable;
+    string pubPKCode = CT.epbPKCode();
+
+    //報表代號
+    string sReport = ViewBag.Key;
+
+    //表單代號
+    string Key = GD.Get_Data("RSS02_0000", sReport, "report_code", "epb_code");
+
+}
+<link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+
+@Html.Partial("pPrgName")
+
+<form id="validation-form" method="post" action="@Url.Action(sAction, sPrgCode)" class="form-horizontal" role="form">
+
+    <div class="row">
+
+        <div>
+            <label class="col-sm-2 control-label no-padding-right">
+                報表代號
+            </label>
+            <div class="col-sm-2">
+                <input type="text" class="check col-sm-12" id="report_code" name="report_code" value="@sReport" readonly />
+            </div>
+            <label class="col-sm-1 control-label no-padding-right">
+                報表名稱
+            </label>
+            <div class="col-sm-2">
+                <input type="text" class="check col-sm-12" id="report_name" name="report_name" value="@GD.Get_Data("RSS02_0000",sReport,"report_code","report_name")" readonly />
+            </div>
+        </div>
+
+        <br />
+        <br />
+        <br />
+
+        <div style="clear:both"></div>
+
+        <div>
+            <label class="col-sm-2 control-label no-padding-right">
+                表單代號
+            </label>
+            <div class="col-sm-2">
+                <input type="text" class="check col-sm-12" id="epb_code" name="epb_code" value="@Key" readonly />
+            </div>
+            <label class="col-sm-1 control-label no-padding-right">
+                表單名稱
+            </label>
+            <div class="col-sm-2">
+                <input type="text" class="check col-sm-12" id="epb_name" name="epb_name" value="@GD.Get_Data("EPB02_0000",Key,"epb_code","epb_name")" readonly />
+            </div>
+            <a class="btn btn-white btn-danger btn-round" id="back" href="/@sPrgCode/index">
+                <i class="ace-icon fa fa-undo "></i>
+                返回
+            </a>
+        </div>
+
+        <div class="col-xs-12">
+            <div class="clearfix">
+
+                @if (comm.Get_QueryData("RSS02_0000", sReport, "report_code", "report_type") == "A" && RV.Chk_UsrEpbLimit(User.Identity.Name, Key, "P"))
+                {
+                    <a class="btn btn-white btn-info btn-round" id="submit">
+                        <i class='fa fa-share bigger-120'></i>
+                        選擇資料匯出
+                    </a>
+                }
+
+
+
+                <div class="pull-right tableTools-container">
+                </div>
+            </div>
+            <!-- table begin -->
+            <div>
+                <table id="dynamic-table" class="table table-striped table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            @if (comm.Get_QueryData("RSS02_0000", sReport, "report_code", "report_type") == "A" && RV.Chk_UsrEpbLimit(User.Identity.Name, Key, "P"))
+                            {
+                                <th class="center">
+                                    <label class="pos-rel">
+                                        <input type="checkbox" class="ace input-lg" />
+                                        <span class="lbl bigger-120"></span>
+                                    </label>
+                                </th>
+                            }
+
+
+                            @for (int i = 0; i < CT.Get_EpbField(Key).Split(',').Length; i++)
+                            {
+                                string sFieldKey = CT.Get_EpbField(Key).Split(',')[i];
+
+                                if (GD.Get_Data(pubFieldTable, sFieldKey, pubPKCode, "is_key") == "Y")
+                                {
+                                    if (comm.Get_QueryData("RSS02_0000", sReport, "report_code", "report_type") == "B" && RV.Chk_UsrEpbLimit(User.Identity.Name, Key, "P"))
+                                    {
+                                        <th style="text-align: center">單筆匯出</th>
+                                    }
+                                }
+                                else
+                                {
+                                    <th>@GD.Get_Data(pubFieldTable, sFieldKey, pubPKCode, "field_name")</th>
+                                }
+                            }
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (CT.Get_DataValue(Key) != "")
+                        {
+                            for (int i = 0; i < CT.Get_DataValue(Key).Split(',').Length; i++)
+                            {
+                                string sKeyValue = CT.Get_DataValue(Key).Split(',')[i];
+                                <tr>
+                                    @if (comm.Get_QueryData("RSS02_0000", sReport, "report_code", "report_type") == "A" && RV.Chk_UsrEpbLimit(User.Identity.Name, Key, "P"))
+                                    {
+                                        <td class="center">
+                                            <label class="pos-rel">
+                                                <input type="checkbox" class="ace input-lg" name="checkbox" value="@sKeyValue" />
+                                                <span class="lbl bigger-120"></span>
+                                            </label>
+                                        </td>
+                                    }
+
+                                    @for (int u = 0; u < CT.Get_EpbField(Key).Split(',').Length; u++)
+                                    {
+                                        string sFieldKey = CT.Get_EpbField(Key).Split(',')[u];
+                                        string sFieldCode = GD.Get_Data(pubFieldTable, sFieldKey, pubPKCode, "field_code");
+                                        string sValue = CT.Get_FieldValue(Key, sFieldCode, sKeyValue);
+
+                                        //匯出是用識別碼
+                                        if (GD.Get_Data(pubFieldTable, sFieldKey, pubPKCode, "is_key") == "Y")
+                                        {
+                                            if (comm.Get_QueryData("RSS02_0000", sReport, "report_code", "report_type") == "B" && RV.Chk_UsrEpbLimit(User.Identity.Name, Key, "P"))
+                                            {
+                                                <td style="text-align: center">
+                                                    <a id="@sValue" class="Export" href="/Export/Export_EPB?pRptCode=@sReport&pValueArray=@sValue"><i class='fa fa-file-excel-o bigger-150 green'></i></a>
+                                                </td>
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <td>@sValue</td>
+                                        }
+                                    }
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <!-- table end -->
+        </div> <!-- end fo col -->
+    </div>  <!-- end of row -->
+</form>
+
+@section footer_plugin{
+    <script src="~/Scripts/assets/js/jquery.dataTables.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.dataTables.bootstrap.min.js"></script>
+    <script src="~/Scripts/assets/js/dataTables.buttons.min.js"></script>
+    <script src="~/Scripts/assets/js/buttons.flash.min.js"></script>
+    <script src="~/Scripts/assets/js/dataTables.select.min.js"></script>
+    <script src="~/Scripts/assets/js/buttons.html5.min.js"></script>
+    <script src="~/Scripts/assets/js/buttons.colVis.min.js"></script>
+    <script src="~/Scripts/assets/js/jszip.min.js"></script>
+    <script src="~/Scripts/assets/js/buttons.print.min.js"></script>
+}
+
+@section footer_script{
+    <script type="text/javascript">
+        jQuery(function ($) {
+
+            $(document).ready(function () {
+                //$(':search').html();
+            })
+
+            $(document).on('click', '.Export', function () {
+                if (Chk_Source($('#report_code').val()) == false) { return false }
+            })
+
+            $(document).on('click', '#submit', function () {
+                if (Chk_Source($('#report_code').val()) == false) { return false }
+                $('form').submit()
+            })
+
+            function Chk_Source(r) {
+                var bool = true
+                $.ajax({
+                    method: "post",
+                    async: false,
+                    url: '@Url.Action("Chk_Source", sPrgCode)',
+                    data: {
+                        R: function () { return r; },
+                    },
+                    success: function (data) {
+                        if (data != "") {
+                            alert(data)
+                            bool = false
+                        }
+                    }
+                })
+                return bool
+            }
+
+
+
+
+            //initiate dataTables plugin
+            var myTable =
+            $('#dynamic-table')
+            .DataTable({
+                bAutoWidth: true,
+                "bStateSave": true,
+                // deferLoading: 0, //初始化DataTable時，不發出ajax
+                "pagingType": "full_numbers",
+                "deferRender": true,
+                order: [[0, "asc"]],
+                orderMulti: false,
+                select: {
+                    style: 'multi'
+                },
+                language: {
+                    url: "/Content/assets/Chinese-traditional.json"
+                },
+                initComplete: function () {
+                    // Setup - add a text input to each footer cell
+                    $('#dynamic-table thead tr').clone(false).appendTo('#dynamic-table thead');
+                    let colunm_length = $('#dynamic-table thead tr:eq(0) > th').length;
+                    $('#dynamic-table thead tr:eq(1) th').each(function (i) {
+                        //最後一欄不查詢
+                        if (i == colunm_length) {
+                            return false;
+                        }
+
+                        // 移除排序箭頭
+                        $(this).removeClass('sorting')
+                        $(this).removeClass('sorting_asc')
+                        $(this).removeClass('sorting_desc')
+
+                        var title = $(this).text();
+                        $(this).html('<input type="text" placeholder="' + title + '" aria-controls="dynamic-table" />');
+                        $('input', this).css('width', '90%')
+                        $('input', this).on('keyup change', function () {
+                            if (myTable.column(i).search() !== this.value) {
+                                myTable
+                                    .column(i)
+                                    .search(this.value)
+                                    .draw();
+                            }
+                        });
+
+                    });
+                    //Restore state
+                    var state = myTable.state.loaded();
+                    if (state) {
+                        myTable.columns().eq(0).each(function (colIdx) {
+                            var colSearch = state.columns[colIdx].search;
+                            if (colSearch.search) {
+                                //$('input', myTable.column(colIdx).footer()).val(colSearch.search);
+                                $('input', $('#dynamic-table thead tr:eq(1) th').eq(colIdx)).val(colSearch.search);
+                            }
+                        });
+                        //myTable.draw();
+                    }
+
+                },
+                orderCellsTop: true,
+                fixedHeader: true
+
+
+            })
+
+            $.fn.dataTable.Buttons.defaults.dom.container.className = 'dt-buttons btn-overlap btn-group btn-overlap';
+
+            new $.fn.dataTable.Buttons(myTable, {
+                buttons: [
+                  {
+                      "extend": "colvis",
+                      "text": "<i class='fa fa-search bigger-110 blue'></i> <span class='hidden'>展示 / 隱藏欄位</span>",
+                      "className": "btn btn-white btn-primary btn-bold",
+                      //columns: ':not():not(:last)'
+                      //columns: ':not(:first):not(:last)'
+                  },
+                  {
+                      "extend": "copy",
+                      "text": "<i class='fa fa-copy bigger-110 pink'></i> <span class='hidden'>複製到剪貼簿</span>",
+                      "className": "btn btn-white btn-primary btn-bold"
+                  },
+                  @if (RV.Chk_UsrEpbLimit(User.Identity.Name, Key, "E")) {
+                      <text>
+                        {
+                            "extend": "csv",
+                            "text": "<i class='fa fa-database bigger-110 orange'></i> <span class='hidden'>匯出CSV</span>",
+                            "className": "btn btn-white btn-primary btn-bold",
+                            exportOptions: {
+                                columns: "thead th:not(.noExport)"
+                            }
+                        },
+                        {
+                            "extend": "excel",
+                            "text": "<i class='fa fa-file-excel-o bigger-110 green'></i> <span class='hidden'>匯出Excel</span>",
+                            "className": "btn btn-white btn-primary btn-bold",
+                            exportOptions: {
+                                columns: "thead th:not(.noExport)"
+                            }
+                        },
+                          </text>
+                    }
+                    {
+                        "extend": "pdf",
+                        "text": "<i class='fa fa-file-pdf-o bigger-110 red'></i> <span class='hidden'>Export to PDF</span>",
+                        "className": "btn btn-white btn-primary btn-bold"
+                    },
+                   {
+                       "extend": "print",
+                       "text": "<i class='fa fa-print bigger-110 grey'></i> <span class='hidden'>列印</span>",
+                       "className": "btn btn-white btn-primary btn-bold",
+
+                       autoPrint: false,
+                       //message: 'This print was produced using the Print button for DataTables'
+                       message: '此列印由此資料表產生',
+                       exportOptions: {
+                           columns: "thead th:not(.noExport)"
+                       }
+                   }
+                ]
+            });
+            myTable.buttons().container().appendTo($('.tableTools-container'));
+
+            //style the message box
+            var defaultCopyAction = myTable.button(1).action();
+            myTable.button(1).action(function (e, dt, button, config) {
+                defaultCopyAction(e, dt, button, config);
+                $('.dt-button-info').addClass('gritter-item-wrapper gritter-info gritter-center white');
+            });
+
+
+            var defaultColvisAction = myTable.button(0).action();
+            myTable.button(0).action(function (e, dt, button, config) {
+                defaultColvisAction(e, dt, button, config);
+                if ($('.dt-button-collection > .dropdown-menu').length == 0) {
+                    $('.dt-button-collection')
+                    .wrapInner('<ul class="dropdown-menu dropdown-light dropdown-caret dropdown-caret" />')
+                    .find('a').attr('href', '#').wrap("<li />")
+                }
+                $('.dt-button-collection').appendTo('.tableTools-container .dt-buttons')
+
+            });
+            ////
+            setTimeout(function () {
+                $($('.tableTools-container')).find('a.dt-button').each(function () {
+                    var div = $(this).find(' > div').first();
+                    if (div.length == 1) div.tooltip({ container: 'body', title: div.parent().text() });
+                    else $(this).tooltip({ container: 'body', title: $(this).text() });
+                });
+            }, 500);
+
+            myTable.on('select', function (e, dt, type, index) {
+                if (type === 'row') {
+                    $(myTable.row(index).node()).find('input:checkbox').prop('checked', true);
+                }
+            });
+            myTable.on('deselect', function (e, dt, type, index) {
+                if (type === 'row') {
+                    $(myTable.row(index).node()).find('input:checkbox').prop('checked', false);
+                }
+            });
+
+            /////////////////////////////////
+            //table checkboxes
+            $('th input[type=checkbox], td input[type=checkbox]').prop('checked', false);
+
+            //select/deselect all rows according to table header checkbox
+            $('#dynamic-table > thead > tr > th input[type=checkbox], #dynamic-table_wrapper input[type=checkbox]').eq(0).on('click', function () {
+                var th_checked = this.checked;//checkbox inside "TH" table header
+
+                $('#dynamic-table').find('tbody > tr').each(function () {
+                    var row = this;
+                    if (th_checked) myTable.row(row).select();
+                    else myTable.row(row).deselect();
+                });
+            });
+
+            //select/deselect a row when the checkbox is checked/unchecked
+            $('#dynamic-table').on('click', 'td input[type=checkbox]', function () {
+                var row = $(this).closest('tr').get(0);
+                if (this.checked) myTable.row(row).deselect();
+                else myTable.row(row).select();
+            });
+
+            $(document).on('click', '#dynamic-table .dropdown-toggle', function (e) {
+                e.stopImmediatePropagation();
+                e.stopPropagation();
+                e.preventDefault();
+            });
+
+            /********************************/
+            //add tooltip for small view action buttons in dropdown menu
+            $('[data-rel="tooltip"]').tooltip({ placement: tooltip_placement });
+
+            //tooltip placement on right or left
+            function tooltip_placement(context, source) {
+                var $source = $(source);
+                var $parent = $source.closest('table')
+                var off1 = $parent.offset();
+                var w1 = $parent.width();
+
+                var off2 = $source.offset();
+                //var w2 = $source.width();
+
+                if (parseInt(off2.left) < parseInt(off1.left) + parseInt(w1 / 2)) return 'right';
+                return 'left';
+            }
+            /***************/
+            $('.show-details-btn').on('click', function (e) {
+                e.preventDefault();
+                $(this).closest('tr').next().toggleClass('open');
+                $(this).find(ace.vars['.icon']).toggleClass('fa-angle-double-down').toggleClass('fa-angle-double-up');
+            });
+            /***************/
+
+            $(document).on('click', '.dt-button', function () {
+                $('#dynamic-table').width("98%");
+            })
+
+
+        })
+    </script>
+}

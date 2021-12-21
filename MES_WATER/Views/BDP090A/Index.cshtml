@@ -1,0 +1,287 @@
+﻿@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string sAction = ViewContext.RouteData.Values["action"].ToString();
+
+    Comm comm = new Comm();
+    DynamicTable DT = new DynamicTable();
+    GetData GD = new GetData();
+    Review RV = new Review();
+    BDP090AController CT = new BDP090AController();
+
+    string sUserArray = CT.Get_User();
+
+}
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+
+}
+<link rel="stylesheet" href="/Content/assets/css/bootstrap-multiselect.min.css" />
+
+@Html.Partial("pPrgName")
+
+<form id="validation-form" method="post" action="@Url.Action(sAction, sPrgCode)" class="form-horizontal" role="form">
+
+    <div class="form-group">
+        <label class="col-sm-3 control-label no-padding-right" for="form-field-1">
+            使用者編號
+        </label>
+        <div class="col-sm-3">
+            <select class="chosen-select" id="usr_code" name="usr_code">
+                <option value="">--請選擇--</option>
+                @if (sUserArray != "")
+                {
+                    for (int i = 0; i < sUserArray.Split(',').Length; i++)
+                    {
+                        string sUsrCode = sUserArray.Split(',')[i].Split('|')[0];
+                        string sUsrName = sUserArray.Split(',')[i].Split('|')[1];
+
+                        <option value="@sUsrCode">@sUsrCode - @sUsrName</option>
+                    }
+                }
+            </select>
+        </div>
+    </div>
+    <div style="clear:both"></div>
+
+    <div class="col-lg-offset-4">
+        <button class="btn btn-white btn-info btn-round" name="" id="save" value="">
+            儲存
+        </button>
+    </div>
+    <div style="clear:both"></div>
+    <hr />
+
+    <div class="row">
+        <div class="col-xs-12">
+            <table id="simple-table" class="table  table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>電子表單代號</th>
+                        <th>電子表單名稱</th>
+                        <th>
+                        是否使用
+                            <label>
+                                <input id="TopEpbCheckBox" name="switch-field-1" class="ace ace-switch ace-switch-6" type="checkbox">
+                                <span class="lbl"></span>
+                            </label>
+                        </th>
+                        <th>
+                            權限字串
+                            <button class="btn btn-white btn-default" id="multi_change" type="button">(全選/全不選)</button>
+                        </th>
+                    </tr>
+                </thead>
+
+
+                <tbody>
+                    @if (CT.Get_EPBCode() != "")
+                    {
+                        for (int i = 0; i < CT.Get_EPBCode().Split(',').Length; i++)
+                        {
+                            string sEpbCode = CT.Get_EPBCode().Split(',')[i];
+                            string sEpbName = comm.Get_QueryData("EPB02_0000", sEpbCode, "epb_code", "epb_name");
+                            <tr>
+                                <td>@sEpbCode</td>
+                                <td>@sEpbName</td>
+                                <td>
+                                    <label>
+                                        <input id="@sEpbCode" name="is_use_@sEpbCode" class="ace ace-switch ace-switch-6 EpbCheckBox" type="checkbox">
+                                        <span class="lbl"></span>
+                                    </label>
+                                </td>
+                                <td>
+                                    <div class="col-sm-3">
+                                        <div class="clearfix">
+                                            <select type="text" id="@sEpbCode" name="limit_str_@sEpbCode" placeholder="" class="multiselect" multiple="">
+                                                <option value="A">A-新增</option>
+                                                <option value="M">M-修改</option>
+                                                <option value="D">D-刪除</option>
+                                                <option value="E">E-匯出</option>
+                                                <option value="P">P-印表</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+
+
+                </tbody>
+            </table>
+        </div><!-- /.span -->
+    </div>
+
+</form>
+
+
+@section footer_plugin{
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="/Scripts/assets/js/bootstrap-multiselect.min.js"></script>
+}
+
+
+@section footer_script{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            @if (!string.IsNullOrEmpty(ViewBag.UsrCode)) {
+                <text>
+            $('#usr_code').val('@ViewBag.UsrCode')
+            $('#usr_code').trigger("chosen:updated");
+            $('#usr_code').change()
+            </text>
+            }
+        })
+
+        $('#save').click(function () {
+            if (!confirm("是否確定要儲存")) { return false }
+            $(this).attr('disabled', 'disabled')
+            $('form').submit()
+        })
+
+        $('#usr_code').change(function () {
+            Clear()
+            Get_UsrLimit()
+            Get_UsrIsOk()
+        })
+
+
+
+        $('#TopEpbCheckBox').click(function () {
+            if ($(this).is(':checked')) {
+                $('.EpbCheckBox').prop('checked', true)
+            } else {
+                $('.EpbCheckBox').prop('checked', false)
+            }
+        })
+
+        var multi = true
+        $('#multi_change').click(function () {
+            if (multi) {
+                multi = false
+                $('select.multiselect').multiselect('selectAll', false)
+            } else {
+                multi = true
+                $('select.multiselect').multiselect('deselectAll', false)
+            }
+            $('select.multiselect').multiselect('updateButtonText')
+        })
+
+
+        function Clear() {
+            $('.EpbCheckBox').prop('checked', false)
+            $('select.multiselect').multiselect('deselectAll', false)
+            $('select.multiselect').multiselect('updateButtonText')
+        }
+
+
+
+        function Get_UsrLimit() {
+            $.ajax({
+                method: 'post',
+                async: false,
+                url: '@Url.Action("Get_UsrLimit", sPrgCode)',
+                data: {
+                    pUsrCode: function () { return $('#usr_code').val(); },
+                },
+                success: function (data) {
+                    if (data != "") {                       
+                        for (let i = 0; i < data.split('/').length; i++) {                            
+                            var epbcode = data.split('/')[i].split('|')[0]
+                            var limitstr = data.split('/')[i].split('|')[1]
+                            var limit_list = []
+                           
+                            for (let u = 0; u < limitstr.split(',').length; u++) {                                
+                                limit_list.push(limitstr.split(',')[u])
+                            }
+                            $('#' + epbcode + ".multiselect").multiselect('select', limit_list)
+                            $('select.multiselect').multiselect('updateButtonText')
+                        }
+                    }                                       
+                }
+            })
+        }
+
+        function Get_UsrIsOk() {
+            $.ajax({
+                method: 'post',
+                async: false,
+                url: '@Url.Action("Get_UsrIsOk", sPrgCode)',
+                data: {
+                    pUsrCode: function () { return $('#usr_code').val(); },
+                },
+                success: function (data) {
+                    if (data != "") {
+                        for (let i = 0; i < data.split(',').length; i++) {
+                            var epbcode = data.split(',')[i].split('|')[0]
+                            var is_ok = data.split(',')[i].split('|')[1]
+                            if (is_ok == "Y") {
+                                $('#' + epbcode + '.EpbCheckBox').prop('checked', true)
+                            }                           
+                        }
+                    }
+                }
+            })
+        }
+
+
+        if (!ace.vars['touch']) {
+            $('.chosen-select').chosen({ allow_single_deselect: true });
+            //resize the chosen on window resize
+
+            $(window)
+            .off('resize.chosen')
+            .on('resize.chosen', function () {
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            }).trigger('resize.chosen');
+            //resize chosen on sidebar collapse/expand
+            $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                if (event_name != 'sidebar_collapsed') return;
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            });
+
+            $('#chosen-multiple-style .btn').on('click', function (e) {
+                var target = $(this).find('input[type=radio]');
+                var which = parseInt(target.val());
+                if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                else $('#form-field-select-4').removeClass('tag-input-style');
+            });
+        }
+
+
+        $('.multiselect').multiselect({
+            enableFiltering: true,
+            enableHTML: true,
+            allSelectedText: "全選",
+            numberDisplayed: 10,
+            includeSelectAllOption: true,
+            maxHeight: 450,
+            buttonWidth: 300,
+            buttonClass: 'btn btn-white btn-primary',
+            templates: {
+                button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"><span class="multiselect-selected-text"></span> &nbsp;<b class="fa fa-caret-down"></b></button>',
+                ul: '<ul class="multiselect-container dropdown-menu"></ul>',
+                filter: '<li class="multiselect-item filter"><div class="input-group"><span class="input-group-addon"><i class="fa fa-search"></i></span><input class="form-control multiselect-search" type="text"></div></li>',
+                filterClearBtn: '<span class="input-group-btn"><button class="btn btn-default btn-white btn-grey multiselect-clear-filter" type="button"><i class="fa fa-times-circle red2"></i></button></span>',
+                li: '<li><a tabindex="0"><label></label></a></li>',
+                divider: '<li class="multiselect-item divider"></li>',
+                liGroup: '<li class="multiselect-item multiselect-group"><label></label></li>'
+            }
+        });
+
+
+
+    </script>
+}

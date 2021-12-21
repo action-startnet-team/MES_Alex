@@ -1,0 +1,266 @@
+﻿@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@{
+    ViewBag.Title = "Title";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string sAction = ViewContext.RouteData.Values["action"].ToString();
+
+    RSS030BController CT = new RSS030BController();
+    Comm comm = new Comm();
+
+    string sEpbTypeArray = CT.Get_EpbType(User.Identity.Name);
+
+}
+<link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+
+
+@Html.Partial("pPrgName")
+
+
+<div class="alert alert-info">
+    <button type="button" class="close" data-dismiss="alert">
+        <i class="ace-icon fa fa-times"></i>
+    </button>
+    <span style="font-size:18px">若電子表單尚未建立報表設定，請至報表設定作業先行建置</span> 
+
+    <a class="btn btn-white btn-info btn-round" style="margin-left:10px" target="_blank" href="@Url.Action("Index","RSS020A")"><span style="font-size:18px">前往報表設定作業</span></a>
+</div>
+
+<div class="row">
+    <ul class="nav nav-tabs" id="myTab">
+        <li class="active">
+            <a data-toggle="tab" href="#home">
+                <i class="green ace-icon fa fa-home bigger-120"></i>
+                主檔
+            </a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div id="home" class="tab-pane fade in active">
+            <form id="validation-form" method="post" action="/DST010A/Update" class="form-horizontal" role="form">
+
+                @*<div class="form-group">
+                    <label class="col-sm-3 control-label no-padding-right" for="form-field-1">
+                        報表型態
+                    </label>
+                    <div class="col-sm-3">
+                        <select class="chosen-select" id="report_type" name="report_type">
+                            <option value="A">統計報表</option>
+                            <option value="B">電子表單套表</option>
+                        </select>
+                    </div>
+                </div>*@
+
+                <div class="form-group">
+                    <label class="col-sm-3 control-label no-padding-right" for="form-field-1">
+                        表單類別
+                    </label>
+                    <div class="col-sm-3">
+                        <select class="chosen-select" id="epb_type_code" name="epb_type_code">
+                            <option value="">--請選擇--</option>
+                            @if (sEpbTypeArray != "")
+                            {
+                                for (int i = 0; i < sEpbTypeArray.Split(',').Length; i++)
+                                {
+                                    string sEpbType = sEpbTypeArray.Split(',')[i];
+                                    <option value="@sEpbType">@comm.Get_Data("EPB01_0000", sEpbType, "epb_type_code", "epb_type_name")</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-3 control-label no-padding-right" for="form-field-1">
+                        表單代號
+                    </label>
+                    <div class="col-sm-3">
+                        <select class="chosen-select" id="epb_code" name="epb_code">
+                            <option value="">--請先選擇表單類別--</option>
+                        </select>
+                        
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="col-sm-3 control-label no-padding-right" for="form-field-1">
+                        報表代號
+                    </label>
+                    <div class="col-sm-3">
+                        <select class="chosen-select" id="report_code" name="report_code">   
+                            <option value="">--請先選擇表單代號--</option>                         
+                        </select>
+                    </div>
+                </div>
+              
+
+                <div style="clear:both"></div>
+
+                <div class="col-lg-offset-4">
+                    <a class="btn btn-white btn-info btn-round" id="save">
+                        確認
+                    </a>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+
+@section footer_plugin{
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+}
+
+@section footer_script{
+    <script type="text/javascript">
+        $(document).ready(function () {
+            @*if ('@Request.Cookies["RptType"].Value.ToString()' != "") {
+                $('#report_type').val('@Request.Cookies["RptType"].Value.ToString()')
+                $('#report_type').trigger("chosen:updated");
+            }
+            $('#report_type').change()
+
+            if ('@Request.Cookies["RptCode"].Value.ToString()' != "") {
+                $('#report_code').val('@Request.Cookies["RptCode"].Value.ToString()')
+                $('#report_code').trigger("chosen:updated");
+            }*@
+        })
+
+        $('#save').click(function () {
+            if ($('#report_code').val() == "") {
+                alert('請選擇報表代號')
+                return false
+            }
+            var ReportType = GetData("RSS02_0000", $('#report_code').val(), "report_code", "data_source_type")
+            switch (ReportType) {
+                case "A":
+                    $(this).attr('href', "/@sPrgCode/Report?K=" + $('#report_code').val())
+                    break;
+                case "B":
+                    $(this).attr('href', "/@sPrgCode/DataView?K=" + $('#report_code').val())
+                    break;
+            }
+
+        })
+
+        $('#report_code').change(function () {
+            Save_Cookie("RptCode", $('#report_code').val())
+        })
+
+        $(document).on('change', "#epb_type_code", function () {
+            $('#epb_code').empty();
+            $.ajax({
+                method: "post",
+                async: false,
+                url: '@Url.Action("Get_EpbCode", sPrgCode)',
+                data: {
+                    Key: function () { return $('#epb_type_code').val(); },
+                },
+                success: function (data) {
+                    if (data != "") {
+                        $('#epb_code').append('<option value ="">--請選擇--</option>')
+                        for (let i = 0; i < data.split(',').length; i++) {
+                            dat = data.split(',')[i]
+                            d = dat.split('|')                            
+                            $('#epb_code').append('<option value = ' + d[0] + '>' + d[0] + " - " + d[1] + '</option>')
+                        }
+                    } else {
+                        $('#epb_code').append('<option value ="">無資料</option>')
+                    }
+                }
+            })
+            $('#epb_code').trigger("chosen:updated");
+        })
+
+        $(document).on('change', "#epb_code", function () {
+            $('#report_code').empty();
+            $.ajax({
+                method: "post",
+                async: false,
+                url: '@Url.Action("Get_ReportByEpb")',
+                data: {
+                    Key: function () { return $('#epb_code').val(); },
+                },
+                success: function (data) {
+                    if (data != "") {
+                        for (let i = 0; i < data.split(',').length; i++) {
+                            dat = data.split(',')[i]
+                            d = dat.split('|')
+                            $('#report_code').append('<option value = ' + d[0] + '>' + d[0] + " - " + d[1] + '</option>')
+                        }
+                    } else {
+                        $('#report_code').append('<option value ="">無資料</option>')
+                    }
+                }
+            })
+            $('#report_code').trigger("chosen:updated");
+        })
+
+
+        function GetData(T, K, KF, F) {
+            var Val = ""
+            $.ajax({
+                method: "post",
+                async: false,
+                url: '@Url.Action("GetData", sPrgCode)',
+                data: {
+                    T: function () { return T; },
+                    K: function () { return K; },
+                    KF: function () { return KF; },
+                    F: function () { return F; },
+                },
+                success: function (data) {
+                    Val = data
+                }
+            })
+            return Val
+        }
+
+
+
+        function Save_Cookie(n, v) {
+            $.ajax({
+                method: "post",
+                async: true,
+                url: '@Url.Action("Save_Cookie", sPrgCode)',
+                data: {
+                    pCookieName: function () { return n; },
+                    pValue: function () { return v; },
+                },
+            })
+        }
+
+        if (!ace.vars['touch']) {
+            $('.chosen-select').chosen({ allow_single_deselect: true });
+            //resize the chosen on window resize
+
+            $(window)
+            .off('resize.chosen')
+            .on('resize.chosen', function () {
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            }).trigger('resize.chosen');
+            //resize chosen on sidebar collapse/expand
+            $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                if (event_name != 'sidebar_collapsed') return;
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            });
+
+            $('#chosen-multiple-style .btn').on('click', function (e) {
+                var target = $(this).find('input[type=radio]');
+                var which = parseInt(target.val());
+                if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                else $('#form-field-select-4').removeClass('tag-input-style');
+            });
+        }
+
+
+    </script>
+}

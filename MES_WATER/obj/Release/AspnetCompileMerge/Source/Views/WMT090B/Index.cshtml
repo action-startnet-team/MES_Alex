@@ -1,0 +1,136 @@
+﻿
+@using MES_WATER.Models;
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewBag.sPrgCode ?? ViewContext.RouteData.Values["controller"].ToString();
+}
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-timepicker.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datetimepicker.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+
+}
+
+@Html.Partial("pPrgName")
+<script>
+
+    @*$(document).on('click', '.qmt_code', function () {
+        var val = $(this).attr('id')
+        Open_Jqgrid(val)
+    })
+
+    function Open_Jqgrid(qmt04_0100) {
+        wo = window.open("@Url.Action("SetQMTValue")" + "?K=" + qmt04_0100, "", "width=1200,height=700 ")
+        wo.resizeTo((screen.availWidth) - 300, (screen.availHeight) - 300);
+        wo.moveTo(150, 150);
+    }*@
+</script>
+
+
+@* 修改點 以下 *@
+@{
+    List<JqgridButton> addBtnsInActionCol = new List<JqgridButton>();  // 放在功能欄位裡 (其實也是在loadComplete裡面)
+                                                                       // 上面的按鈕列的 html
+    Func<object, HelperResult> customBtnTemplate =
+        @<text>
+            <div class="pull-left" style="margin-left: 10px">
+                <a id="btn_upd_erpdata" class="btn btn-white btn-warning btn-bold" role="button">
+                    <span>更新盤點單資料</span>
+                </a>
+            </div>
+        </text>;
+    string sHeaderBtns = customBtnTemplate.Invoke(null).ToString();
+  
+
+    Func<object, HelperResult> sCustomJs_bottomTemplate =
+        @<text>
+            $('#btn_upd_erpdata').click(function(){
+            
+
+            $.ajax({
+            method: 'post',
+            url: '/WMT090B/Get_ErpInventoryData',
+            }).done(function(json){
+
+            if(json){alert("同步成功，請重新整理畫面");}
+            })
+            })
+        </text>;
+    string sCustomJs_bottom = sCustomJs_bottomTemplate.Invoke(null).ToString();
+    // 功能欄位的按鈕
+    //var btn1 = new JqgridButton()
+    //{
+    //    type = "jumpTo",
+    //    icon_class = "ui-icon ui-icon-pencil red",
+    //    title = "測試1",
+    //    url = "/BDP070A"
+    //};
+
+    //var btn2 = new JqgridButton()
+    //{
+    //    type = "jumpTo",
+    //    icon_class = "ui-icon ui-icon-pencil orange",
+    //    title = "測試2",
+    //    url = "/BDP230B"
+    //};
+
+    //var btn3 = new JqgridButton()
+    //{
+    //    type = "jumpTo",
+    //    icon_class = "ui-icon ui-icon-pencil green",
+    //    title = "測試3",
+    //    url = ""
+    //};
+
+    //var QMT_Export = new JqgridButton()
+    //{
+    //    type = "jumpTo",
+    //    icon_class = "fa fa-file-excel-o bigger-130 green export",
+    //    title = "檢驗表匯出",
+    //    url = "#"
+    //};
+
+    //addBtnsInActionCol.Add(btn1);
+    //addBtnsInActionCol.Add(btn2);
+    //addBtnsInActionCol.Add(btn3);
+
+    //addBtnsInActionCol.Add(QMT_Export);
+
+
+
+    // 改對應的class
+    Html.RenderAction("pJqgrid_C", "jqgrid", new
+    {
+        pMasterModelType = new WMT09_0000().GetType(),
+        pDetailModelType = new WMT09_0100().GetType(),
+        pPrgCode = sPrgCode,
+        pCustomHtml_header = sHeaderBtns,
+        pCustomJs_bottom = sCustomJs_bottom
+        //pAddBtnsInActionCol = addBtnsInActionCol
+    });
+
+}
+@* 修改點 以上 *@
+
+<script>
+    @*$('#grid-table').on('click', '.export', function () {
+        if (confirm('是否要匯出檢驗紀錄表？')) {
+            let rowId = $(this).closest('tr.jqgrow').attr('id')
+            let rowData = $('#grid-table').jqGrid('getRowData', rowId)
+            let qmt_code = rowData["qmt_code"];
+            //alert(qmt_code)
+            window.location.href = '@Url.Action("ExportByDataTable_QMT", "Export")?pTkCode=' + qmt_code
+            @*$.ajax({
+                method: "post",
+                url: '@Url.Action("ExportByDataTable_QMT", "Export")?pTkCode=' + qmt_code,
+                //data: { pTkCode: function () { return qmt_code } },
+            })
+        }
+    })*@
+</script>

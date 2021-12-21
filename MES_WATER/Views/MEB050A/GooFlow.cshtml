@@ -1,0 +1,25 @@
+﻿
+@{
+    ViewBag.Title = "GooFlow";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string TkCode = ViewBag.TkCode ;
+
+}
+
+@Html.Partial("pPrgName")
+
+<a class="btn btn-white btn-pink btn-round" href="/MEB050A/">
+    <i class="ace-icon fa fa-undo "></i>
+    返回
+</a>
+
+<div style="width: 100%; height: auto">
+
+    <iframe src="/flowchart/gooflow?pTkCode=@TkCode" frameborder="0" width="1440" height="900"></iframe>
+
+</div>
+
+@*<iframe src="/flowchart/Index"  frameborder="0"  width="990" height="560"></iframe>*@
+
+@section footer_script{ }

@@ -1,0 +1,1313 @@
+﻿@*修改點 向下*@
+@model MES_WATER.Models.EPB04_0000
+@*修改點 向上*@
+@using MES_WATER.Models;
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Update";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //公用函數庫
+    Comm comm = new Comm();
+    GetModelValidation gmv = new GetModelValidation();
+    Review RV = new Review();
+
+    //公用變數
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string limit_str = comm.Get_LimitByUsrCode(User.Identity.Name, sPrgCode);
+
+    @* 修改點 向下 *@
+    // 主檔的Model名稱
+    string key = gmv.GetKey(new EPB04_0000());
+
+    // 明細的Model名稱
+    EPB04_0100 obj_D1 = new EPB04_0100();
+    List<string> DisplayNameList_D1 = gmv.Get_DisplayNames(obj_D1);
+    List<ColumnInfo> ColumnInfoList = gmv.Get_ColumnInfoList(obj_D1);
+    string key_D1 = gmv.GetKey(obj_D1);
+
+    //下拉選項的來源
+    List<DDLList> is_use_list = comm.Get_DDLOption("is_use");
+    List<DDLList> epb_code_list = comm.Get_DDLOption("EPB02_0000", "epb_code", "epb_name");
+    epb_code_list = epb_code_list.Where(x => x.field_code == Model.epb_code).ToList();
+
+    List<DDLList> review_level_list = comm.Get_DDLOption("level");
+    List<DDLList> is_manager_list = comm.Get_DDLOption("is_manager");
+
+    @* 修改點 向上*@
+}
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-multiselect.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/jquery-ui.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/ui.jqgrid.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+    @*<link rel="stylesheet" href="~/Content/assets/css/jquery-ui.custom.min.css" />*@
+}
+
+@Html.Partial("pPrgName")
+<!-- 表單 -->
+<div class="row">
+    <ul class="nav nav-tabs" id="myTab">
+        <li class="active">
+            <a data-toggle="tab" href="#home">
+                <i class="green ace-icon fa fa-home bigger-120"></i>
+                主檔
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="home" class="tab-pane fade in active">
+            @using (Html.BeginForm("Update", sPrgCode, FormMethod.Post, new { @class = "form-horizontal", id = "validation_form", role = "form" }))
+            {
+
+                <div id="errMsgSummary" class="alert alert-danger @( (ViewBag.showErrMsg ?? false ) ? "" : "hidden" )">
+                    <button type="button" class="close" data-dismiss="alert">
+                        <i class="ace-icon fa fa-times"></i>
+                    </button>
+                    <strong>
+                        <i class="ace-icon fa fa-times"></i>
+                        系統訊息!
+                    </strong>
+                    @Html.ValidationSummary("", new { @class = "text-danger" })
+                    <br />
+                </div>
+                @*修改點 向下 主檔輸入畫面編排*@
+                <div class="row">
+                    <div class="col-sm-offset-2 col-md-6">
+                        <div class="row" style="">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "review_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.review_code, new { htmlAttributes = new { @class = " col-xs-12 ", @readonly = "readonly" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.review_code, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        @*<br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "epb_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-sm-8 col-xs-7">
+                                        <select class="chosen-select" id="epb_code" name="epb_code">
+                                            @CustomHelper.Get_Option(epb_code_list, Model.epb_code, false)
+                                        </select>
+                                        @Html.ValidationMessageFor(model => model.epb_code, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>*@
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "review_memo", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-6">
+                                    <div>
+                                        <textarea id="review_memo" name="review_memo" class="col-xs-12" form="validation_form">@Model.review_memo</textarea>
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.review_memo, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "is_use", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-sm-8 col-xs-7">
+                                    <select class="chosen-select" id="is_use" name="is_use">
+                                        @CustomHelper.Get_Option(is_use_list, Model.is_use, true)
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.is_use, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @*修改點 向上 主檔輸入畫面編排*@
+                <br />
+                <div class="clearfix">
+                    <div class="col-md-offset-5 col-md-7">
+                        <input type="submit" value="儲存" class="btn btn-white btn-info btn-bold" />
+                        &nbsp;
+                        <a class="btn btn-white btn-pink btn-round" href=@Url.Action("Index", sPrgCode)>
+                            <i class="ace-icon fa fa-undo "></i>
+                            返回
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<br />
+<br />
+<!-- jqGrid begin -->
+<table id="grid-table"></table>
+<div id="grid-pager"></div>
+
+
+<label style="color:red">請先審核完該人員的待處理審核作業，才能夠更換審核人員</label>
+
+
+<!-- jqGrid end -->
+<!-- Chk_Upd_D1 Message -->
+<div id="dialog" class="alert alert-danger hidden" style="">
+</div>
+
+<!-- 明細jqGrid  修改使用chosen-select的Modal畫面 -->
+<div id="Select_code-modal-form" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+
+            <div class="modal-header">
+                <h4 class="blue bigger">使用者代號查詢</h4>
+            </div>
+
+            <div class="modal-body">
+
+                <div id="query_sql_div">
+                    <div style="display:flex; align-items:center">
+                        <label style="font-size: 16px; width: 20%; margin-right: 5px">使用者代號</label>
+                        <input type="text" name="query_usr_code" value="" style="width: 30%; margin-right: 10px" placeholder="" />
+                        <select class="chosen-select" name="data_usr_code"></select>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button id="SetValueBack" class="btn btn-sm btn-primary" data-dismiss="modal">
+                    <i class="ace-icon fa fa-check"></i>
+                    確認
+                </button>
+                <button class="btn btn-sm" data-dismiss="modal">
+                    <i class="ace-icon fa fa-times"></i>
+                    離開
+                </button>
+            </div>
+
+        </div> <!-- modal-content end -->
+    </div> <!-- modal-dialog end -->
+</div>
+@*<style>
+        .FormGrid .EditTable tr:first-child {
+            display: table-row;
+        }
+    </style>*@
+
+@section footer_plugin {
+    @* validate? *@
+    <script src="~/Scripts/assets/js/jquery-ui.min.js"></script>
+    <script src="~/Scripts/assets/js/wizard.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery-additional-methods.min.js"></script>
+    <script src="~/Scripts/assets/js/bootbox.js"></script>
+    <script src="~/Scripts/assets/js/jquery.maskedinput.min.js"></script>
+    <script src="~/Scripts/assets/js/select2.min.js"></script>
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="~/Scripts/assets/js/autosize.min.js"></script>
+    @* validate? *@
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.jqGrid.min.js"></script>
+    <script src="~/Scripts/assets/js/grid.locale-cn.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+}
+@section footer_script{
+}
+
+<script type="text/javascript">
+    jQuery(function ($) {
+
+        @*修改點 向下 控制項輸入控制參考*@
+
+        //$("input[name=pur_date]").datepicker( { language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true } ).attr('autocomplete','off');
+        //$("input[name=end_date]").datepicker( { language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true } ).attr('autocomplete','off');
+
+        @*修改點 向上 控制項輸入控制參考*@
+
+
+        /* 資料來源代號查詢 開始 */
+        let select_modal_form = $('#Select_code-modal-form')
+        $('#grid-table').on('click', 'input[name="usr_code"]', function(){
+
+            // 取得點選input時的 rowId
+            let rowId = $(this).closest('tr').attr('id')
+
+            // 儲存rowId
+            select_modal_form.data('jqGrid_rowId', rowId)
+
+            // open bootstrap modal box
+            select_modal_form.modal('show');
+
+            // set select width and work around chosen hidden width problem
+            $('select[name="data_usr_code"]').next().css({
+                width: '50%',
+            })
+
+            // usr_code 預設值
+            if ($(this).val()){
+                select_modal_form.find('input[name="query_usr_code"]').val($(this).val())
+                Set_UsrCode($(this).val(), select_modal_form.find('select[name="data_usr_code"]'))
+            }
+
+            // focus input
+            select_modal_form.find('input[name="query_usr_code"]').focus()
+
+            // 預設全選文字
+            //document.getElementById('modal-form').querySelector('input[name="query_usr_code"]').select()
+        })
+
+        // 將modal box 的 usr_code 寫到之前點選的 jqgrid 的 input
+        select_modal_form.find('#SetValueBack').click(function(){
+            // 取得 jqGrid 的 rowId
+            let rowId = select_modal_form.data('jqGrid_rowId')
+
+            // set usr_code
+            let usr_code = select_modal_form.find('select[name="data_usr_code"]').val()
+            $('#grid-table').find('tr[id="' + rowId + '"]').find('input[name="usr_code"]').val(usr_code)
+
+            // set select_name
+            let select_text = select_modal_form.find('select[name="data_usr_code"] option:selected').text()
+            // select_text: usr_code - select_name
+            select_name = select_text.replace(usr_code + ' - ', '')
+            $('#grid-table').find('tr[id="' + rowId + '"]').find('input[name="select_name"]').val(select_name)
+
+        })
+
+        // select placeholder
+        select_modal_form.find('select[name="data_usr_code"]').chosen({
+            placeholder_text_single: "請輸入前N碼使用者代號",
+        })
+
+        // input query condition and dynamically show relative select dropdownlist
+        select_modal_form.on('keyup change', 'input[name="query_usr_code"]', function(){
+
+            Set_UsrCode($(this).val(), select_modal_form.find('select[name="data_usr_code"]'))
+        })
+
+        function Set_UsrCode(query, $select) {
+            // 輸入條件為空時
+            if (!query) {
+                $select.empty()
+                $select.trigger("chosen:updated")
+                return
+            }
+            $.ajax({
+                method: 'get',
+                url: '@Url.Action("Get_UsrCode", "EPB040A")',
+                data: { pTkCode: query },
+                success: function (data) {
+                    $select.empty()
+                    if (data.length > 0) {
+                        for (let i = 0; i < data.length; i++) {
+                            $select.append($('<option>').val(data[i].field_code).text(data[i].field_code + ' - ' + data[i].field_name))
+                        }
+                    } else {
+                        $select.append($('<option>').val('').text('沒有符合條件的資料來源!'))
+                    }
+                    $select.trigger("chosen:updated")
+                },
+                error: function (jqXHR) {
+                    console.log('ajax error ' + jqXHR.status + ': ' + jqXHR.statusText)
+                }
+            })
+        }
+        /* 資料來源代號查詢 結束 */
+
+
+        // checkbox value ( Y/N )
+        //$('form').find($('input[type="checkbox"]')).each(function(){
+        //    // default
+        //    if ($(this).prop('checked')){
+        //        // set checked value
+        //        $(this).val('Y')
+        //    } else {
+        //        // set unchecked value
+        //        $(this).before($('<input type="hidden" value="N" name="' + $(this).attr('name') + '" />'))
+        //    }
+        //    // change state
+        //    $(this).change(function(){
+        //        if (this.checked){
+        //            // set checked value and remove hidden input for unchecked value
+        //            $(this).val('Y')
+        //            $(this).prev('input[type="hidden"]').remove()
+        //        }else{
+        //            // set unchecked value
+        //            $(this).before($('<input type="hidden" value="N" name="' + $(this).attr('name') + '" />'))
+        //        }
+        //    })
+        //})
+
+        // form validate, show error msg
+        $("#validation_form").bind("invalid-form.validate", function () {
+            $("#errMsgSummary").removeClass('hidden');
+        });
+        // prevent twice submit
+        $('#validation_form').submit(function () {
+            if ($(this).valid()) {
+                $('#is_sto_in').removeAttr('disabled');
+            } else {
+                $('#is_sto_in').removeAttr('disabled');
+            }
+        });
+
+        // chosen select
+        if (!ace.vars['touch']) {
+            $('.chosen-select').chosen({ allow_single_deselect: true });
+            //resize the chosen on window resize
+
+            $(window)
+            .off('resize.chosen')
+            .on('resize.chosen', function () {
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            }).trigger('resize.chosen');
+            //resize chosen on sidebar collapse/expand
+            $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                if (event_name != 'sidebar_collapsed') return;
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            });
+
+            $('#chosen-multiple-style .btn').on('click', function (e) {
+                var target = $(this).find('input[type=radio]');
+                var which = parseInt(target.val());
+                if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                else $('#form-field-select-4').removeClass('tag-input-style');
+            });
+
+        }
+
+        autosize($('textarea[class*=autosize]'));
+        $(document).one('ajaxloadstart.page', function(e) {
+            autosize.destroy('textarea[class*=autosize]')
+
+            $('.limiterBox,.autosizejs').remove();
+            $('.daterangepicker.dropdown-menu,.colorpicker.dropdown-menu,.bootstrap-datetimepicker-widget.dropdown-menu').remove();
+        });
+
+    })
+</script>
+
+@* JqGrid script *@
+<script type="text/javascript">
+
+    jQuery(function ($) {
+        var grid_selector = "#grid-table";
+        var pager_selector = "#grid-pager";
+
+
+        var parent_column = $(grid_selector).closest('[class*="col-"]');
+        //resize to fit page size
+        $(window).on('resize.jqGrid', function () {
+            $(grid_selector).jqGrid('setGridWidth', parent_column.width());
+        })
+
+        //resize on sidebar collapse/expand
+        $(document).on('settings.ace.jqGrid', function (ev, event_name, collapsed) {
+            if (event_name === 'sidebar_collapsed' || event_name === 'main_container_fixed') {
+                //setTimeout is for webkit only to give time for DOM changes and then redraw!!!
+                setTimeout(function () {
+                    $(grid_selector).jqGrid('setGridWidth', parent_column.width());
+                }, 20);
+            }
+        })
+
+        var Get_selectObject = function (list) {
+            //let arr = JSON.parse(list);
+            let arr = list
+            let selectObject = {};
+            selectObject[""]=[""];
+            for (let i = 0; i < arr.length; i++) {
+                selectObject[arr[i]['field_code']] = [arr[i]['field_code']] + " - " + [arr[i]['field_name']]
+            }
+            return selectObject;
+        }
+
+        @* 修改點 向下 明細檔的新增資料檢查*@
+        // beforeSubmit: function 存檔時檢查的函數
+        function Check_Data_D1(postdata, formid) {
+            // check data
+            let result = [true, ""];
+            $.ajax({
+                async: false,
+                method: 'post',
+                url: '@Url.Action("Check_Data_D1", sPrgCode)',
+                data: postdata,
+                datatype: 'json',
+                success: function (data) {
+                    if (!data.result){
+                        result = [data.result, data.message];
+                    }
+                },
+                error: function () {
+                    alert("ajax連線失敗!");
+                }
+            })
+
+            // prevent twice submit
+            if (result[0])
+                $('#sData, #cData').attr('disabled', 'disabled');
+
+            return result;
+        }
+        @* 修改點 向上 *@
+
+        //JqGrid本體主要設定
+        jQuery(grid_selector).jqGrid({
+            url: "@Url.Action("Get_GridData_D1", sPrgCode)",
+            mtype: "Post",
+            datatype: "json",
+            postData: { pTkCode: "@Model.GetType().GetProperty(key).GetValue(Model)" },  //foreign key default value
+            height: 'auto',
+            colNames: JSON.parse('@Html.Raw(Json.Encode(DisplayNameList_D1))'),
+            colModel: [
+                {
+                    name: 'myac', index: '', width: 80, fixed: true, sortable: false, resize: false, search: false,
+                    formatter: 'actions',
+                    formatoptions: {
+                        keys: true,
+                        onSuccess: function () {
+                            $(this).setGridParam({ datatype: 'json'}).trigger('reloadGrid');
+                        },
+                        onError:function(rowid, jqXHR, textStatus) {
+                            /* Chk_Upd_D1 秀出錯誤訊息 */
+                            let jsonData = jqXHR.responseJSON
+                            if (!jsonData.bIsOK){
+                                $( "#dialog" ).removeClass('hidden')
+                                $( "#dialog" ).dialog({
+                                    modal: true,
+                                })
+                                $( "#dialog" ).html(jsonData.message)
+                                /* dialog 樣式*/
+                                // body
+                                $( "#dialog" ).css({
+                                    'background-color': '#f2dede',
+                                    'border-color': '#ebccd1',
+                                    'color': '#a94442'
+                                })
+                                // head
+                                $( "#dialog" ).prev(".ui-dialog-titlebar").css({
+
+                                }).find('span').html('<strong<i class="ace-icon fa fa-times"> </i> 系統訊息! </strong>')
+
+                                // foot
+                                $( "#dialog" ).parent().css({
+
+                                })
+
+                                // click outside close
+                                $(".ui-widget-overlay").on("click", function() {  $( "#dialog" ).dialog("close"); } );
+                            }else {
+                                $('#dialog').addClass('hidden')
+                            }
+                        },
+                        @if(limit_str.Contains("D"))
+                        {
+                            <text>delbutton: false,</text>
+                        }else
+                        {
+                            <text>delbutton: false,</text>
+                        }
+                        @if (limit_str.Contains("M"))
+                        {
+                            <text>editbutton: true,</text>
+                        }else
+                        {
+                            <text>editbutton: false,</text>
+                        }
+                        delOptions: {
+                            recreateForm: true,
+                            beforeShowForm: beforeDeleteCallback,
+                            beforeSubmit: function(postdata, formid) {  //明細刪除資料檢查
+                                // parameter postdata has problem
+                                //Get data from selected row
+                                let id = jQuery(grid_selector).jqGrid('getGridParam', 'selrow');
+                                let data = jQuery(grid_selector).jqGrid('getRowData', id);
+
+                                // check data
+                                let result = [true, ""];
+                                $.ajax({
+                                    async: false,
+                                    method: 'post',
+                                    url: '@Url.Action("Chk_Del_D1", sPrgCode)',
+                                    data: data,
+                                    datatype: 'json',
+                                    success: function (data) {
+                                        if (!data.bIsOK){
+                                            result = [data.bIsOK, data.message];
+                                        }
+                                    },
+                                    error: function () {
+                                        alert("ajax連線失敗!");
+                                    }
+                                })
+
+                                return result;
+                            },
+                            url: "@Url.Action("Delete_D1", sPrgCode)",
+                            mtype: 'post',
+                            delData: {
+                                "pTkCode": function () {
+                                    //Get data from selected row
+                                    let id = jQuery(grid_selector).jqGrid('getGridParam', 'selrow');
+                                    let data = jQuery(grid_selector).jqGrid('getRowData', id);
+                                    return data["@key_D1"];
+                                }
+                            }
+                        },
+                    }
+                },
+                @foreach(var item in ColumnInfoList)
+                {
+                    switch(item.name)
+                    {
+                        case "can_delete":
+                            <text>
+                                { name: 'can_delete', index: 'can_delete', width: 60, sorttype: "string", hidden: true },
+                            </text>
+                            break;
+                        case "can_update":
+                            <text>
+                                { name: 'can_update', index: 'can_upate', width: 60, sorttype: "string", hidden: true },
+                            </text>
+                            break;
+                        case "review_code":
+                            <text>
+                                {
+                                    name: 'review_code', index: 'review_code', width: 40, sorttype: 'string',
+                                    hidden: true,
+                                    editable: true,
+                                    editrules: { edithidden: true }
+                                },
+                            </text>
+                            break;
+                        case "usr_code":
+                            <text>
+                                {
+                                    name: 'usr_code', index: 'usr_code', width: 40, sorttype: 'string',
+                                    editable: true,
+                                    editrules: { edithidden: true }
+                                },
+                            </text>
+                            break;
+                        case "usr_name":
+                            <text>
+                                {
+                                    name: 'usr_name', index: 'usr_name', width: 40, sorttype: 'string',
+                                    editable: false,
+                                    editrules: { edithidden: true }
+                                },
+                            </text>
+                            break;
+                        case "is_manager":
+                            <text>
+                                {
+                                    name: 'is_manager', index: 'is_manager', width: 40, editable: true,
+                                    edittype: "select",
+                                    editoptions: {
+                                        //dataInit: function (elem) {
+                                        //    $(elem).addClass('chosen-select');
+                                        //},
+
+                                        value: Get_selectObject(@Html.Raw(Json.Encode(is_manager_list))),
+                                        //dataInit: function(element) {
+                                        //    $(element).chosen({
+                                        //        placeholder_text_single: "----請選擇----",
+                                        //        search_contains: true  //模糊查詢
+                                        //    })
+                                        //},
+                                    }
+                                },
+                            </text>
+                            break;
+
+                        default:
+                            <text>
+                                {
+                                    // 隱藏資料識別碼
+                                    @if (item.displayName == "資料識別碼")
+                                    {
+                                        <text>hidden: true,</text>
+                                    }
+                                    @*// 數字靠右
+                                    @{
+                                        string[] arrNum = new string[] { "int", "decimal", "double", "float"};
+                                        for (int k = 0; k < arrNum.Length; k++) {
+                                            if (item.propertyType.ToLower().Contains(arrNum[k])) {
+                                                <text>align: "right",</text>
+                                                break;
+                                            }
+                                        }
+                                    }*@
+                                    // 金額千分位顯示
+                                    @if (item.dataType.ToLower() == "currency") {
+                                        <text>
+                                    //align: "right",
+                                    formatter: 'integer',
+                                    formatoptions: { thousandsSeparator: "," },
+                                    </text>
+                                    }
+                                    name: '@item.name', index: '@item.name', width: 40, sorttype: '@item.propertyType',
+                                    editable: @item.editable.ToString().ToLower(),
+                                    editrules: {
+                                        @if (item.required)
+                                            {
+                                                <text>required: true,</text>
+                                            }
+                                        @switch (item.propertyType)
+                                        {
+                                            case "int":
+                                                <text>integer: true,</text>
+                                                break;
+                                            case "decimal":
+                                                <text>number: true,</text>
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    },
+                                    editoptions: {
+                                        @if (item.propertyType == "decimal")
+                                            {
+                                                <text>defaultValue: "0",</text>
+                                            }
+                                        @if (item.name == key_D1) {
+                                                <text>readonly: true,</text>
+                                        }
+                                        else if (item.name == key)
+                                        {
+                                            <text>readonly: true,</text>
+                                            <text>defaultValue: "@Model.GetType().GetProperty(key).GetValue(Model)",</text>
+                                        }
+                                        else
+                                        {
+                                            <text>readonly: @item.readonlyattr.ToString().ToLower(),</text>
+                                        }
+                                        @if (item.maxlength > 0)
+                                        {
+                                            <text>maxlength: @item.maxlength,</text>
+                                        }
+                                    }
+                                },
+                            </text>
+                            break;
+                    }
+                }
+            ],
+            viewrecords: true,
+            rowNum: DisplayRowNum(), //10,
+            rowList: [10, 20, 30, 50, 100],
+            pager: pager_selector,
+            altRows: true,
+            //toppager: true,
+            multiselect: true,
+            //multikey: "ctrlKey",
+            multiboxonly: true,
+            multiselectWidth: -6,  // hide checkbox column
+            // sort
+            loadonce: true,
+            // not works
+            //navOptions: { reloadGridOptions: { fromServer: true } },
+            loadComplete: function () {
+
+                let $grid = $(this)
+                //let test = $(this).jqGrid('getGridParam', 'data')
+
+                $('#grid-table').find('tr').each(function(i){
+                    let rowId = $(this).attr('id')
+                    let data = $grid.jqGrid('getRowData', rowId)
+
+                    if (Chk_UsrHaveReview(data.usr_code)){
+                        $(this).on('mousedown', '[name="usr_code"]', function(e){
+                            e.stopPropagation()
+                            $(this).attr('readonly', '')
+                            alert('請先審核完該人員的待處理審核作業，才能夠更換審核人員')
+                        })
+                    }
+                })
+
+
+                // 計算主檔的金額 (明細 小計總和)
+                let sum_subtotal = $(this).jqGrid("getGridParam", "data").map(x => x.subtotal).reduce( (a,b) => a+b, 0 )
+                let pur_amt = parseInt($('input[name="pur_amt"]').val(sum_subtotal).val())
+                //// 計算稅額 ( 5% * 金額 )
+                let tax_amt = parseInt($('input[name="tax_amt"]').val(Math.round(sum_subtotal * 0.05)).val())
+                //// 金額合計
+                $('input[name="sum_amt"]').val(pur_amt + tax_amt);
+
+                // 儲存jqgrid狀態
+                loadGridParameters($(grid_selector));
+
+                var table = this;
+                setTimeout(function () {
+                    styleCheckbox(table);
+                    updateActionIcons(table);
+                    updatePagerIcons(table);
+                    enableTooltips(table);
+                }, 0);
+
+
+            },
+            editurl: "@Url.Action("Update_D1", sPrgCode)",
+            onSelectRow: function (rowid) {
+                localStorage.setItem("selrowId", rowid)
+            }
+        });
+
+
+        //---Jqgrid結束   ---------------------------------------------------
+
+
+        function Chk_UsrHaveReview(u) {
+            var val = false
+            $.ajax({
+                method: "post",
+                async: false,
+                url: '@Url.Action("Chk_UsrHaveReview", sPrgCode)',
+                data: {
+                    pUsrCode: function () { return u; },
+                },
+                success:function(data){
+                    if(data == "True"){
+                        val = true
+                    }
+                }
+            })
+            return val
+        }
+
+
+        //toolbar
+        jQuery(grid_selector).jqGrid('filterToolbar', {
+            stringResult: true,
+            searchOnEnter: false,
+        });
+
+        $(window).triggerHandler('resize.jqGrid');//trigger window resize to make the grid get the correct size
+
+        //enable search/filter toolbar
+
+        //switch element when editing inline
+        function aceSwitch(cellvalue, options, cell) {
+            setTimeout(function () {
+                $(cell).find('input[type=checkbox]')
+                    .addClass('ace ace-switch ace-switch-5')
+                    .after('<span class="lbl"></span>');
+            }, 0);
+        }
+        //enable datepicker
+        function pickDate(cellvalue, options, cell) {
+            setTimeout(function () {
+                $(cell).find('input[type=text]')
+                    .datepicker({ language: 'zh-TW', format: 'yyyy/mm/dd', autoclose: true });
+            }, 0);
+        }
+
+
+        //navButtons
+        jQuery(grid_selector).jqGrid('navGrid', pager_selector,
+            { 	//navbar options
+                edit: false,
+                editicon: 'ace-icon fa fa-pencil blue',
+                add: false,
+                addicon: 'ace-icon fa fa-plus-circle purple',
+                del: false,
+                delicon: 'ace-icon fa fa-trash-o red',
+                search: true,
+                searchicon: 'ace-icon fa fa-search orange',
+                refresh: true,
+                refreshicon: 'ace-icon fa fa-refresh green',
+                view: true,
+                viewicon: 'ace-icon fa fa-search-plus grey'
+            },
+            {
+                //edit record form
+                //width: 700,
+                closeAfterEdit: true,
+                recreateForm: true,
+                beforeShowForm: function (e) {
+                    var form = $(e[0]);
+                    form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+                    style_edit_form(form);
+                },
+                afterSubmit: function () { $(this).jqGrid('setGridParam', { datatype: 'json' }); return [true, ""] }
+            },
+            {
+                //new record form 明細新增記錄的form
+                //width: 700,
+                closeAfterAdd: true,
+                recreateForm: true,
+                refresh: true,
+                viewPagerButtons: false,
+                beforeShowForm: function (e) {
+                    var form = $(e[0]);
+                    form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar')
+                    .wrapInner('<div class="widget-header" />')
+                    style_edit_form(form)
+                    $('input[name="is_use"]').attr('checked', 'checked') //預設是否使用為Y
+
+
+                    // 取得序號
+                    @*$('#sData, #cData').attr('disabled', 'disabled');
+                    $.ajax({
+                        url: '@Url.Action("Get_NextScrNo", sPrgCode)',
+                        method: 'get',
+                        data: { pur_code: '@Model.pur_code' },
+                        success: function(data) {
+                            form.find('input[name=scr_no]').val(data)//.attr('readonly', 'readonly');
+                            $('#sData, #cData').removeAttr('disabled');
+                        },
+                        error: function(xhr) {
+                            alert('ajax error ' + xhr.status + ': ' + xhr.statusText )
+                        }
+                    })*@
+
+                },
+                beforeSubmit: function(postdata, formid) { //明細新增資料檢查
+                    // check data
+                    let result = [true, ""];
+                    $.ajax({
+                        async: false,
+                        method: 'post',
+                        url: '@Url.Action("Chk_Ins_D1", sPrgCode)',
+                        data: postdata,
+                        datatype: 'json',
+                        success: function (data) {
+                            if (!data.bIsOK){
+                                result = [data.bIsOK, data.message];
+                            }
+                        },
+                        error: function () {
+                            alert("ajax連線失敗!");
+                        }
+                    })
+
+                    // prevent twice submit
+                    if (result[0]){
+                        $('#sData, #cData').attr('disabled', 'disabled');
+                    }
+
+                    return result;
+                },
+                afterShowForm: function(form) {
+                    form.closest('div.ui-jqdialog').center();
+                },
+                reloadAfterSubmit: true,
+                // .trigger('reloadGrid')
+                afterSubmit: function () { $(this).jqGrid('setGridParam', { datatype: 'json' }); return [true, ""] },
+                url: "@Url.Action("Insert_D1", sPrgCode)"
+            },
+            {
+                //del
+            },
+            {
+                //search form
+                recreateForm: true,
+                afterShowSearch: function (e) {
+                    var form = $(e[0]);
+                    form.closest('.ui-jqdialog').find('.ui-jqdialog-title').wrap('<div class="widget-header" />')
+                    style_search_form(form);
+                },
+                afterRedraw: function () {
+                    style_search_filters($(this));
+                }
+                ,
+                multipleSearch: true,
+                /**
+                multipleGroup:true,
+                showQuery: true
+                */
+            },
+            {
+                //view record form
+                recreateForm: true,
+                beforeShowForm: function (e) {
+                    var form = $(e[0]);
+                    form.closest('.ui-jqdialog').find('.ui-jqdialog-title').wrap('<div class="widget-header" />')
+                    form.closest('.ui-jqdialog').center()
+                },
+                afterSubmit: function () { $(this).jqGrid('setGridParam', { datatype: 'json' }); return [true, ""] }
+            }
+        )
+
+        // toolbar initial
+        jQuery(grid_selector).jqGrid('filterToolbar', {
+            stringResult: true,
+            searchOnEnter: false
+        });
+        // for toolbar style
+        setTimeout(function () {
+            let search_toolbar = $('#gbox_' + grid_selector.substring(1)).find('.ui-search-toolbar').eq(0)
+            // set height
+            search_toolbar.css('height', '4em')
+
+            // set input placeholder and autocomplete off
+            let labels = $('#gbox_' + grid_selector.substring(1)).find('.ui-jqgrid-labels').eq(0);
+            let colName = "";
+            search_toolbar.find('th').find('input').attr('autocomplete', 'off')
+            search_toolbar.find('th').each(function (i) {
+                colName = labels.find('th').eq(i).text();
+                $(this).find('input').attr('placeholder', '搜尋 ' + colName)
+            })
+            // restore jqgrid toolbar values
+            if (localStorage.getItem($(grid_selector).jqGrid('getGridParam', 'url'))){
+                let gridInfo = JSON.parse(localStorage.getItem($(grid_selector).jqGrid('getGridParam', 'url')));
+                //let gridInfo = JSON.parse(localStorage.getItem("gridParams"));
+                if (gridInfo.postData.filters != null && gridInfo.postData.filters != "") {
+                    let filters = JSON.parse(gridInfo.postData.filters);
+                    let rules = filters.rules;
+                    for (let i = 0; i < rules.length; i++) {
+                        $('.ui-search-toolbar').find("input[name=" + rules[i].field + "]").val(rules[i].data)
+                    }
+                }
+            }
+        },
+        50)
+
+        // *** JqGrid Persist State *** //
+        // jqgrid save state function
+        function saveGridParameters(grid) {
+            // Load GridParam
+            let gridInfo = new Object();
+
+            gridInfo.url = grid.jqGrid('getGridParam', 'url');
+            gridInfo.sortname = grid.jqGrid('getGridParam', 'sortname');
+            gridInfo.sortorder = grid.jqGrid('getGridParam', 'sortorder');
+            //gridInfo.selrow = grid.jqGrid('getGridParam', 'selrow');
+            gridInfo.page = grid.jqGrid('getGridParam', 'page');
+            gridInfo.rowNum = grid.jqGrid('getGridParam', 'rowNum');
+            gridInfo.postData = grid.jqGrid('getGridParam', 'postData');
+            gridInfo.search = grid.jqGrid('getGridParam', 'search');
+
+            let ids = [];
+            grid.find("tr:has(.sgexpanded)").each(function () {
+                ids.push($(this).attr('id'));
+            });
+            gridInfo.subgridIds = ids;
+
+            // Serialize it to as JSON-String
+            let gridParams = JSON.stringify(gridInfo);
+
+            // Save the serialized Griddata in the localStorage
+            //localStorage.setItem("gridParams", gridParams);
+            localStorage.setItem(grid.jqGrid('getGridParam', 'url'), gridParams);
+        };
+
+        // jqgrid load state function
+        function loadGridParameters(grid) {
+
+            let url = grid.jqGrid('getGridParam', 'url')
+            // jqgrid state save
+            if (localStorage.getItem(url) != "" && localStorage.getItem(url) != null) {
+                let gridInfo = JSON.parse(localStorage.getItem(url));
+
+                //var $this = $(this);
+                let $this = grid;
+
+                // selrow
+                $this.jqGrid('setSelection', localStorage.getItem("selrowId"), false);
+
+                if ($this.jqGrid("getGridParam", "datatype") === "json") {
+                    setTimeout(function () {
+                        //$this.trigger("reloadGrid", [{
+                        //    current: true,
+                        //    page: gridInfo.page,
+                        //    postData: gridInfo.postData,
+                        //}]);
+                        $this.jqGrid("setGridParam", {
+                            datatype: "local",
+                            page: gridInfo.page,
+                            //postData: gridInfo.postData,
+                            sortname: gridInfo.sortname,
+                            sortorder: gridInfo.sortorder,
+                            rowNum: gridInfo.rowNum,
+                            search: gridInfo.search
+                        });
+                        if (gridInfo.postData.filters != "" && gridInfo.postData.filters != null) {
+                            let rules = JSON.parse(gridInfo.postData.filters).rules;
+                            if (rules != [] && rules != "") {
+                                $this.jqGrid("setGridParam", {
+                                    postData: gridInfo.postData,
+
+                                });
+                            }
+                        }
+                        $this.trigger("reloadGrid");
+                    }, 50);
+
+                }
+                // retain subgrid expand
+                if (gridInfo.subgridIds != null && gridInfo.subgridIds != []) {
+                    for (var j = 0; j < gridInfo.subgridIds.length; j = j + 1) {
+                        $this.jqGrid('expandSubGridRow', gridInfo.subgridIds[j]);
+                    }
+                }
+                // end
+            }
+        }
+        function DisplayRowNum() {
+            if (localStorage.getItem("gridParams") != "" && localStorage.getItem("gridParams") != null) {
+                let gridInfo = JSON.parse(localStorage.getItem("gridParams"));
+                return gridInfo.rowNum;
+            } else {
+                return 10;
+            }
+        }
+
+        window.addEventListener("beforeunload", function (event) {
+            saveGridParameters(jQuery(grid_selector))
+        });
+
+        // *** JqGrid Persist State End *** //
+
+        // reset jqgrid params
+        $('#refresh_grid-table').click(function () {
+            localStorage.setItem("gridParams", "");
+            localStorage.setItem("selrowId", "");
+            localStorage.setItem($(grid_selector).jqGrid('getGridParam', 'url'), "");
+            $(grid_selector).jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+        })
+
+
+        /* 資料來源代號查詢下拉 開始 */
+
+        function Set_UsrCode(queryInput, $select) {
+            // 輸入條件為空時
+            if (!queryInput) {
+                $select.empty()
+                $select.trigger("chosen:updated")
+                return
+            }
+            $.ajax({
+                method: 'get',
+                url: '@Url.Action("Get_UsrCode", "EPB040A")',
+                data: { pTkCode: queryInput },
+                success: function (data) {
+                    $select.empty()
+                    if (data.length > 0) {
+                        for (let i = 0; i < data.length; i++) {
+                            $select.append($('<option>').val(data[i].field_code).text(data[i].field_code + ' - ' + data[i].field_name))
+                        }
+                    } else {
+                        $select.append($('<option>').val('').text('沒有符合資料來源代號!'))
+                    }
+
+                    $select.trigger("chosen:updated")
+                },
+                error: function (jqXHR) {
+                    console.log('ajax error ' + jqXHR.status + ': ' + jqXHR.statusText)
+                }
+            })
+        }
+
+        /* 資料來源代號查詢下拉 結束 */
+
+
+
+        function style_edit_form(form) {
+            //enable datepicker on "sdate" field and switches for "stock" field
+            form.find('input[name=sdate]').datepicker({ format: 'yyyy-mm-dd', autoclose: true })
+            form.find('input[name=hop_date]').datepicker({ language: 'zh-TW', format: 'yyyy/mm/dd', "setDate": new Date(), autoclose: true })
+                                             .datepicker("setDate",'now');
+
+            form.find('input[name=stock]').addClass('ace ace-switch ace-switch-5').after('<span class="lbl"></span>');
+            //don't wrap inside a label element, the checkbox value won't be submitted (POST'ed)
+            //.addClass('ace ace-switch ace-switch-5').wrap('<label class="inline" />').after('<span class="lbl"></span>');
+            form.find('input[name=is_use]').addClass('ace ace-switch ace-switch-5').after('<span class="lbl"></span>');
+            form.find('input[name=is_end]').addClass('ace ace-switch ace-switch-5').after('<span class="lbl"></span>');
+
+
+            /* 資料來源代號查詢下拉 */
+            // custom add select element
+            form.find('input[name="usr_code"]').after($('<select name="usr_code"></select>'))
+
+            // change prev input name to prevent submit this value
+            form.find('input[name="usr_code"]').attr('name', 'usr_code_query')
+
+            // set chosen select and this width
+            form.find('select[name="usr_code"]')
+                .addClass('FormElement')  // for submit the select value (or other custom input)
+                .chosen({
+                    placeholder_text_single: '請輸入前N碼資料來源代號'
+                })
+                .next().css({ width: '80%' })
+
+            // input query condition and set select options
+            form.find('input[name="usr_code_query"]').on('keyup change', function(){
+                Set_UsrCode($(this).val(), form.find('select[name="usr_code"]'))
+            })
+
+            // 資料來源代號 排版 樣式
+            form.find('#tr_usr_code')
+                .find('td[class*="DataTD"]')
+                .css({
+                    display: 'flex',
+                    'flex-direction': 'column'
+                })
+            form.find('input[name="usr_code_query"]').css({ width: '60%' })
+            /* 資料來源代號查詢下拉 結束 */
+
+
+            //chosen select
+
+            form.find('select[name=review_level]')
+                .chosen({
+                    placeholder_text_single: "----請選擇----",
+                    search_contains: true  //模糊查詢
+                })
+            form.find('.chosen-container').width('80%');
+
+            form.find('select[name=is_manager]')
+                .chosen({
+                    placeholder_text_single: "----請選擇----",
+                    search_contains: true  //模糊查詢
+                })
+            form.find('.chosen-container').width('80%');
+
+            // 隱藏 產品名稱 欄位
+            //$('#tr_pro_name').css('display', 'none')
+            $('#tr_usr_name').css('display', 'none')
+
+
+            // sto_code
+            form.find('input[name="review_code"]').val('@Model.review_code')
+
+            $('#tr_review_code').css('display', 'none')
+
+
+
+            //update buttons classes
+            var buttons = form.next().find('.EditButton .fm-button');
+            buttons.addClass('btn btn-sm').find('[class*="-icon"]').hide();//ui-icon, s-icon
+            buttons.eq(0).addClass('btn-primary').prepend('<i class="ace-icon fa fa-check"></i>');
+            buttons.eq(1).prepend('<i class="ace-icon fa fa-times"></i>')
+
+            buttons = form.next().find('.navButton a');
+            buttons.find('.ui-icon').hide();
+            buttons.eq(0).append('<i class="ace-icon fa fa-chevron-left"></i>');
+            buttons.eq(1).append('<i class="ace-icon fa fa-chevron-right"></i>');
+        }
+
+        function style_delete_form(form) {
+            var buttons = form.next().find('.EditButton .fm-button');
+            buttons.addClass('btn btn-sm btn-white btn-round').find('[class*="-icon"]').hide();//ui-icon, s-icon
+            buttons.eq(0).addClass('btn-danger').prepend('<i class="ace-icon fa fa-trash-o"></i>');
+            buttons.eq(1).addClass('btn-default').prepend('<i class="ace-icon fa fa-times"></i>')
+        }
+
+        function style_search_filters(form) {
+            form.find('.delete-rule').val('X');
+            form.find('.add-rule').addClass('btn btn-xs btn-primary');
+            form.find('.add-group').addClass('btn btn-xs btn-success');
+            form.find('.delete-group').addClass('btn btn-xs btn-danger');
+        }
+        function style_search_form(form) {
+            var dialog = form.closest('.ui-jqdialog');
+            var buttons = dialog.find('.EditTable')
+            buttons.find('.EditButton a[id*="_reset"]').addClass('btn btn-sm btn-info').find('.ui-icon').attr('class', 'ace-icon fa fa-retweet');
+            buttons.find('.EditButton a[id*="_query"]').addClass('btn btn-sm btn-inverse').find('.ui-icon').attr('class', 'ace-icon fa fa-comment-o');
+            buttons.find('.EditButton a[id*="_search"]').addClass('btn btn-sm btn-purple').find('.ui-icon').attr('class', 'ace-icon fa fa-search');
+        }
+
+        function beforeDeleteCallback(e) {
+            var form = $(e[0]);
+            if (form.data('styled')) return false;
+
+            form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+            style_delete_form(form);
+
+            form.data('styled', true);
+
+        }
+
+        function beforeEditCallback(e) {
+            var form = $(e[0]);
+            form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+            style_edit_form(form);
+        }
+
+
+
+        //it causes some flicker when reloading or navigating grid
+        //it may be possible to have some custom formatter to do this as the grid is being created to prevent this
+        //or go back to default browser checkbox styles for the grid
+        function styleCheckbox(table) {
+            /**
+                $(table).find('input:checkbox').addClass('ace')
+                .wrap('<label />')
+                .after('<span class="lbl align-top" />')
+
+
+                $('.ui-jqgrid-labels th[id*="_cb"]:first-child')
+                .find('input.cbox[type=checkbox]').addClass('ace')
+                .wrap('<label />').after('<span class="lbl align-top" />');
+            */
+        }
+
+
+        //unlike navButtons icons, action icons in rows seem to be hard-coded
+        //you can change them like this in here if you want
+        function updateActionIcons(table) {
+            /**
+            var replacement =
+            {
+                'ui-ace-icon fa fa-pencil' : 'ace-icon fa fa-pencil blue',
+                'ui-ace-icon fa fa-trash-o' : 'ace-icon fa fa-trash-o red',
+                'ui-icon-disk' : 'ace-icon fa fa-check green',
+                'ui-icon-cancel' : 'ace-icon fa fa-times red'
+            };
+            $(table).find('.ui-pg-div span.ui-icon').each(function(){
+                var icon = $(this);
+                var $class = $.trim(icon.attr('class').replace('ui-icon', ''));
+                if($class in replacement) icon.attr('class', 'ui-icon '+replacement[$class]);
+            })
+            */
+        }
+
+        //replace icons with FontAwesome icons like above
+        function updatePagerIcons(table) {
+            var replacement =
+            {
+                'ui-icon-seek-first': 'ace-icon fa fa-angle-double-left bigger-140',
+                'ui-icon-seek-prev': 'ace-icon fa fa-angle-left bigger-140',
+                'ui-icon-seek-next': 'ace-icon fa fa-angle-right bigger-140',
+                'ui-icon-seek-end': 'ace-icon fa fa-angle-double-right bigger-140'
+            };
+            $('.ui-pg-table:not(.navtable) > tbody > tr > .ui-pg-button > .ui-icon').each(function () {
+                var icon = $(this);
+                var $class = $.trim(icon.attr('class').replace('ui-icon', ''));
+
+                if ($class in replacement) icon.attr('class', 'ui-icon ' + replacement[$class]);
+            })
+        }
+
+        function enableTooltips(table) {
+            $('.navtable .ui-pg-button').tooltip({ container: 'body' });
+            $(table).find('.ui-pg-div').tooltip({ container: 'body' });
+        }
+
+        //var selr = jQuery(grid_selector).jqGrid('getGridParam','selrow');
+
+        $(document).one('ajaxloadstart.page', function (e) {
+            $.jgrid.gridDestroy(grid_selector);
+            $('.ui-jqdialog').remove();
+        });
+    });
+</script>
+
+

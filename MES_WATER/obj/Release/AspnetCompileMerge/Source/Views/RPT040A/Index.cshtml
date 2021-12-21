@@ -1,0 +1,1168 @@
+﻿@using MES_WATER.Controllers;
+@using MES_WATER.Models;
+@using System.Data;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //
+    Comm comm = new Comm();
+    GetData GD = new GetData();
+    GetModelValidation gmv = new GetModelValidation();
+    RPT040AController CT = new RPT040AController();
+
+    //
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+
+    //DataTable dtQmtValue = CT.Get_QmtValueByMoCode(""); ;
+
+    // ViewBag
+
+}
+
+
+@{
+//下拉選單
+// usr_code
+//List<DDLList> usr_code_DDL = comm.Get_DDLOption("BDP08_0000", "usr_code", "usr_name");
+//List<DDLList> prg_code_DDL = comm.Get_DDLOption("BDP04_0000", "prg_code", "prg_name");
+//List<DDLList> usr_type_DDL = comm.Get_DDLOption("usr_type");
+//List<DDLList> mo_code_DDL = comm.Get_DDLOption("SFT010C_mo_code", "B");
+}
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-timepicker.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datetimepicker.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+
+}
+<link rel="stylesheet" href="~/Content/assets/css/bootstrap-multiselect.min.css" />
+<style>
+    .timeline-info {
+        /*position: relative;*/
+        white-space: nowrap;
+    }
+
+    .timeline-date {
+        position: relative;
+        right: 70px;
+    }
+</style>
+@*<div class="page-header">
+        <h1>
+            時間線
+            <small>
+                <i class="ace-icon fa fa-angle-double-right"></i>
+                test
+            </small>
+        </h1>
+    </div>*@
+
+@Html.Partial("pPrgName")
+<br />
+
+<div id="timeline-query">
+    <form class="form-horizontal" role="form" id="timeline-queryForm">
+        <div class="form-group">
+            <label class="col-sm-3 control-label no-padding-right" for="mo_code">
+                製令號碼
+            </label>
+
+            <div class="col-sm-9">
+                <div class="col-xs-10 col-sm-5 no-padding-right no-padding-left">
+                    <select id="mo_code" name="mo_code" class="chosen-select">
+                        <option value="">---請選擇---</option>
+                        @{
+                            Dictionary<string, object> sqlparams = new Dictionary<string, object>();
+                            //string sql = "Select distinct mo_code from MEM01_0000 order by mo_code";
+                            string sql = "Select MEM01_0000.mo_code,MEB20_0000.pro_name " +
+                                         "  from MEM01_0000 " +
+                                         "  left join MET01_0000 on MET01_0000.mo_code=MEM01_0000.mo_code " +
+                                         "  left join MEB20_0000 on MET01_0000.pro_code=MEB20_0000.pro_code " +
+                                         " group by MEM01_0000.mo_code,MEB20_0000.pro_name";
+
+                            DataTable dt = comm.Get_DataTable(sql);
+                        }
+                        @foreach (DataRow dr in dt.Rows)
+                        {
+                            <option value="@dr["mo_code"].ToString()">@dr["mo_code"].ToString() - @dr["pro_name"].ToString()  </option>
+                        }
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="clearfix ">
+            <div class="col-md-offset-3 col-md-9">
+                <button class="btn btn-info" type="submit">
+                    <i class="ace-icon fa fa-check bigger-110"></i>
+                    查詢
+                </button>
+                <button id="timeline-2-reset" class="btn btn-success" type="button" style="margin-left:15px;">
+                    <i class="ace-icon fa fa-refresh bigger-110"></i>
+                    重置
+                </button>
+                <button id="timeline-2-clearForm" class="btn" type="reset" style="margin-left:15px;">
+                    <i class="ace-icon fa fa-undo bigger-110"></i>
+                    清空輸入欄
+                </button>
+            </div>
+        </div>
+    </form>
+
+    <br />
+
+    <table id="MET01_0000-info" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>產品編號</th>
+                <th>產品名稱</th>
+                <th>預計產量</th>
+                <th>實際產量</th>
+                <th>不良品量</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td aria-describedby="pro_code"></td>
+                <td aria-describedby="pro_name"></td>
+                <td aria-describedby="plan_qty"></td>
+                <td aria-describedby="ok_qty_sum"></td>
+                <td aria-describedby="ng_qty_sum"></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <div style="overflow:scroll;height:400px">
+        <table id="table_qmt_value" class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>檢驗項目</th>
+                    <th>檢驗值</th>
+                    <th>檢驗人員</th>
+                    <th>檢驗時間</th>
+                    <th>異常標記</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+    
+
+
+
+</div>
+
+<div class="hr hr-16"></div>
+
+<div id="timeline-2"></div>
+
+@* modal form 暫時放著 *@
+<div id="modal-form-update" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="blue bigger">查看詳細資料</h4>
+                @*<h4 class="blue bigger">Please fill the following form fields</h4>*@
+            </div>
+
+            <div class="modal-body">
+                <div class="row" style="font-size: 14px">
+                    <b id="updateBefore-label" class="col-sm-2" style="text-align: right; ">
+                    </b>
+                    <div id="updateBefore-data" class="col-sm-10" style="word-break:break-all;">
+                    </div>
+                </div>
+                <br />
+                <div class="row" style="font-size: 14px">
+                    <b id="updateAfter-label" class="col-sm-2" style="text-align: right; ">
+                    </b>
+                    <div id="updateAfter-data" class="col-sm-10" style="word-break:break-all;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-sm" data-dismiss="modal">
+                    <i class="ace-icon fa fa-times"></i>
+                    關閉
+                </button>
+            </div>
+        </div>
+    </div>
+</div><!-- PAGE CONTENT ENDS -->
+
+<div id="modal-form-insert" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="blue bigger">查看詳細資料</h4>
+                @*<h4 class="blue bigger">Please fill the following form fields</h4>*@
+            </div>
+
+            <div class="modal-body">
+                <div class="row" style="font-size: 14px">
+                    <b id="insert-label" class="col-sm-2" style="text-align: right; ">
+                    </b>
+                    <div id="insert-data" class="col-sm-10" style="word-break:break-all;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-sm" data-dismiss="modal">
+                    <i class="ace-icon fa fa-times"></i>
+                    關閉
+                </button>
+            </div>
+        </div>
+    </div>
+</div><!-- PAGE CONTENT ENDS -->
+
+<div id="modal-form-delete" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="blue bigger">查看詳細資料</h4>
+                @*<h4 class="blue bigger">Please fill the following form fields</h4>*@
+            </div>
+
+            <div class="modal-body">
+                <div class="row" style="font-size: 14px">
+                    <b id="delete-label" class="col-sm-2" style="text-align: right; ">
+                    </b>
+                    <div id="delete-data" class="col-sm-10" style="word-break:break-all;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-sm" data-dismiss="modal">
+                    <i class="ace-icon fa fa-times"></i>
+                    關閉
+                </button>
+            </div>
+
+
+        </div>
+    </div>
+</div><!-- PAGE CONTENT ENDS -->
+
+
+@section footer_plugin {
+    <script src="~/Scripts/assets/js/jquery-ui.min.js"></script>
+
+    <!-- bootstrap-timepicker -->
+    <script src="~/Scripts/assets/js/bootstrap-timepicker.min.js"></script>
+
+    <!-- bootstrap-datetimepicker -->
+    <script src="~/Scripts/assets/js/moment.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datetimepicker.min.js"></script>
+
+    <!-- bootstrap-datepicker -->
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+
+    <!-- highlight -->
+    <script src="~/Scripts/assets/js/jquery.highlight.js"></script>
+
+    <!-- chosen -->
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+
+    <!-- multiselect-->
+
+    <script src="~/Scripts/assets/js/bootstrap-multiselect.min.js"></script>
+
+}
+
+
+<style>
+    .highlight {
+        background-color: yellow;
+    }
+</style>
+
+@section footer_script {
+    <script type="text/javascript">
+        jQuery(function ($) {
+            //Make bootstrap modal draggable
+            $(".modal").draggable({
+                handle: ".modal-header",
+            })
+            $(".modal-header").css({
+                'cursor': 'all-scroll'
+            });
+
+            // TimeLine class
+            $.fn.TimeLine = function (oOptions) {
+
+                let TimeLineId = $(this).attr('id')
+
+                let defaultOptions = {
+                    method: 'post',
+                    url: '',
+                    data: {},
+                    firstShow: false
+                }
+
+                if (typeof oOptions === 'object') {
+                    $.extend(defaultOptions, oOptions)
+                }
+
+                $thisTimeLine = $(this)
+
+
+                //
+                let construct = function (id) {
+                    return $(`
+                        <div class ="row">
+                            <div id= "${id}-wrapper" class ="col-xs-12 col-sm-10 col-sm-offset-1">
+
+                            </div>
+                        </div>
+                    `)
+                }
+
+                $(this).append(construct(TimeLineId))
+
+                //
+                let $wrapper = $(this).find('#' + TimeLineId + '-wrapper')
+
+                // DateRow class
+                function DateRow(pDate) {
+                    this.container = $(`
+                    <div class ="timeline-container timeline-style2">
+                        <span class ="timeline-label">
+                            <b>${pDate}</b>
+                        </span>
+
+                        <div class ="timeline-items">
+
+                        </div>
+                    </div>
+                `)
+                }
+                (function () {
+                    this.setItem = function (pTime, pMsg) {
+                        //let formattedTime = formatAMPM(pTime)
+                        let item = $(`
+                        <div class ="timeline-item clearfix">
+                            <div class ="timeline-info">
+                                <span class ="timeline-date">${pTime}</span>
+
+                                <i class ="timeline-indicator btn btn-info no-hover"></i>
+                            </div>
+
+                            <div class ="widget-box transparent">
+                                <div class ="widget-body">
+                                    <div class ="timeline-message widget-main no-padding" >
+                                        ${pMsg}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        `)
+                        this.container.find('.timeline-items').append(item)
+                    }
+                }).call(DateRow.prototype)
+
+                function render(data) {
+                    console.log(data)
+                    // Store current data
+                    $thisTimeLine.data(TimeLineId + '-currentData', data)
+
+                    //
+                    if (data.length <= 0) {
+                        let newDateRow = new DateRow(GetDate())
+                        newDateRow.setItem(GetTime(), '沒有資料! ')
+                        $wrapper.append(newDateRow.container)
+                        return
+                    }
+
+                    //let newDateRow = new DateRow(GetDate())
+
+                    //let timeline_header = `<div style="width: 50px">
+                    //                            <big><b class = "purple">站別</b></big>
+                    //                        </div>`
+                    //let timeline_thead = `<table class='table table-bordered table-hover' style="margin-top: -7px" >
+                    //                    <thead>
+                    //                        <tr>
+                    //                            <th>加工順序</th>
+                    //                            <th>製程代號</th>
+                    //                            <th>線別代號</th>
+                    //                            <th>日期</th>
+                    //                            <th>時間</th>
+                    //                            <th>人員</th>
+                    //                        </tr>
+                    //                    </thead>
+                    //                </table>`
+                    //let topMsg = `<div style="display: flex; ">${timeline_header} ${timeline_thead}</div>`
+                    //newDateRow.setItem(GetTime(), `<div style="display: flex; ">${timeline_header} ${timeline_thead}</div>`)
+
+
+                    //$wrapper.append(newDateRow.container)
+
+
+                    // 應要求不group了，直接列全部 日期+時間
+                    let list = data.slice()  // shallow copy array
+                    let newDateRow = new DateRow('')
+                    for (let i = 0; i < list.length; i++) {
+                        let header = ''
+                        let table = ''
+                        switch (list[i].type) {
+                            case 'start':
+                                header = `<div style="width: 70px">
+                                            ${list[i].datetime ? `<big><b class = "blue">開始</b></big>` : `<big><b style="color: red">未開始</b></big>`}
+                                          </div>`
+                                table = `<table class='table table-bordered table-hover' style="margin-top: -7px" >
+                                                <thead>
+                                                ${i == 0 ? `<tr>
+                                                        <th>人員名稱</th>
+                                                        <th>製程名稱</th>
+                                                        <th>站別名稱</th>
+                                                        <th>機器名稱</th>
+                                                        <th>良品數</th>
+                                                        <th>不良數</th>
+                                                    </tr>` : ''}
+
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td width="150px" >${list[i].usr_name}</td>
+                                                        <td width="150px" >${list[i].work_code}</td>
+                                                        <td width="150px" >${list[i].station_name}</td>
+                                                        <td width="150px" >${list[i].mac_name}</td>
+                                                        <td width="150px" >${list[i].ok_qty}</td>
+                                                        <td width="150px" >${list[i].ng_qty}</td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>`
+                                break
+                            case 'end':
+                                header = `<div style="width: 75px">
+                                            ${list[i].datetime ? `<big><b class = "green">結束</b></big>` : `<big><b style="color: red">未結束</b></big>`}
+                                          </div>`
+                                //table = `<table class='table table-bordered table-hover' style="margin-top: -7px">
+                                //                <thead>
+                                //                ${i == 0 ? `<tr>
+                                //                        <th>工站代碼</th>
+                                //                        <th>OK數量</th>
+                                //                        <th>NG數量</th>
+                                //                        <th>時數 (分鐘)</th>
+                                //                    </tr>`: ''}
+
+                                //                </thead>
+                                //                <tbody>
+                                //                    <tr>
+                                //                        <td width="150px" >${list[i].work_code}</td>
+                                //                        <td width="150px" >${list[i].ok_qty}</td>
+                                //                        <td width="150px" >${list[i].ng_qty}</td>
+                                //                        <td width="150px" >${list[i].work_min}</td>
+                                //                    </tr>
+                                //                </tbody>
+                                //            </table>`
+                                break
+
+                        }
+                        msg = `<div style="display: flex; ">${header} ${table}</div>`
+
+                        //
+                        newDateRow.setItem(`<b style="font-size: 14px">${list[i].datetime}</b> `, msg)
+
+                    }
+
+                    $wrapper.append(newDateRow.container)
+
+                    // 第一種group算法，mutate original array
+                    //while (list.length > 0) {
+                    //    let newDateRow = new DateRow(list[0].usr_date)
+
+                    //    let groupValue = list[0].usr_date
+                    //    let msg = ''
+                    //    let usr_code = ''
+                    //    let prg_code = ''
+                    //    let header = ''
+                    //    let table = ''
+                    //    for (let i = 0; i < list.length; i++) {
+                    //        if (list[i].usr_date === groupValue) {
+                    //            switch (list[i].status) {
+                    //                case 'I':
+                    //                    header = `<div style="width: 50px">
+                    //                            <big><b class = "blue">入站</b></big>
+                    //                        </div>`
+                    //                    table = `<table class='table table-bordered table-hover' style="margin-top: -7px" >
+                    //                    <thead>
+                    //                        <tr>
+                    //                            <th>加工順序</th>
+                    //                            <th>製程代號</th>
+                    //                            <th>線別代號</th>
+                    //                            <th>進站人員</th>
+                    //                        </tr>
+                    //                    </thead>
+                    //                    <tbody>
+                    //                        <tr>
+                    //                            <td>${list[i].scr_no}</td>
+                    //                            <td>${list[i].process_code}</td>
+                    //                            <td>${list[i].line_code}</td>
+                    //                            <td>${list[i].i_usr_code}</td>
+                    //                        </tr>
+                    //                    </tbody>
+                    //                </table>`
+                    //                    break
+                    //                case 'O':
+                    //                    header = `<div style="width: 50px">
+                    //                            <big><b class= "blue">出站</b></big>
+                    //                        </div>`
+                    //                    table = `<table class='table table-bordered table-hover' style="margin-top: -7px">
+                    //                    <thead>
+                    //                        <tr>
+                    //                            <th>加工順序</th>
+                    //                            <th>製程代號</th>
+                    //                            <th>線別代號</th>
+                    //                            <th>出站人員</th>
+                    //                        </tr>
+                    //                    </thead>
+                    //                    <tbody>
+                    //                        <tr>
+                    //                            <td>${list[i].scr_no}</td>
+                    //                            <td>${list[i].process_code}</td>
+                    //                            <td>${list[i].line_code}</td>
+                    //                            <td>${list[i].o_usr_code}</td>
+                    //                        </tr>
+                    //                    </tbody>
+                    //                </table>`
+                    //                    break
+                    //            }
+                    //            msg = `<div style="display: flex; ">${header} ${table}</div>`
+
+                    //            //
+                    //            newDateRow.setItem(list[i].usr_time, msg)
+                    //            list.splice(i, 1)
+                    //            i--
+                    //        }
+                    //    }
+                    //    $wrapper.append(newDateRow.container)
+                    //}
+
+                    // 第二種group算法
+                    //let groupField = 'usr_date'
+
+                    //let fieldList = data.map(x => x[groupField])
+
+                    // distinct value in array
+                    //let groupValues = [...new Set(fieldList)]
+
+                    //let itemMsg = '';
+                    //for (let i = 0; i < groupValues.length; i++) {
+                    //    let timeline = new TimeLine(groupValues[i])
+                    //    list.forEach(function (item, index) {
+                    //        if (item[groupField] === groupValues[i]) {
+                    //            itemMsg = '<big><b>' + (item.usr_code || '*空字串*') + '</b></big>' + ' &nbsp; ' + item.cmemo
+                    //            timeline.setItem(item.usr_time, itemMsg)
+                    //        }
+                    //    })
+                    //    $('#timeline-2-wrapper').append(timeline.container)
+                    //}
+
+
+                }
+
+                //
+                function AjaxData(successFunc, oOptions) {
+                    
+                    let defaultAjaxOption = {
+                        method: defaultOptions.method,
+                        url: defaultOptions.url,
+                        data: defaultOptions.data,
+                        beforeSend: function (xhr) {
+                            // to adjust
+                            clearAll()
+
+                            // loading
+                            setDateRow(GetDate(), [
+                                {
+                                    time: GetTime(),
+                                    message: '<i class="ace-icon fa fa-spinner fa-spin  bigger-140"></i><span style="padding-left: 10px"></span><span style="color: #FF892A">載入中......</span>'
+                                }])
+                        }
+                    }
+
+                    //
+                    let executeOption = {}
+                    if (typeof oOptions !== 'undefined') {
+                        let tmp = $.extend({}, defaultAjaxOption)
+                        executeOption = $.extend(tmp, oOptions)
+                    } else {
+                        executeOption = defaultAjaxOption
+                    }
+
+                    //
+                    $.ajax(executeOption)
+                        .done(function (data) {
+                            // to adjust
+                            clearAll()
+
+                            if (typeof successFunc === 'function') {
+                                successFunc(data)
+                            }
+
+
+                        }).fail(function (xhr) {
+                            alert('Ajax Error! ')
+                        })
+                }
+
+
+                // init TimeLine
+                AjaxData(function (data) {
+                    // Store init data
+                    $thisTimeLine.data(TimeLineId + '-initData', data)
+
+                    //
+                    render(data)
+
+                    //
+                    if (typeof (defaultOptions.afterRender) === 'function') {
+                        defaultOptions.afterRender(data)
+                    }
+                })
+                //if (defaultOptions.firstShow) {
+                //    AjaxData(function (data) {
+                //        // Store init data
+                //        $thisTimeLine.data(TimeLineId + '-initData', data)
+
+                //        //
+                //        render(data)
+                //    })
+                //} else {
+                //    setDateRow(GetDate(), [{ time: GetTime(), message: "請選擇查詢條件! " }])
+                //    defaultOptions.firstShow = true
+                //}
+
+                //
+                function getInitData() {
+                    let data = $thisTimeLine.data(TimeLineId + '-initData')
+                    if (typeof data === 'undefined')
+                        data = []
+                    return data
+                }
+
+                // 取得今天日期 (yyyy/MM/dd)
+                function GetDate() {
+                    let today = new Date();
+                    let y = today.getFullYear()
+                    let m = (today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : '0' + (today.getMonth() + 1)
+                    let d = today.getDate() > 9 ? today.getDate() : '0' + today.getDate()
+                    let date = y + '/' + m + '/' + d;
+                    return date
+                }
+
+                // 取得現在時間 (HH:mm:ss)
+                function GetTime() {
+                    let today = new Date();
+                    var h = today.getHours();
+                    var m = today.getMinutes() > 9 ? today.getMinutes() : '0' + today.getMinutes();
+                    var s = today.getSeconds() > 9 ? today.getSeconds() : '0' + today.getSeconds();
+                    let time = h + ":" + m + ":" + s
+                    return time
+                }
+
+                //
+
+                function clearAll() {
+                    $wrapper.empty()
+                }
+
+                function reset() {
+                    clearAll()
+
+                    let initData = getInitData()
+                    if (initData.length <= 0) {
+                        setDateRow(GetDate(), [{ time: GetTime(), message: "請選擇查詢條件! " }])
+                    } else {
+                        render(getInitData())
+                    }
+                }
+
+                function reload(postData, callback) {
+                    AjaxData(function (data) {
+                        //
+                        clearAll()
+
+                        // Render TimeLine-wrapper
+                        render(data)
+
+                        if (typeof (defaultOptions.afterRender) === 'function') {
+                            defaultOptions.afterRender(data)
+                        }
+
+                        // callback
+                        if (typeof callback === 'function') {
+                            callback()
+                        }
+                    }, { data: postData })
+
+                }
+
+                function setDateRow(pDate, pItems) {
+                    if (!Array.isArray(pItems)) {
+                        alert('TimeItems is not Array! ')
+                        return
+                    }
+                    let newDateRow = new DateRow(pDate);
+                    pItems.forEach(function (item, index) {
+                        if (typeof item.time === 'undefined' || typeof item.message === 'undefined') {
+                            alert('Item not have "time" and "messsage" property! ')
+                            return
+                        }
+                        newDateRow.setItem(item.time, item.message)
+                    })
+                    $wrapper.prepend(newDateRow.container)
+                }
+
+
+                return {
+                    clearAll: function () {
+                        clearAll()
+                    },
+                    reset: function () {
+                        reset()
+                    },
+                    reload: function (postData, callback) {
+                        reload(postData, callback)
+                    },
+                    //render: function (data) {
+                    //    render(data)
+                    //},
+                    setDateRow: function (pDate, pItems) {
+                        setDateRow(pDate, pItems)
+                    }
+
+
+                }
+            }
+
+
+            function Set_MoInfo() {
+                let mo_code = $('#mo_code').val()
+                if (!mo_code) {
+                    return
+                }
+                $.get('/RPT040A/Get_MoData', { mo_code: mo_code }, function (data) {
+                    data = data[0]                    
+
+                    $('[aria-describedby="pro_code"]').text(data.pro_code)
+                    $('[aria-describedby="pro_name"]').text(data.pro_name)
+                    $('[aria-describedby="plan_qty"]').text(data.plan_qty)
+                })
+            }
+
+            Set_MoInfo()
+
+            // init TimeLine
+            let timeline =
+                $('#timeline-2').TimeLine({
+                    method: 'post',
+                    url: '@Url.Action("Get_TimeLineData", sPrgCode)',
+                    data: {
+                        mo_code: $('#mo_code').val(),
+                        pro_lot_no: $('#pro_lot_no').val(),
+                    },
+                    //data: {
+                    //    usr_code: '',
+                    //    usr_date: GetDate(),
+                    //    prg_code: '',
+                    //    usr_time_after: '09:20:12',
+                    //    usr_time_before: '',
+                    //    usr_type: 'Login',
+                    //    cmemo: '',
+                    //},
+                    firstShow: true,
+                    afterRender: function (data) {
+
+                        Set_MoInfo()
+
+                        if (data.length <= 0) {
+                            $('[aria-describedby="ok_qty_sum"]').text(0)
+                            $('[aria-describedby="ng_qty_sum"]').text(0)
+                            return
+                        }
+
+                        //let ok_qty_sum = data.filter(x => x.type == 'start').map(x => x.ok_qty).reduce((a, b) => Number(a) + Number(b), 0)
+                        let ok_qty_sum = "0.00"
+                        $.ajax({
+                            method: 'post',
+                            url: '@Url.Action("Get_LastQty", sPrgCode)',
+                            data: { mo_code: $('#mo_code').val(), },
+                            success: function (data) {
+                                $('[aria-describedby="ok_qty_sum"]').text(data)
+                            }
+                        })
+                        let ng_qty_sum = data.filter(x => x.type == 'start').map(x => x.ng_qty).reduce((a, b) => Number(a) + Number(b), 0)
+                     
+                        $('[aria-describedby="ng_qty_sum"]').text(ng_qty_sum)
+
+                    }
+                })
+
+            function SetQueryData(pDataString) {
+                localStorage.setItem('TimeLine_timeline-2_queryData', pDataString)
+            }
+
+            function GetQueryData() {
+                return localStorage.getItem('TimeLine_timeline-2_queryData')
+            }
+
+
+            // 預設查詢欄位
+            //$('[name=usr_date_start]').val('2020/03/03')
+            //$('[name=usr_date_end]').val('2020/03/03')
+            $('[name=usr_date_start]').val(GetDate())
+            $('[name=usr_date_end]').val(GetDate())
+            //$('[name=usr_date]').val(GetDate())
+            //$('[name=usr_date]').val('2020/02/21')
+            //$('[name=usr_type]').val('Mdy')
+
+            //if (GetQueryData()) {
+            //    let data = JSON.parse(GetQueryData())
+
+            //    data.forEach(function (item, index) {
+
+            //        $(`[name="${item.name}"]`).val(item.value)
+
+            //    })
+
+            //} else {
+            //    $('[name=usr_date]').val(GetDate())
+            //}
+            // filter TimeLine
+            $('#timeline-queryForm').submit(function (e) {
+                e.preventDefault()
+
+                // 輸入資料
+                let mo_code = $('#mo_code').val()
+                let pro_lot_no = $('#pro_lot_no').val()
+
+                let formData = [
+                    { name: 'mo_code', value: mo_code },
+                    { name: 'pro_lot_no', value: pro_lot_no },
+                ]
+
+                // 儲存查詢資料 (localStorage)
+                let dataString = JSON.stringify(formData)
+                SetQueryData(dataString)
+
+                let filterConds = JSON.parse(GetQueryData())
+
+                // reload timeline
+                let postData = {}
+                filterConds.forEach(function (item, index) {
+                    postData[item.name] = item.value
+                })
+
+                timeline.reload(postData, function () {
+                })
+
+
+                ReloadRecord(mo_code)
+            })
+
+
+
+            function ReloadRecord(mo_code) {
+                $('#table_qmt_value > tbody > tr').remove()
+                var NewRow = ''
+
+                $.ajax({
+                    method: 'post',
+                    async: false,
+                    url: '@Url.Action("Get_QmtValueByMoCode")',
+                    data: {
+                        pMoCode: function () { return mo_code },
+                    },
+                    success: function (data) {
+                        if (data != "[]") {
+                            data = JSON.parse(data)
+                            data.forEach(function (item, index) {
+                                NewRow += `
+                                        <tr>
+                                            <td>${item.spc_code}</td>
+                                            <td>${item.field_value}</td>
+                                            <td>${item.usr_code}</td>
+                                            <td>${item.ins_date}</td>
+                                            <td>${item.is_excep}</td>
+                                        </tr>
+                                        `
+                            })
+                        } else {
+                            NewRow = `
+                                        <tr>
+                                            <td>無資料</td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                            <td></td>
+                                        </tr>
+                                        `
+                        }
+                    },
+                })                
+                $('#table_qmt_value > tbody').append(NewRow)
+            }
+
+
+
+
+            // reset timeline
+            $('#timeline-2-reset').click(function (e) {
+                history.go(0)
+                //timeline.reset()
+            })
+
+            // button設type="reset"內建重置input，
+            $('#timeline-2-clearForm').click(function (e) {
+                // 重置 chosen select
+                $('#timeline-queryForm').find('select').each(function () {
+                    $(this).val('')
+                    $(this).trigger('chosen:updated')
+                })
+
+                // refresh multiselect
+                $('#timeline-queryForm').find('select[class*="multiselect"]').multiselect("refresh")
+            })
+
+            // modal box
+
+            //
+            function diffTimeLineData(data) {
+                //let current = $('#timeline-2').data('timeline-2-currentData', data)
+            }
+
+            //
+            function reRender() {
+
+            }
+
+            // HH:mm:ss 轉成12小時制 pm am
+            function formatAMPM(dateString) {
+
+                let arr = dateString.split(':')
+
+                var hours = parseInt(arr[0]);
+                var minutes = parseInt(arr[1]);
+                var ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                minutes = minutes < 10 ? '0' + minutes : minutes;
+                var strTime = hours + ':' + minutes + ' ' + ampm;
+                return strTime;
+            }
+
+            // 取得今天日期 (yyyy/MM/dd)
+            function GetDate() {
+                let today = new Date();
+                let y = today.getFullYear()
+                let m = (today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : '0' + (today.getMonth() + 1)
+                let d = today.getDate() > 9 ? today.getDate() : '0' + today.getDate()
+                let date = y + '/' + m + '/' + d;
+                return date
+            }
+
+            // 取得現在時間 (HH:mm:ss)
+            function GetTime() {
+                let today = new Date();
+                var h = today.getHours();
+                var m = today.getMinutes() > 9 ? today.getMinutes() : '0' + today.getMinutes();
+                var s = today.getSeconds() > 9 ? today.getSeconds() : '0' + today.getSeconds();
+                let time = h + ":" + m + ":" + s
+                return time
+            }
+
+            // HH:mm:ss to Date
+            function timeToDate(pTimeString) {
+                let tempTime = pTimeString.split(':')
+                let dt = new Date();
+                dt.setHours(tempTime[0]);
+                dt.setMinutes(tempTime[1]);
+                dt.setSeconds(tempTime[2]);
+                return dt;
+            }
+
+            // HH:mm am/pm to Date
+            function ampmToDate(pTimeString, pSeconds) {
+                let tempTime = pTimeString
+
+                let dt = new Date();
+
+                let regex_am = /am/i;
+                let regex_pm = /pm/i;
+
+                let ampm = ''
+                if (regex_am.test(tempTime)) {
+                    tempTime = tempTime.replace(regex_am, '')
+                    ampm = 'am'
+                }
+                if (regex_pm.test(tempTime)) {
+                    tempTime = tempTime.replace(regex_pm, '')
+                    ampm = 'pm'
+                }
+                tempTime = tempTime.trim()
+                let temp = tempTime.split(':')
+
+                if (ampm === 'pm') {
+                    dt.setHours(parseInt(temp[0]) + 12);
+                } else {
+                    dt.setHours(temp[0]);
+                }
+                dt.setMinutes(temp[1]);
+                if (typeof pSecond === 'number') {
+                    dt.setSeconds(pSeconds);
+                }
+                return dt
+            }
+
+            // return 0 (equal) / 1 (first > second) / 2 (second > first)
+            function compareHHmm(pDate1, pDate2) {
+                let h1 = pDate1.getHours()
+                let m1 = pDate1.getMinutes()
+
+                let h2 = pDate2.getHours()
+                let m2 = pDate2.getMinutes()
+
+                if (h1 === h2) {
+                    if (m1 > m2) {
+                        return 1
+                    } else if (m1 < m2) {
+                        return 2
+                    } else {
+                        return 0
+                    }
+                }
+
+                if (h1 > h2) {
+                    return 1
+                }
+                if (h1 < h2) {
+                    return 2
+                }
+            }
+            // datetimpicker
+            if (!ace.vars['old_ie']) {
+                $('.timepicker1').datetimepicker({
+                    //format: 'MM/DD/YYYY h:mm:ss A',//use this option to display seconds
+                    format: 'HH:mm:ss',
+                    useCurrent: false,
+                    icons: {
+                        time: 'fa fa-clock-o',
+                        date: 'fa fa-calendar',
+                        up: 'fa fa-chevron-up',
+                        down: 'fa fa-chevron-down',
+                        previous: 'fa fa-chevron-left',
+                        next: 'fa fa-chevron-right',
+                        today: 'fa fa-arrows ',
+                        clear: 'fa fa-trash',
+                        close: 'fa fa-times'
+                    },
+                }).attr('autocomplete', 'off')
+                //.next().on(ace.click_event, function () {
+                //    $(this).prev().focus();
+                //});
+            }
+
+
+            // timepicker
+            //$('.timepicker1').timepicker({
+            //    minuteStep: 1,
+            //    //disableFocus: true,
+            //    icons: {
+            //        up: 'fa fa-chevron-up',
+            //        down: 'fa fa-chevron-down'
+            //    },
+            //    defaultTime: false,
+            //    showSeconds: true,
+            //    showMeridian: false,
+            //    'timeFormat': 'H:i:s'
+            //})
+            //    .on('focus', function () {
+            //    //$('.timepicker1').timepicker('showWidget');
+            //}).next().on(ace.click_event, function () {
+            //    $(this).prev().focus();
+            //})
+
+            // datepicker
+            $("[name='usr_date_start'], [name='usr_date_end']").datepicker({ language: 'zh-TW', format: 'yyyy/mm/dd', autoclose: true })
+                                       .attr('autocomplete', 'off')
+            //.datepicker('setDate', 'now')
+
+
+            // 一進來就查詢
+            //$('#timeline-queryForm').submit()
+
+            // chosen select
+            if (!ace.vars['touch']) {
+                $('.chosen-select').chosen({ allow_single_deselect: true });
+                //resize the chosen on window resize
+
+                $(window)
+                .off('resize.chosen')
+                .on('resize.chosen', function () {
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                }).trigger('resize.chosen');
+                //resize chosen on sidebar collapse/expand
+                $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                    if (event_name != 'sidebar_collapsed') return;
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                });
+
+
+                $('#chosen-multiple-style .btn').on('click', function (e) {
+                    var target = $(this).find('input[type=radio]');
+                    var which = parseInt(target.val());
+                    if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                    else $('#form-field-select-4').removeClass('tag-input-style');
+                });
+            }
+
+
+            // multiselect
+            $('.multiselect').multiselect({
+                enableFiltering: true,
+                enableHTML: true,
+                allSelectedText: false,
+                selectAllText: '全選',
+                nonSelectedText: '------請選擇------',
+                numberDisplayed: 10,
+                includeSelectAllOption: true,
+                maxHeight: 450,
+                buttonWidth: '100%',
+                //buttonWidth: 300,
+                buttonClass: 'btn btn-white btn-primary',
+                templates: {
+                    button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"><span class="multiselect-selected-text"></span> &nbsp;<b class="fa fa-caret-down"></b></button>',
+                    ul: '<ul class="multiselect-container dropdown-menu"></ul>',
+                    filter: '<li class="multiselect-item filter"><div class="input-group"><span class="input-group-addon"><i class="fa fa-search"></i></span><input class="form-control multiselect-search" type="text"></div></li>',
+                    filterClearBtn: '<span class="input-group-btn"><button class="btn btn-default btn-white btn-grey multiselect-clear-filter" type="button"><i class="fa fa-times-circle red2"></i></button></span>',
+                    li: '<li><a tabindex="0"><label></label></a></li>',
+                    divider: '<li class="multiselect-item divider"></li>',
+                    liGroup: '<li class="multiselect-item multiselect-group"><label></label></li>'
+                }
+            });
+
+
+        });
+    </script>
+
+}
+
+
+
+

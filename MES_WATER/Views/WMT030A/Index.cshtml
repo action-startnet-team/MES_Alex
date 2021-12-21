@@ -1,0 +1,118 @@
+﻿@using MES_WATER.Models;
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewBag.sPrgCode ?? ViewContext.RouteData.Values["controller"].ToString();
+}
+
+
+@Html.Partial("pPrgName")
+
+
+@* 修改點 以下 *@
+@{
+    List<JqgridButton> addBtnsInActionCol = new List<JqgridButton>();  // 放在功能欄位裡 (其實也是在loadComplete裡面)
+
+    // 功能欄位的按鈕
+    //var btn1 = new JqgridButton()
+    //{
+    //    type = "jumpTo",
+    //    icon_class = "custom-btn1 glyphicon glyphicon-ok green",
+    //    title = "測試1",
+    //    url = "#"
+    //};
+
+    //addBtnsInActionCol.Add(btn1);
+
+    //    string custom_js = @"
+    //$('#grid-table').on('click', '.custom-btn1', function () {
+    //        let rowId = $(this).closest('tr.jqgrow').attr('id')
+    //        let rowData = $('#grid-table').jqGrid('getRowData', rowId)
+    //        console.log(rowId)
+    //        console.log(rowData)
+    //    })
+    //";
+
+    Func<object, HelperResult> customBtnTemplate =
+        @<text>
+            <div class="pull-left" style="margin-left: 10px">
+                <a id="test" class="btn btn-white btn-warning btn-bold" role="button">
+                    <span>回傳SAP</span>
+                </a>
+            </div>
+        </text>;
+    string sHeaderBtns = customBtnTemplate.Invoke(null).ToString();
+
+    Func<object, HelperResult> sCustomJs_bottomTemplate =
+        @<text>
+            @*按下按鈕後觸發事件 修改點 向下*@
+            $('#test').click(function(){
+            
+            var yes = confirm('確定要將紀錄上傳嗎？');
+            if (yes) {
+            let selection = $('#grid-table').jqGrid('getGridParam', 'selarrrow')
+
+            let rowDatas = selection.map(id => $('#grid-table').jqGrid('getRowData', id))
+
+            @*let rowId = $(this).closest('tr.jqgrow').attr('id')
+    let rowData = $('#grid-table').jqGrid('getRowData', rowId)
+    let wmt0200 = rowData["wmt0200"];*@
+           console.log(rowDatas);
+
+            $.ajax({
+            method: 'post',
+            url: '@Url.Action("InsDSB", "WMT030A")',
+            data: {
+                pRowDatas: JSON.stringify(rowDatas)
+            }
+            }).done(function(json){
+             console.log(json);
+            if(json){
+               
+
+                   alert("回傳SAP成功，請稍後重新查詢確認狀態");
+            
+            }
+            else{ alert("建立失敗");}
+            })
+            }
+
+            })
+            @*按下按鈕後觸發事件 修改點 向上*@
+        </text>;
+    string sCustomJs_bottom = sCustomJs_bottomTemplate.Invoke(null).ToString();
+
+    // 改對應的class
+    Html.RenderAction("pJqgrid_A", "jqgrid", new
+    {
+        pModelType = new WMT0200().GetType(),
+        pPrgCode = sPrgCode,
+        pAddDBtnsInActionCol = addBtnsInActionCol,
+        //pCustomJs_bottom = custom_js
+        pIsMultiselect = "Y",
+        pCustomHtml_header = sHeaderBtns,
+        pCustomJs_bottom = sCustomJs_bottom
+    });
+
+}
+@* 修改點 以上 *@
+<script>
+    @*$('#grid-table').on('click', '.custom-btn1', function () {
+        var yes = confirm('確定要將此筆紀錄建立檢驗批嗎？');
+        if (yes) {
+            let rowId = $(this).closest('tr.jqgrow').attr('id')
+            let rowData = $('#grid-table').jqGrid('getRowData', rowId)
+            let wmt0200 = rowData["wmt0200"];
+            $.ajax({
+                method: "post",
+                url: '@Url.Action("SetUpQTestLot", "QMT040A")',
+                data: { wmt0200: wmt0200 },
+            })
+            alert("建立成功")
+        }
+    })*@
+</script>

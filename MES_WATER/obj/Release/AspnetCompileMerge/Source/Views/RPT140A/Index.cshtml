@@ -1,0 +1,815 @@
+﻿@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //公用函式庫
+    Comm comm = new Comm();
+    GetModelValidation gmv = new GetModelValidation();
+
+    //公用變數
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string sLimitStr = "AMDEP";
+
+    //查詢下拉選單//
+    List<DDLList> query_DDL = comm.Get_BDP30_0200(sPrgCode, "C");
+
+    //查詢的運算子的下拉選單//
+    List<DDLList> field_op_DDL = comm.Get_DDLOption("field_operator");
+}
+
+@{
+    //Model//
+    List<ColumnInfo> colModel = gmv.Get_ColumnInfoList<RPT140AController.RPT140A>();
+    List<BDP32_0000> qColList = comm.Get_BDP32_0000(sPrgCode);
+
+}
+
+
+@helper ExportCSV(string sLimitStr)
+{
+if (sLimitStr.Contains("E"))
+{
+        <text>
+            {
+            "extend": "csv",
+            "text": "<i class='fa fa-database bigger-110 orange'></i> <span class='hidden'>匯出CSV</span>",
+            "className": "btn btn-white btn-primary btn-bold",
+            exportOptions: {
+            columns: "thead th:not(.noExport)"
+            }
+            },
+            {
+            "extend": "excel",
+            "text": "<i class='fa fa-file-excel-o bigger-110 green'></i> <span class='hidden'>匯出Excel</span>",
+            "className": "btn btn-white btn-primary btn-bold",
+            exportOptions: {
+            columns: "thead th:not(.noExport)"
+            }
+            },
+        </text>
+}
+}
+
+@helper PrintData(string sLimitStr)
+{
+if (sLimitStr.Contains("P"))
+{
+        <text>
+            {
+            "extend": "print",
+            "text": "<i class='fa fa-print bigger-110 grey'></i> <span class='hidden'>列印</span>",
+            "className": "btn btn-white btn-primary btn-bold",
+
+            autoPrint: false,
+            //message: 'This print was produced using the Print button for DataTables'
+            message: '此列印由此資料表產生',
+            exportOptions: {
+            columns: "thead th:not(.noExport)"
+            }
+            }
+        </text>
+}
+}
+<!-- delete confirm -->
+<script>
+    function Confirm() {
+        if (!confirm("您確定要刪除嗎?")) {
+            return false;
+        }
+    }
+</script>
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-multiselect.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/jquery-ui.custom.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+}
+
+<link rel="stylesheet" href="~/Content/RptQueryForm.min.css" />
+
+@Html.Partial("pPrgName")
+<div class="clearfix">
+
+    @*<div class="pull-left">
+            <a class="btn btn-white btn-primary btn-bold" href="@Url.Action("Insert", @ViewBag.prg_code)">
+                <i style="font-weight: 900" class='glyphicon glyphicon-plus bigger-110 blue'></i>
+                <span class=''>新增</span>
+            </a>
+        </div>*@
+    <div class="pull-right tableTools-container">
+    </div>
+
+    <div class="pull-left" style="margin-left: 10px">
+        <a id="query_btn" class="btn btn-white btn-info btn-bold" href="#modal-form" role="button" data-toggle="modal">
+            <span class=''>查詢</span>
+        </a>
+    </div>
+
+</div>
+<!-- Modal Content -->
+<div id="modal-form" class="modal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content" draggable="true">
+            <div class="modal-header">
+                <div>
+                    <span class="h4 blue lighter"> 查詢條件 </span>
+                </div>
+                @*<div class="row">
+                        <div class="col-sm-3">
+                            <div class="radio">
+                                <label>
+                                    <input checked name="query_type" type="radio" class="ace input-lg" value="N">
+                                    <span class="lbl bigger-110"> 不含沖銷畢 </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-3">
+                            <div class="radio">
+                                <label>
+                                    <input name="query_type" type="radio" class="ace input-lg" value="Y">
+                                    <span class="lbl bigger-110"> 含沖銷畢 </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>*@
+            </div>
+            <div class="modal-body">
+                <div id="query_sql_div">
+                    @for (int i = 0; i < qColList.Count; i++)
+                    {
+                        <div class="">
+                            <label>@qColList[i].field_name</label>
+                            <input type="hidden" name="field_code" value="@qColList[i].field_code" />
+                            @switch (qColList[i].ctr_type.ToUpper())
+                            {
+                                case "T":
+                                    <input type="text" name="field_value" placeholder="" value="@qColList[i].default_value">
+                                    if (qColList[i].field_type.ToUpper() == "B")
+                                    {
+                                        <span class="to_text">至</span>
+                                        <input type="text" name="field_value" placeholder="" value="@qColList[i].default_value">
+                                    }
+
+                                    break;
+                                case "S":
+                                    <select name="field_value" class="chosen-select">
+                                        @(CustomHelper.Get_Option(comm.Get_DDLOption(qColList[i].data_source, "A"), qColList[i].default_value, true))
+                                    </select>
+                                    if (qColList[i].field_type.ToUpper() == "B")
+                                    {
+                                        <span class="to_text">至</span>
+                                        <select name="field_value" class="chosen-select">
+                                            @CustomHelper.Get_Option(comm.Get_DDLOption(qColList[i].data_source, "A"), qColList[i].default_value, true)
+                                        </select>
+                                    }
+                                    break;
+                                case "D":
+                                    <input class="call_datepicker" type="text" name="field_value" placeholder="" value="@qColList[i].default_value">
+                                    if (qColList[i].field_type.ToUpper() == "B")
+                                    {
+                                        <span class="to_text">至</span>
+                                        <input class="call_datepicker" type="text" name="field_value" placeholder="" value="@qColList[i].default_value">
+                                    }
+                                    break;
+                                default:
+                                    <input type="text" name="field_value" placeholder="" value="@qColList[i].default_value">
+                                    if (qColList[i].field_type.ToUpper() == "B")
+                                    {
+                                        <span class="to_text">至</span>
+                                        <input type="text" name="field_value" placeholder="" value="@qColList[i].default_value">
+                                    }
+                                    break;
+
+                            }
+                        </div>
+                        <br />
+                    }
+
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <a class="pull-left btn btn-sm btn-purple clear_query_all">
+                    <span class="ace-icon fa fa-retweet"></span>
+                    重置
+                </a>
+                <button id="query_jqGrid" class="btn btn-sm btn-primary" data-dismiss="modal">
+                    <i class="ace-icon fa fa-check"></i>
+                    查詢
+                </button>
+                <button class="btn btn-sm" data-dismiss="modal">
+                    <i class="ace-icon fa fa-times"></i>
+                    離開
+                </button>
+            </div>
+
+        </div> <!-- modal-content end -->
+    </div> <!-- modal-dialog end -->
+</div>
+<!-- Modal Content end -->
+<!-- table begin -->
+<div>
+    <table id="dynamic-table" class="table table-striped table-bordered table-hover">
+        <thead>
+            <tr>
+                @for (int i = 0; i < colModel.Count; i++)
+                {
+                    <th>@colModel[i].displayName</th>
+                }
+            </tr>
+        </thead>
+    </table>
+</div>
+<!-- table end -->
+
+@section footer_plugin{
+
+    @*和jq datatable 的 nav 顯示title有衝突*@
+    @*<script src="~/Scripts/assets/js/jquery-ui.min.js"></script>*@
+
+    <script src="~/Scripts/assets/js/jquery.dataTables.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.dataTables.bootstrap.min.js"></script>
+    <script src="~/Scripts/assets/js/dataTables.buttons.min.js"></script>
+    <script src="~/Scripts/assets/js/buttons.flash.min.js"></script>
+    <script src="~/Scripts/assets/js/dataTables.select.min.js"></script>
+    <script src="~/Scripts/assets/js/buttons.html5.min.js"></script>
+    <script src="~/Scripts/assets/js/buttons.colVis.min.js"></script>
+    <script src="~/Scripts/assets/js/jszip.min.js"></script>
+    <script src="~/Scripts/assets/js/buttons.print.min.js"></script>
+
+
+
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+
+    <script src="~/Scripts/assets/jQuery-BlockUI/jquery.blockUI.js"></script>
+
+}
+
+<style>
+    table.dataTable th {
+        text-align: left;
+    }
+</style>
+
+@section footer_script{
+<script type="text/javascript">
+
+        jQuery(function ($) {
+
+
+            // jquery-ui plugins let jq dataTable Nav btns message not show
+
+            //Make bootstrap modal draggable
+            //$(".modal").draggable({
+            //    handle: ".modal-header",
+            //})
+            //$(".modal-header").css({
+            //    'cursor': 'all-scroll'
+            //});
+
+            // 點擊查詢按鈕 autofocus input
+            $('#query_btn').click(function () {
+    // 直接用 $('input[name="field_value"]').focus() 沒有作用
+    //setTimeout(function () {
+    //    $('input[name="field_value"]').focus()
+    //}, 0);
+
+})
+
+            // 點擊查詢類別
+            $('#modal-form').find('input[name="query_type"]').click(function () {
+                // 預設一個欄位
+                //$('#query_sql_div').empty()
+                //let newRow = Get_NewRow()
+                //$('#query_sql_div').append(newRow)
+                //$('input[name="field_value"]').focus()
+            })
+
+            //  重置 清空條件
+            $('#modal-form').find('.clear_query_all').click(function () {
+                $('#query_sql_div').find('*[name="field_value"]').val('')
+                $('#query_sql_div').find('.chosen-select').trigger('chosen:updated')
+                //localStorage.removeItem("query_datas_" + "@sPrgCode")
+            })
+
+
+            // Ajax取得下拉選單
+            @*$('#query_sql_div').find('input[value*=cus_code]').parent().on('click', 'div[class*=chosen-container]', function () {
+                $select = $(this).prev('select')
+                // do somethings
+            })*@
+
+
+            // 欄位下拉change時
+            $('#query_sql_div').on('change', 'select', function () {
+                //$('#modal-form').find('input[name="field_value"]').focus()
+            })
+
+            // 取得畫面上目前的查詢條件
+            function Get_QueryData() {
+                // 取得查詢類別
+                let query_type = $('input[name="query_type"]:checked').val()
+
+                // 設置查詢條件 陣列
+                let query_conditions = []
+                $('#query_sql_div').children('div').each(function () {
+                    let field_code = $(this).find('*[name="field_code"]').val()
+
+                    $(this).find('*[name="field_value"]').each(function () {
+                        let data = {
+                            field_code: field_code,
+                            //field_operator: field_operator || "",
+                            field_value: $(this).val()
+                        };
+                        query_conditions.push(data)
+
+                    })
+                })
+                let query_data = {
+                    query_type: query_type,
+                    query_conditions: query_conditions
+                }
+                return query_data
+            }
+
+            // 儲存查詢條件
+            function Set_QueryDatas(query_data) {
+                let query_datas = []
+                query_datas.push(query_data)
+                localStorage.setItem("query_datas_" + "@sPrgCode", JSON.stringify(query_datas))
+            }
+
+
+            // 預設查詢狀態
+            if (localStorage.getItem("query_datas_" + "@sPrgCode")) {
+
+                // 取得localStorage的資料
+                let query_datas = JSON.parse(localStorage.getItem("query_datas_" + "@sPrgCode"))
+                let last_query = {};
+                if (query_datas.length > 0) {
+                    last_query = query_datas[0];
+                    let query_type = last_query.query_type
+                    let query_conditions = last_query.query_conditions
+
+                    // 預設查詢狀態
+                    // 查詢類別
+                    $('#modal-form').find('input[name="query_type"]').each(function () {
+                        if ($(this).val() == query_type) {
+                            $(this).prop("checked", true)
+                            return
+                        }
+                    })
+
+
+                    // 預設查詢欄位
+                    $('#query_sql_div').find('input[name="field_code"]').each(function () {
+                        // 查詢資料篩選
+                        let tmp = query_conditions.filter(x => x.field_code.includes($(this).val()))
+                        if (tmp.length > 1) {
+                            // 當前欄位的 起始 / 結束值
+                            let s_value = tmp[0].field_value
+                            let e_value = tmp[1].field_value
+                            $(this).siblings('*[name="field_value"]:eq(0)').val(s_value)
+                            $(this).siblings('*[name="field_value"]:eq(1)').val(e_value)
+                        }
+                        if (tmp.length == 1) {
+                            let s_value = tmp[0].field_value
+                            $(this).siblings('*[name="field_value"]:eq(0)').val(s_value)
+                        }
+
+                    })
+                }
+            }
+
+            // Call bootstrap datepicker
+            // Note: 取完值在Call datepicker
+            $('.call_datepicker').datepicker({ language: 'zh-TW', format: 'yyyy/mm/dd', autoclose: true })
+                                     .attr('autocomplete', 'off')
+
+
+            //Call_DataTable()
+
+
+            //function Call_DataTable() {
+
+
+                //if ($.fn.DataTable.isDataTable('#dynamic-table')) {
+                //    $("#dynamic-table").dataTable().fnDestroy()
+                //}
+
+                //$("#dynamic-table").dataTable().fnDestroy()
+                //initiate dataTables plugin
+                var myTable =
+            $('#dynamic-table')
+            .DataTable({
+                //"aaSorting": [],
+                @*"serverSide": true,
+                "ajax": {
+                    method: "post",
+                    url: "@Url.Action("GetData_Full", sPrgCode)",
+                data: function (d) {
+                    d.searchText = $("input[type=search]").val();
+                },
+            },*@
+                    bAutoWidth: false,
+                "bStateSave": true,
+                "ajax": {
+                    method: 'post',
+                    url: "@Url.Action("Get_DataTableData", sPrgCode)",
+                    data: { pWhere: localStorage.getItem("query_datas_" + "@sPrgCode") },
+                    error: function () {
+                        alert('ajax 抓取資料失敗! ')
+                    }
+                },
+                "deferRender": true,
+                "columns": [
+                    @for (int i = 0; i < colModel.Count; i++)
+                    {
+                        <text>{
+                        data: '@colModel[i].name',
+                            @{
+                                var arrTmp = new string[] { "int","long","short" };
+                                //SamHuangAddCode 20200510
+                                var arrTmp_decimal = new string[] { "double", "float", "decimal" };
+                                for (int j = 0; j < arrTmp.Length; j++)
+                                {
+                                    if (colModel[i].propertyType.Contains(arrTmp[j]))
+                                    {
+                                        <text>
+                                            // 數字靠右
+                                            className: 'text-right', //會讓整欄靠右，另外寫<style>讓thead靠左
+                                            // 千分位，暫時跟數字判斷放一起
+                                            render: $.fn.dataTable.render.number(',', '.', 0, '')
+                                        </text>
+                                    }
+                                }
+                                @*for (int j = 0; j < arrTmp_decimal.Length; j++)
+                                {
+                                    if (colModel[i].propertyType.Contains(arrTmp_decimal[j]))
+                                    {
+                                        <TEXT>
+                                            className: 'text-right', //會讓整欄靠右，另外寫<style>讓thead靠左
+                                            render: $.fn.dataTable.render.number('', '.', 2, '')
+                                        </TEXT>
+
+                                    }
+                                }*@
+                            }
+                        },</text>
+                    }
+                ],
+
+                // deferLoading: 0, //初始化DataTable時，不發出ajax
+                order: [[0, "asc"]],
+                orderMulti: false,
+                select: {
+                    style: 'multi'
+                },
+
+                language: {
+                    url: "/Content/assets/Chinese-traditional.json"
+                },
+                initComplete: function () {
+                    // Setup - add a text input to each footer cell
+                    if ($('#dynamic-table thead').children().length < 2) {
+                        $('#dynamic-table thead tr').clone(false).appendTo('#dynamic-table thead');
+                    }
+                    let colunm_length = $('#dynamic-table thead tr:eq(0) > th').length;
+                    $('#dynamic-table thead tr:eq(1) th').each(function (i) {
+                        //最後一欄不查詢
+                        if (i == colunm_length - 1) {
+                            //return false;
+                        }
+                        // 移除排序箭頭
+                        $(this).removeClass('sorting')
+                        $(this).removeClass('sorting_asc')
+                        $(this).removeClass('sorting_desc')
+
+                        var title = $(this).text();
+                        $(this).html('<input type="text" placeholder="搜尋 ' + title + '" />');
+                        $('input', this).css('width', '90%')
+                        $('input', this).on('keyup change', function () {
+                            if (myTable.column(i).search() !== this.value) {
+                                myTable
+                                    .column(i)
+                                    .search(this.value)
+                                    .draw();
+                            }
+                        });
+
+                    });
+                    // Restore state
+                    var state = myTable.state.loaded();
+                    if (state) {
+                        myTable.columns().eq(0).each(function (colIdx) {
+                            var colSearch = state.columns[colIdx].search;
+                            if (colSearch.search) {
+                                //$('input', myTable.column(colIdx).footer()).val(colSearch.search);
+                                $('input', $('#dynamic-table thead tr:eq(1) th').eq(colIdx)).val(colSearch.search);
+                            }
+                        });
+                        //myTable.draw();
+                    }
+                },
+                orderCellsTop: true,
+                fixedHeader: true,
+                pageLength: 25,
+
+                });
+
+
+            //SamHuangAddCode 20200510
+            function checkDate(DateValue,RegularExpression)
+            {
+                var re = new RegExp(RegularExpression);
+                if (re.exec(DateValue)) {
+                    return true;
+                }
+                else {
+                    alert("請輸入日期格式，如2020/05/30");
+                    return false;
+                }
+            }
+            //SamHuangAddCode 20200510
+            // 確認查詢
+            // refresh table
+            $('#query_jqGrid').on('click', function (e) {
+                //SamHuangAddCode 20200510
+                var temp_str_start_date = "";
+                var temp_str_end_date = "";
+                var temp_regular = "^([0-9]{4})[./]{1}([0-9]{1,2})[./]{1}([0-9]{1,2})$";
+                temp_str_start_date = $("input[class='call_datepicker']")[0].value;
+                temp_str_end_date = $("input[class='call_datepicker']")[1].value;
+                if (temp_str_start_date == "" && temp_str_end_date == "") { }
+                else if ((temp_str_start_date == "" && temp_str_end_date != "") || (temp_str_start_date != "" && temp_str_end_date == "")) {
+                    alert('查詢生產日期的起訖必須同時存在');
+                    return false;
+                }
+                else
+                {
+                    if (checkDate(temp_str_start_date, temp_regular)) {
+                        if (checkDate(temp_str_end_date, temp_regular))
+                        {
+                            var temp_date_startdate = Date.parse(temp_str_start_date);
+                            var temp_date_enddate = Date.parse(temp_str_end_date);
+                            if (temp_date_startdate > temp_date_enddate)
+                            {
+                                alert("查詢生產日期的開始日期不可以大於結束日期");
+                                return false;
+                            }
+}
+                        else {
+                                return false;
+                            }
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                //SamHuangAddCode 20200510
+                let current_queryData = Get_QueryData()
+
+                Set_QueryDatas(current_queryData)
+
+                // 重整頁面
+                //history.go(0)
+
+                RefreshTable()
+
+            })
+
+
+            function RefreshTable(oOptions) {
+                let tableId = '#dynamic-table'
+                let table = $(tableId).dataTable();
+                let oSettings = table.fnSettings();
+                //let currentQueryDatas = [Get_QueryData()]
+                //let postData = { pWhere: JSON.stringify(currentQueryDatas) }
+                let url = oSettings.ajax.url
+                let postData = { pWhere: localStorage.getItem("query_datas_" + "@sPrgCode") }
+
+                $.blockUI({
+                    message: '<h1>載入中......</h1>',
+                    css: {
+                        border: 'none',
+                        padding: '15px',
+                        backgroundColor: '#000',
+                        '-webkit-border-radius': '10px',
+                        '-moz-border-radius': '10px',
+                        opacity: .5,
+                        color: '#fff'
+                    }
+                });
+
+
+                $.post(url, postData, function (json) {
+
+                    table.fnClearTable(this);
+
+                    for (var i = 0; i < json.data.length; i++) {
+                        table.oApi._fnAddData(oSettings, json.data[i]);
+                    }
+
+                    oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
+                    table.fnDraw();
+
+                }).always(function () {
+                    $.unblockUI()
+                });
+            }
+
+
+            //$('#dynamic-table').css('display', 'block');
+            ////resize table width
+
+            //var update_size = function () {
+            //    $('#dynamic-table').css({ width: $('#dynamic-table').parent().width() });
+            //}
+
+            //$(window).resize(function () {
+            //    //clearTimeout(window.refresh_size);
+            //    //window.refresh_size = setTimeout(function () { update_size(); }, 250);
+            //    update_size();
+
+            //});
+
+            $.fn.dataTable.Buttons.defaults.dom.container.className = 'dt-buttons btn-overlap btn-group btn-overlap';
+
+            new $.fn.dataTable.Buttons(myTable, {
+                buttons: [
+                  {
+                      "extend": "colvis",
+                      "text": "<i class='fa fa-search bigger-110 blue'></i> <span class='hidden'>展示 / 隱藏欄位</span>",
+                      "className": "btn btn-white btn-primary btn-bold",
+                      //columns: ':not():not(:last)'
+                      //columns: ':not(:first):not(:last)'
+                  },
+                  {
+                      "extend": "copy",
+                      "text": "<i class='fa fa-copy bigger-110 pink'></i> <span class='hidden'>複製到剪貼簿</span>",
+                      "className": "btn btn-white btn-primary btn-bold"
+                  },
+
+                  @ExportCSV(sLimitStr)
+                  @PrintData(sLimitStr)
+        ]
+            });
+        myTable.buttons().container().appendTo($('.tableTools-container'));
+
+        //style the message box
+        var defaultCopyAction = myTable.button(1).action();
+        myTable.button(1).action(function (e, dt, button, config) {
+            defaultCopyAction(e, dt, button, config);
+            $('.dt-button-info').addClass('gritter-item-wrapper gritter-info gritter-center white');
+        });
+
+
+        var defaultColvisAction = myTable.button(0).action();
+        myTable.button(0).action(function (e, dt, button, config) {
+            defaultColvisAction(e, dt, button, config);
+            if ($('.dt-button-collection > .dropdown-menu').length == 0) {
+                $('.dt-button-collection')
+                .wrapInner('<ul class="dropdown-menu dropdown-light dropdown-caret dropdown-caret" />')
+                .find('a').attr('href', '#').wrap("<li />")
+            }
+            $('.dt-button-collection').appendTo('.tableTools-container .dt-buttons')
+        });
+        ////
+        setTimeout(function () {
+            $($('.tableTools-container')).find('a.dt-button').each(function () {
+                var div = $(this).find(' > div').first();
+                if (div.length == 1) div.tooltip({ container: 'body', title: div.parent().text() });
+                else $(this).tooltip({ container: 'body', title: $(this).text() });
+            });
+        }, 500);
+
+        myTable.on('select', function (e, dt, type, index) {
+            if (type === 'row') {
+                $(myTable.row(index).node()).find('input:checkbox').prop('checked', true);
+            }
+        });
+        myTable.on('deselect', function (e, dt, type, index) {
+            if (type === 'row') {
+                $(myTable.row(index).node()).find('input:checkbox').prop('checked', false);
+            }
+        });
+
+        /////////////////////////////////
+        //table checkboxes
+        $('th input[type=checkbox], td input[type=checkbox]').prop('checked', false);
+
+        //select/deselect all rows according to table header checkbox
+        $('#dynamic-table > thead > tr > th input[type=checkbox], #dynamic-table_wrapper input[type=checkbox]').eq(0).on('click', function () {
+            var th_checked = this.checked;//checkbox inside "TH" table header
+
+            $('#dynamic-table').find('tbody > tr').each(function () {
+                var row = this;
+                if (th_checked) myTable.row(row).select();
+                else myTable.row(row).deselect();
+            });
+        });
+
+        //select/deselect a row when the checkbox is checked/unchecked
+        $('#dynamic-table').on('click', 'td input[type=checkbox]', function () {
+            var row = $(this).closest('tr').get(0);
+            if (this.checked) myTable.row(row).deselect();
+            else myTable.row(row).select();
+        });
+
+        $(document).on('click', '#dynamic-table .dropdown-toggle', function (e) {
+            e.stopImmediatePropagation();
+            e.stopPropagation();
+            e.preventDefault();
+        });
+        //And for the first simple table, which doesn't have TableTools or dataTables
+        //select/deselect all rows according to table header checkbox
+        var active_class = 'active';
+        $('#simple-table > thead > tr > th input[type=checkbox]').eq(0).on('click', function () {
+            var th_checked = this.checked;//checkbox inside "TH" table header
+
+            $(this).closest('table').find('tbody > tr').each(function () {
+                var row = this;
+                if (th_checked) $(row).addClass(active_class).find('input[type=checkbox]').eq(0).prop('checked', true);
+                else $(row).removeClass(active_class).find('input[type=checkbox]').eq(0).prop('checked', false);
+            });
+        });
+
+        //select/deselect a row when the checkbox is checked/unchecked
+        $('#simple-table').on('click', 'td input[type=checkbox]', function () {
+            var $row = $(this).closest('tr');
+            if ($row.is('.detail-row ')) return;
+            if (this.checked) $row.addClass(active_class);
+            else $row.removeClass(active_class);
+        });
+        /********************************/
+        //add tooltip for small view action buttons in dropdown menu
+        $('[data-rel="tooltip"]').tooltip({ placement: tooltip_placement });
+
+        //tooltip placement on right or left
+        function tooltip_placement(context, source) {
+            var $source = $(source);
+            var $parent = $source.closest('table')
+            var off1 = $parent.offset();
+            var w1 = $parent.width();
+
+            var off2 = $source.offset();
+            //var w2 = $source.width();
+
+            if (parseInt(off2.left) < parseInt(off1.left) + parseInt(w1 / 2)) return 'right';
+            return 'left';
+        }
+        /***************/
+        $('.show-details-btn').on('click', function (e) {
+            e.preventDefault();
+            $(this).closest('tr').next().toggleClass('open');
+            $(this).find(ace.vars['.icon']).toggleClass('fa-angle-double-down').toggleClass('fa-angle-double-up');
+        });
+        /***************/
+
+            //}
+
+
+            // chosen select
+            if (!ace.vars['touch']) {
+
+                // initial options
+                $('.chosen-select').chosen({
+                    allow_single_deselect: true,
+                    placeholder_text_single: "----請選擇----",
+                });
+
+                //resize the chosen on window resize
+                $(window)
+                .off('resize.chosen')
+                .on('resize.chosen', function () {
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                }).trigger('resize.chosen');
+                //resize chosen on sidebar collapse/expand
+                $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                    if (event_name != 'sidebar_collapsed') return;
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                });
+
+
+                $('#chosen-multiple-style .btn').on('click', function (e) {
+                    var target = $(this).find('input[type=radio]');
+                    var which = parseInt(target.val());
+                    if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                    else $('#form-field-select-4').removeClass('tag-input-style');
+                });
+            }
+
+
+        })
+</script>
+}

@@ -1,0 +1,766 @@
+﻿@using System.Data;
+@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string signalr_url = ViewBag.signalr_url;
+    string mac_code = ViewBag.mac_code;
+    string mac_name = ViewBag.mac_name;
+    string controllerName = ViewContext.RouteData.Values["controller"].ToString();
+
+    //
+    Comm comm = new Comm();
+    DSH010AController Control = new DSH010AController();
+
+}
+
+
+@section head_plugin {
+    <link href="~/Content/assets/css/custom.min.css" rel="stylesheet">
+
+    <link href="@signalr_url/Content/bootstrap.css" rel="stylesheet" />
+    <script src="@signalr_url/Scripts/modernizr-2.6.2.js"></script>
+    <script src="@signalr_url/Scripts/bootstrap.js"></script>
+    <script src="@signalr_url/Scripts/respond.js"></script>
+    <script src="@signalr_url/Scripts/jquery.signalR-2.4.1.min.js"></script>
+    <script src="@signalr_url/signalr/hubs"></script>
+    <script>
+        $(function () {
+
+            // A1L02007 hub.
+            var A1L02007 = $.connection.a1L02007Hub;
+            // 接收Hub函數
+            A1L02007.client.dashBoard = function (para) {
+                let $mac_code = $('[data-mac_code="A1L02007"]')
+                //依異常狀態設定背景顏色-0:正常 1:異常
+                setBackColor($mac_code, para[0])
+                //設定各參數值
+                var status = '';
+                switch (para[1]) {
+                    case 0:
+                        status = 'Setup';
+                        break;
+                    case 1:
+                        status = 'Idle';
+                        break;
+                    case 2:
+                        status = 'Stop';
+                        break;
+                    case 3:
+                        status = 'Run';
+                        break;
+                    case 4:
+                        status = 'Alarm';
+                        break;
+                    default:
+                        status = '';
+                        break;
+                }
+                $mac_code.find('.para1-value').text(status)//機台狀態
+                $mac_code.find('.para2-value').text(para[2])//進瓶數量
+                $mac_code.find('.para3-value').text(para[3])//出瓶數量
+                $mac_code.find('.para4-value').text(para[4])//A軸使用中
+                $mac_code.find('.para5-value').text(para[5])//B軸使用中
+            };
+
+            // A1L02008 hub.
+            var A1L02008 = $.connection.a1L02008Hub;
+            // 接收Hub函數
+            A1L02008.client.dashBoard = function (para) {
+                let $mac_code = $('[data-mac_code="A1L02008"]')
+                //依異常狀態設定背景顏色-0:正常 1:異常
+                setBackColor($mac_code, para[0])
+                //設定各參數值
+                $mac_code.find('.para1-value').text(para[1])//總產量
+                $mac_code.find('.para2-value').text(para[2])//A頭產量
+                $mac_code.find('.para3-value').text(para[3])//B頭產量
+                $mac_code.find('.para4-value').text(para[4])//A軸使用中
+                $mac_code.find('.para5-value').text(para[5])//B軸使用中
+            };
+
+            // A1L01011 hub.
+            var A1L01011 = $.connection.a1L01011Hub;
+            // 接收Hub函數
+            A1L01011.client.dashBoard = function (para) {
+                let $mac_code = $('[data-mac_code="A1L01011"]')
+                //依異常狀態設定背景顏色-0:正常 1:異常
+                setBackColor($mac_code, para[0])
+                //設定各參數值
+                var status = '';
+                switch (para[1]) {
+                    case 0:
+                        status = '自動';
+                        break;
+                    case 1:
+                        status = '待機';
+                        break;
+                    case 2:
+                        status = '暫停';
+                        break;
+                    case 3:
+                        status = '異常';
+                        break;
+                    case 3:
+                        status = '急停';
+                        break;
+                    default:
+                        status = '';
+                        break;
+                }
+                $mac_code.find('.para1-value').text(status)//機台狀態
+                $mac_code.find('.para2-value').text(para[2])//產品計數
+            };
+
+            // A1L02014 hub.
+            var A1L02014 = $.connection.a1L02014Hub;
+            // 接收Hub函數
+            A1L02014.client.dashBoard = function (para) {
+                let $mac_code = $('[data-mac_code="A1L02014"]')
+                //依異常狀態設定背景顏色-0:正常 1:異常
+                setBackColor($mac_code, para[0])
+                //設定各參數值
+                $mac_code.find('.para1-value').text(para[1])//本日生產量
+            };
+
+
+            //開始連線
+            //跨網域引用SignalR時，要設定hub.url, 並hub.start({ jsonp: true });
+            $.connection.hub.url = "@signalr_url/signalr";
+            $.connection.hub.start({ jsonp: true })
+            .done(function () {
+                //什麼都不做
+            });
+        });
+
+        function setBackColor(obj, para) {
+            //設定背景顏色-0:正常 1:異常
+            let color = (para == '0') ? "white" : "red";
+            obj.find('.inputError').css("background-color", color);
+        }
+    </script>
+}
+
+<style>
+    .alarm {
+        border-radius: 10px;
+        height: 50px;
+        background-color: #eee;
+        line-height: 50px;
+        text-align: center;
+        color: #eee;
+        font-size: 16px;
+    }
+
+    .alarm-header {
+        background-color: #428BCA;
+    }
+
+    .alarm-cell {
+        background-color: #6f42c1;
+    }
+
+    .alarm-error {
+        background-color: #FF3333;
+        color: aliceblue;
+        border-radius: 10px;
+        line-height: 50px;
+        height: 50px;
+    }
+
+    .alarm-caption {
+        font-size: 20px;
+        background-color: #09134d;
+    }
+
+    .alarm-notActive {
+        background-color: #A0A0A0;
+    }
+
+    .alarm-active {
+        /*background-color: #51A351;*/
+        /*background-color: #22C32E;*/
+        background-color: #69AA46;
+    }
+
+
+    .block {
+        border-radius: 10px;
+        height: 100px;
+        color: #eee;
+        /*background-color: #eee;*/
+        background-color: #428BCA;
+        text-align: center;
+        line-height: 100px;
+    }
+
+    .mac_img {
+        width: 84%;
+        height: auto;
+        border-radius: 10px;
+    }
+
+
+    .block-text {
+        /*color: #5599FF;*/
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .block-state-completed {
+        background-color: #28a745;
+    }
+
+    .block-state-working {
+        background-color: #dc3545;
+    }
+
+    .work-order [class*="col-"] {
+        padding-right: 0px;
+    }
+
+        .work-order [class*="col-"]:not(:first-child) {
+            padding-left: 5px;
+        }
+
+    .message-board {
+        text-align: center;
+        line-height: 60px;
+        /*display: flex;
+        justify-content: center;
+        align-items: center;*/
+        background-color: grey;
+        background-clip: content-box;
+        color: #eee;
+        height: 60px;
+        font-size: 21px;
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .pause-hover:hover {
+        animation-play-state: paused;
+        -webkit-animation-play-state: paused;
+    }
+
+    .marguee-Yaxis {
+        width: 100%;
+        position: absolute;
+        /*-moz-animation: marquee 15s linear infinite;
+        -webkit-animation: marquee 15s linear infinite;*/
+        /*animation: marquee-Yaxis 3s linear infinite;*/
+        animation-delay: 2s;
+    }
+
+    .marguee-Xaxis {
+        position: absolute;
+        display: flex;
+        width: 100%;
+    }
+
+        .marguee-Xaxis div {
+            flex-shrink: 0;
+            width: 100%;
+        }
+
+    .marguee-Xaxis {
+        /*-moz-animation: marquee 15s linear infinite;
+        -webkit-animation: marquee 15s linear infinite;*/
+        animation: marquee-Xaxis 15s linear infinite;
+        animation-delay: 2s;
+    }
+
+    /* Move it (define the animation) */
+    /*@@-moz-keyframes marquee {
+        0%   { left: 100%; }
+        100% { left: 0%; -moz-transform: translateX(-100%); }
+    }
+    @@-webkit-keyframes marquee {
+        0%   { left: 100%; }
+        100% { left: 0%; -webkit-transform: translateX(-100%); }
+    }*/
+    @@keyframes marquee-Yaxis {
+        0% {
+            /*bottom: 100%;*/
+            /* Firefox bug fix */
+            /*-moz-transform: translateY(0%);
+            -webkit-transform: translateY(0%);*/
+            transform: translateY(0%);
+        }
+
+        100% {
+            /*bottom: 0%;*/
+            transform: translateY(-50%); /* 實際整個元素的長度是畫面的兩倍 */
+        }
+    }
+
+    @@keyframes marquee-Xaxis {
+        0% {
+            /*bottom: 100%;*/
+            /* Firefox bug fix */
+            /*-moz-transform: translateY(0%);
+            -webkit-transform: translateY(0%);*/
+            transform: translateX(0%);
+        }
+
+        100% {
+            /*bottom: 0%;*/
+            transform: translateX(-100%); /* 畫面的元素寬度 */
+        }
+    }
+</style>
+
+<style>
+    /* 在 1920x1080 螢幕上字體太小 */
+    @@media screen and (min-width: 1900px) {
+
+        h4.widget-title {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .alarm {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .message-board {
+            font-size: 32px;
+            font-weight: 700;
+        }
+    }
+
+    /* 品名靠左*/
+    [aria-describedby="pro_name"] {
+        text-align: left;
+        padding-left: 10px;
+    }
+
+    /* 數字靠右 */
+    [aria-describedby*="qty"] {
+        text-align: right;
+        padding-right: 10px;
+    }
+
+    /* 只是標註"IOT"字體顏色 */
+    .IOT {
+        color: #1a0dab;
+    }
+
+    #mo_list {
+        padding-right: 24px;
+    }
+</style>
+
+
+<header>
+    @Html.Partial("pPrgName")
+</header>
+
+<main>
+    <div class="space-6"></div>
+    <div class="row">
+        <!-- Table -->
+        <div class="col-lg-12">
+            <div class="work-order row" style="height: 250px">
+                <div class="col-sm-12" id="mo_list">
+                    @*<h4>
+                            <i class="ace-icon fa fa-star orange"></i>
+                            後續工單
+                        </h4>*@
+                    <!-- thead -->
+                    <!-- tbody -->
+
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        @*<div class="col-lg-5" style="padding-left: 24px">
+                <div class="row">
+                    <div class="col-xs-12">
+                        <div class="alarm alarm-header">
+                            今日生產狀況
+                        </div>
+                    </div>
+                </div>
+                <br />
+                <div class="row" style="height: 250px">
+
+                    <div class="col-sm-12" style="height: 100%">
+                        @{
+                            Html.RenderAction("PieGraph", "Echarts2", new { pTkCode = "current" });
+                        }
+                    </div>
+                </div>
+            </div>*@
+
+        <br />
+    </div>
+
+    <br />
+
+    <!-- 機台 -->
+    <div id="mac_code_list">
+        <div class="row">
+            <div class="col-lg-7">
+                <div class="row">
+                    <div class="col-xs-3">
+                        @{
+                            Html.RenderAction("block_02", "OEE", new { pMacCode = "A1L02007" });
+                        }
+                    </div>
+                    <div class="col-xs-3">
+                        @{
+                            Html.RenderAction("block_02", "OEE", new { pMacCode = "A1L02008" });
+                        }
+                    </div>
+                    <div class="col-xs-3">
+                        @{
+                            Html.RenderAction("block_02", "OEE", new { pMacCode = "A1L01011" });
+                        }
+                    </div>
+                    <div class="col-xs-3">
+                        @{
+                            Html.RenderAction("block_02", "OEE", new { pMacCode = "A1L02014" });
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5" style="height: 250px">
+                <div class="alarm alarm-header">
+                    今日生產狀況
+                </div>
+                <br />
+                @{
+                    Html.RenderAction("Pie_test", "Echarts2",
+                        new RouteValueDictionary() {
+                            { "pDateTime", DateTime.Now.ToString("yyyy/MM/dd") },
+                            { "pLineCode", "A1L02"},
+                            { "pTkCode", "A1L02" }
+                        });
+                    //Html.RenderAction("PieGraph_MO", "Echarts2", new { pTkCode = "A1L02" });
+                }
+            </div>
+        </div>
+    </div>
+
+    <div style="height: 100px"></div>
+
+    <div id="DSB040-footer">
+        <div class="row">
+            <div class="col-sm-12 message-board message-board">
+                <div class="marguee-Xaxis pause-hover">
+                    <div>公告訊息跑馬燈</div>
+                    <div>公告訊息跑馬燈</div>
+                </div>
+            </div>
+        </div>
+        <div class="space-6"></div>
+        <div class="row">
+            <div class="col-sm-12 message-board">
+                <div class="marguee-Yaxis pause-hover">
+                    <div>工單備註</div>
+                    <div>工單備註</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+
+@section footer_script{
+    <script type="text/javascript">
+        jQuery(function ($) {
+
+            @if (ViewBag.IsCarousel ?? false){
+                <text>
+            // 輪播 3樓1線和2線生產看板
+            setTimeout(function () {
+                let urls = ['DSB040A', 'DSB050A']
+                let current_prg_code = window.location.pathname.replace('/', '')
+                let current_index = urls.indexOf(current_prg_code)
+                if (current_index !== -1){
+                    let next_index = (current_index + 1) % (urls.length)
+                    let next_prg_code = urls[next_index]
+                    location = `/${next_prg_code}?IsCarousel=true&&interval=@ViewBag.interval`
+                }
+            }, @ViewBag.interval * 1000)
+            </text>
+            }
+
+            // ajax 二線資料
+            function Ajax_MoData(oParams){
+                let defaultParams = {
+                    method: 'get',
+                    url: '/MES/Get_MoDataByLine',
+                    data: {
+                        //pDateString: "2020/03/27",
+                        pDateString: "@DateTime.Now.ToString("yyyy/MM/dd")",
+                        pLineCode: "A1L02%",
+                    }
+                }
+
+                $.extend(defaultParams, oParams)
+
+                return $.ajax(defaultParams)
+            }
+
+            // 初始 二線資料
+            Ajax_MoData().done(function(data){
+                $('#mo_list').append(NewHead())
+                data.forEach(function (item, index) {
+                    $('#mo_list').append(NewRow(item))
+                })
+
+                //進度
+                Execute_MoProgress()
+            })
+
+            // 10秒更新一次
+            setInterval(function(){
+                Ajax_MoData().done(function(data){
+                    // 清空
+                    $('#mo_list').empty()
+
+                    // 重設資料
+                    $('#mo_list').append(NewHead())
+                    data.forEach(function (item, index) {
+                        $('#mo_list').append(NewRow(item))
+                    })
+
+                    // 進度
+                    Execute_MoProgress()
+                })
+            }, 10*1000)
+
+            // 每一列製令 ajax抓製程進度後 設置進度畫面
+            function Execute_MoProgress(){
+                $('[aria-describedby="mo_code"]').each(function(){
+                    let mo_code = $(this).text().trim()
+                    Ajax_MoProgress(mo_code).done(function(data){
+                        Set_MoProgress(mo_code, data)
+                    })
+                })
+            }
+
+            // ajax 製程進度
+            function Ajax_MoProgress(pMoCode){
+                let settins = {
+                    method: 'get',
+                    url: '/MES/Get_MoProgress',
+                    data: {
+                        pMoCode: pMoCode
+                    }
+                }
+                //$.extend(settins, oOptions)
+                return $.ajax(settins)
+            }
+
+            //
+            function FindRowByCell(pCode, pValue){
+                let $rows = $('.mo-body-row')
+                return  $rows.filter(function(){
+                    if ($(this).find('[aria-describedby="'+ pCode + '"]').text().trim() == pValue ){
+                        return true
+                    }
+                })
+            }
+
+            // 設置單一列的製程進度
+            function Set_MoProgress(pTkCode, pCurrent){
+                let $thisRow = FindRowByCell('mo_code', pTkCode)
+                let group = $thisRow.find('[aria-describedby="progress_group"]')
+
+                //
+                let endIndex = -1
+
+                // 找到終點的index
+                group.each(function (index, item) {
+                    // 直接在一個迴圈設置active, 但是沒有判斷 其值是否在group裡
+                    //let tmp = $(item).attr('data-work_progress')
+                    //if (tmp === work_code) {
+                    //    $(this).removeClass('alarm-notActive')
+                    //    $(this).addClass('alarm-active')
+                    //    return false
+                    //}
+                    //$(this).removeClass('alarm-notActive')
+                    //$(this).addClass('alarm-active')
+
+                    if ($(this).attr('data-progress') === pCurrent) {
+                        endIndex = index
+                        return ;
+                    }
+                })
+                // 設置active
+                group.each(function (index) {
+                    if (index <= endIndex) {
+                        $(this).removeClass('alarm-notActive')
+                        $(this).addClass('alarm-active')
+                    }
+                })
+            }
+
+
+            function NewHead(){
+                return `<section id="mo-board-head">
+                            <div class="row">
+                                <div class="col-lg-8">
+                                    <div class="row">
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-header">
+                                                製令號碼
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <div class="alarm alarm-header">
+                                                產品名稱
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-header">
+                                                預計產量
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-header">
+                                                目前產量
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-header">
+                                                不良品量
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-lg-4">
+                                    <div class="col-lg-12">
+                                        <div class="alarm alarm-header">
+                                            製程進度
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </section>
+                        <br />`
+            }
+
+            function NewRow(data) {
+                let $section = $(`
+                    <div class="mo-body-row">
+                        <div class ="row">
+                            <div class ="col-lg-8">
+                                <div class ="row">
+                                    <div class ="col-sm-2">
+                                        <div class ="alarm alarm-cell" aria-describedby="mo_code">
+                                            ${data.mo_code}
+                                        </div>
+                                    </div>
+                                    <div class ="col-sm-4">
+                                        <div class ="alarm alarm-cell" aria-describedby="pro_name">
+                                            ${data.pro_name}
+                                        </div>
+                                    </div>
+                                    <div class ="col-sm-2">
+                                        <div class ="alarm alarm-cell" aria-describedby="pro_qty">
+                                            ${parseFloat(data.plan_qty).toLocaleString('en')}
+                                        </div>
+                                    </div>
+                                    <div class ="col-sm-2">
+                                        <div class ="alarm alarm-cell" aria-describedby="current_qty">
+                                            ${parseFloat(data.ok_qty4).toLocaleString('en')}
+                                        </div>
+                                    </div>
+                                    <div class ="col-sm-2">
+                                        <div class ="alarm alarm-cell" aria-describedby="ng_qty">
+                                            ${parseFloat(data.ng_qty4).toLocaleString('en')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                    <br />
+                    `)
+
+                let makeWorkProgress = function (work_code) {
+                    let $work_progress =  $(`
+                            <div class ="col-lg-4">
+                                <div class ="col-sm-3">
+                                    <div class ="alarm alarm-cell alarm-notActive" data-work_progress="投料">
+                                        投料
+                                    </div>
+                                </div>
+                                <div class ="col-sm-3">
+                                    <div class ="alarm alarm-cell alarm-notActive" data-work_progress="貼標">
+                                        貼標
+                                    </div>
+                                </div>
+                                <div class ="col-sm-3">
+                                    <div class ="alarm alarm-cell alarm-notActive" data-work_progress="套標">
+                                        套標
+                                    </div>
+                                </div>
+                                <div class ="col-sm-3">
+                                    <div class ="alarm alarm-cell alarm-notActive" data-work_progress="裝箱">
+                                        裝箱
+                                    </div>
+                                </div>
+                            </div>
+                    `)
+
+                    /* 設置進度 */
+                    //let group = $work_progress.find('[data-work_progress]')
+
+                    //let endIndex = -1
+                    //// 找到終點的index
+                    //group.each(function (index, item) {
+                    //    // 直接在一個迴圈設置active, 但是沒有判斷 其值是否在group裡
+                    //    //let tmp = $(item).attr('data-work_progress')
+                    //    //if (tmp === work_code) {
+                    //    //    $(this).removeClass('alarm-notActive')
+                    //    //    $(this).addClass('alarm-active')
+                    //    //    return false
+                    //    //}
+                    //    //$(this).removeClass('alarm-notActive')
+                    //    //$(this).addClass('alarm-active')
+
+                    //    if ($(this).attr('data-work_progress') === work_code) {
+                    //        endIndex = index
+                    //        return ;
+                    //    }
+                    //})
+                    //// 設置active
+                    //group.each(function (index) {
+                    //    if (index <= endIndex) {
+                    //        $(this).removeClass('alarm-notActive')
+                    //        $(this).addClass('alarm-active')
+                    //    }
+                    //})
+
+                    return $work_progress
+                }
+
+                let $work_progress = makeWorkProgress(data.work_code_name)
+
+                $section.find('.row:first').append($work_progress)
+
+
+                return $section
+
+
+            }
+
+        })
+    </script>
+
+}
+
+
+

@@ -1,0 +1,332 @@
+﻿@model MES_WATER.Models.viewBDP001A
+@using MES_WATER.Models;
+
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Comm comm = new Comm();
+    List<DDLList> limit_type_list = comm.Get_DDLOption("limit_type");
+    List<DDLList> grp_code_list = comm.Get_DDLOption("BDP07_0000", "grp_code", "grp_name");
+    List<DDLList> usr_code_list = comm.Get_DDLOption("BDP08_0000", "usr_code", "usr_name");
+
+    List<viewBDP001A> data_list = ViewBag.bdp001a_list;
+
+}
+@Html.Partial("pPrgName")
+
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-multiselect.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-duallistbox.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style" />
+}
+
+
+<div id="home" class="tab-pane fade in active">
+    <form id="validation-form" action=@Url.Action("Index", @ViewBag.prg_code) method="post" class="form-horizontal" role="form">
+
+        @*查詢式下拉*@
+        <div class="form-group">
+            <label class="col-sm-3 control-label no-padding-right">
+                權限類別
+            </label>
+            <div class="col-sm-3">
+                <select class="chosen-select" name="limit_type" id="limit_type" data-placeholder="請選擇">
+                    @CustomHelper.Get_Option(@limit_type_list, @ViewBag.LimitType, true)
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group" id="div_grp_code">
+            <label class="col-sm-3 control-label no-padding-right">
+            </label>
+            <div class="col-sm-3">
+                <select class="chosen-select" name="grp_code" id="grp_code" data-placeholder="請選擇">
+                    @CustomHelper.Get_Option(@grp_code_list, ViewBag.GrpCode , true)
+                </select>
+            </div>
+            <div class="col-sm-3">
+                <button class="btn btn-white btn-info btn-round" name="submit" id="search_grp" value="search_grp">
+                    查詢
+                </button>
+            </div>
+        </div>
+
+        <div class="form-group" id="div_usr_code">
+            <label class="col-sm-3 control-label no-padding-right">
+            </label>
+            <div class="col-sm-3">
+                <select class="chosen-select" name="usr_code" id="usr_code" data-placeholder="請選擇">
+                    @CustomHelper.Get_Option(@usr_code_list, @ViewBag.UsrCode, true)
+                </select>
+            </div>
+            <div class="col-sm-3">
+                <button class="btn btn-white btn-info btn-round" name="submit" id="search_usr" value="search_usr">
+                    查詢
+                </button>
+            </div>
+
+        </div>
+
+
+
+        <div class="row">
+            <div class="col-xs-12">
+                <table id="simple-table" class="table  table-bordered table-hover">
+                    <thead>
+                        <tr>
+                            <th>@Html.DisplayNameFor(model => model.prg_code)</th>
+                            <th>@Html.DisplayNameFor(model => model.prg_name)</th>
+                            <th class="center">
+                                <input name="field-checkbox" class="ace input-lg" type="checkbox" />
+                                <span class="lbl bigger-120" />@Html.DisplayNameFor(model => model.is_use)
+                            </th>
+                            <th class="center">
+                                <input name="field-checkbox" class="ace input-lg" type="checkbox" />
+                                <span class="lbl bigger-120" />@Html.DisplayNameFor(model => model.a)
+                            </th>
+                            <th class="center">
+                                <input name="field-checkbox" class="ace input-lg" type="checkbox" />
+                                <span class="lbl bigger-120" />@Html.DisplayNameFor(model => model.m)
+                            </th>
+                            <th class="center">
+                                <input name="field-checkbox" class="ace input-lg" type="checkbox" />
+                                <span class="lbl bigger-120" />@Html.DisplayNameFor(model => model.d)
+                            </th>
+                            <th class="center">
+                                <input name="field-checkbox" class="ace input-lg" type="checkbox" />
+                                <span class="lbl bigger-120" />@Html.DisplayNameFor(model => model.e)
+                            </th>
+                            <th class="center">
+                                <input name="field-checkbox" class="ace input-lg" type="checkbox" />
+                                <span class="lbl bigger-120" />@Html.DisplayNameFor(model => model.p)
+                            </th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @{
+                            foreach (viewBDP001A datas in data_list)
+                            {
+                                <tr>
+                                    <td>@datas.prg_code.ToString()</td>
+                                    <td>@datas.prg_name.ToString()</td>
+                                    <td class="center">@CustomHelper.Set_CheckBox(datas.is_use.ToString(), datas.prg_code.ToString(), "is_use")</td>
+                                    <td class="center">@CustomHelper.Set_CheckBox(datas.a.ToString(), datas.prg_code.ToString(), "A")</td>
+                                    <td class="center">@CustomHelper.Set_CheckBox(datas.m.ToString(), datas.prg_code.ToString(), "M")</td>
+                                    <td class="center">@CustomHelper.Set_CheckBox(datas.d.ToString(), datas.prg_code.ToString(), "D")</td>
+                                    <td class="center">@CustomHelper.Set_CheckBox(datas.e.ToString(), datas.prg_code.ToString(), "E")</td>
+                                    <td class="center">@CustomHelper.Set_CheckBox(datas.p.ToString(), datas.prg_code.ToString(), "P")</td>
+                                </tr>
+                            };
+                        }
+                    </tbody>
+                </table>
+            </div><!-- /.span -->
+        </div>
+
+
+        <div class="clearfix form-actions">
+            <div class="col-md-offset-4 col-md-9">
+                <button class="btn btn-white btn-info btn-round" name="submit" id="save" value="save" onsubmit="return check()">
+                    儲存
+                </button>
+
+            </div>
+        </div>
+
+    </form>
+</div>
+
+@section footer_plugin{
+    <!-- page specific plugin scripts -->
+
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+
+}
+
+@section footer_script{
+    <script type="text/javascript">
+        jQuery(function ($) {
+
+            $('#save').click (function ()
+            {
+                if ($('#limit_type').val() == "")
+                {
+                    alert("請選擇權限類別")
+                    return false;
+                }
+                else
+                {
+                    if ($('#limit_type').val() == "A")
+                    {
+                        if ($('#grp_code').val() == "")
+                        {
+                            alert("請選擇角色")
+                            return false;
+                        }
+                    }
+                    else
+                    {
+                        if ($('#usr_code').val() == "")
+                        {
+                            alert("請選擇使用者")
+                            return false;
+                        }
+                    }
+                }
+                if (confirm("請問是否要儲存")) {
+                    $(this).hide();
+                    return true;
+                } else {
+                    return false;
+                }
+            });
+
+
+
+            $(document).ready(function ()
+            {
+                $('#div_grp_code').hide();
+                $('#div_usr_code').hide();
+                switch ($('#limit_type').val()) {
+                    case "A":
+                        $('#div_grp_code').show();
+                        break;
+                    case "B":
+                        $('#div_usr_code').show();
+                        break;
+                    default:
+                        break;
+                }
+            });
+
+            $('#limit_type').change(function () {
+                $('#div_grp_code').hide();
+                $('#div_usr_code').hide();
+                switch ($('#limit_type').val()) {
+                    case "A":
+                        $('#div_grp_code').show();
+                        break;
+                    case "B":
+                        $('#div_usr_code').show();
+                        break;
+                    default:
+                        break;
+                }
+            });
+
+            var active_class = 'active';
+            $('#simple-table > thead > tr > th input[type=checkbox]').eq(0).on('click', function () {
+                var th_checked = this.checked;//checkbox inside "TH" table header
+
+                $(this).closest('table').find('tbody > tr').each(function () {
+                    var row = this;
+
+                    if (th_checked) $(row).addClass(active_class).find('input[type=checkbox]').eq(0).prop('checked', true);
+                    else $(row).removeClass(active_class).find('input[type=checkbox]').eq(0).prop('checked', false);
+
+                });
+            });
+
+            var active_class = 'active';
+            $('#simple-table > thead > tr > th input[type=checkbox]').eq(1).on('click', function () {
+                var th_checked = this.checked;//checkbox inside "TH" table header
+
+                $(this).closest('table').find('tbody > tr').each(function () {
+                    var row = this;
+
+                    if (th_checked) $(row).addClass(active_class).find('input[type=checkbox]').eq(1).prop('checked', true);
+                    else $(row).removeClass(active_class).find('input[type=checkbox]').eq(1).prop('checked', false);
+
+                });
+            });
+
+            var active_class = 'active';
+            $('#simple-table > thead > tr > th input[type=checkbox]').eq(2).on('click', function () {
+                var th_checked = this.checked;//checkbox inside "TH" table header
+
+                $(this).closest('table').find('tbody > tr').each(function () {
+                    var row = this;
+
+                    if (th_checked) $(row).addClass(active_class).find('input[type=checkbox]').eq(2).prop('checked', true);
+                    else $(row).removeClass(active_class).find('input[type=checkbox]').eq(2).prop('checked', false);
+
+                });
+            });
+
+            var active_class = 'active';
+            $('#simple-table > thead > tr > th input[type=checkbox]').eq(3).on('click', function () {
+                var th_checked = this.checked;//checkbox inside "TH" table header
+
+                $(this).closest('table').find('tbody > tr').each(function () {
+                    var row = this;
+
+                    if (th_checked) $(row).addClass(active_class).find('input[type=checkbox]').eq(3).prop('checked', true);
+                    else $(row).removeClass(active_class).find('input[type=checkbox]').eq(3).prop('checked', false);
+
+                });
+            });
+
+            var active_class = 'active';
+            $('#simple-table > thead > tr > th input[type=checkbox]').eq(4).on('click', function () {
+                var th_checked = this.checked;//checkbox inside "TH" table header
+
+                $(this).closest('table').find('tbody > tr').each(function () {
+                    var row = this;
+
+                    if (th_checked) $(row).addClass(active_class).find('input[type=checkbox]').eq(4).prop('checked', true);
+                    else $(row).removeClass(active_class).find('input[type=checkbox]').eq(4).prop('checked', false);
+
+                });
+            });
+
+            var active_class = 'active';
+            $('#simple-table > thead > tr > th input[type=checkbox]').eq(5).on('click', function () {
+                var th_checked = this.checked;//checkbox inside "TH" table header
+
+                $(this).closest('table').find('tbody > tr').each(function () {
+                    var row = this;
+
+                    if (th_checked) $(row).addClass(active_class).find('input[type=checkbox]').eq(5).prop('checked', true);
+                    else $(row).removeClass(active_class).find('input[type=checkbox]').eq(5).prop('checked', false);
+
+                });
+            });
+
+            if (!ace.vars['touch']) {
+                $('.chosen-select').chosen({ allow_single_deselect: true });
+                //resize the chosen on window resize
+
+                $(window)
+                .off('resize.chosen')
+                .on('resize.chosen', function () {
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                }).trigger('resize.chosen');
+                //resize chosen on sidebar collapse/expand
+                $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                    if (event_name != 'sidebar_collapsed') return;
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                });
+
+
+                $('#chosen-multiple-style .btn').on('click', function (e) {
+                    var target = $(this).find('input[type=radio]');
+                    var which = parseInt(target.val());
+                    if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                    else $('#form-field-select-4').removeClass('tag-input-style');
+                });
+            }
+
+
+        })
+    </script>
+}

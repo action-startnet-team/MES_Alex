@@ -1,0 +1,53 @@
+﻿@{
+    Layout = null;
+    //ViewBag.prj_name = "Production Optimization";
+    //ViewBag.com_name = "雲端智造執行系統";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport"
+          content="viewport-fit=cover, width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    @*<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>*@
+    <script src="~/Scripts/jquery-2.2.1.min.js"></script>
+    <link rel="stylesheet" href="css/login.css" />
+    <script src="~/Scripts/e4d5cd4364.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="~/Content/Alex_login.css" />
+</head>
+
+<body class="">
+    <div class="wrap content-center">
+
+        <div class="content ">
+            <div class="bg">
+                <div class="logo">
+                    <img class="logo__resp" src="~/Content/img/Alex-logo.svg">
+                </div>
+            </div>
+            <div class="login content-center ">
+                <form class="login__form" action="@Url.Action()" method="post">
+                    <div class="input_div ">
+
+                        <div class="type">
+                            <label class="label__desc">帳號</label>
+                            <input type="text" class="input" name="usr_code" id="" placeholder="請輸入使用者帳號">
+                        </div>
+                    </div>
+                    <div class="input_div pass">
+                        <div class="type">
+                            <label class="label__desc">密碼</label>
+                            <input type="password" class="input" name="usr_pass" id="" placeholder="請輸入密碼">
+                        </div>
+                    </div>
+                    <p class="erro-info" style="color:red;">@ViewBag.message</p>
+                    <input type="submit" class="btn btn-right btn-poisition" value="登入">
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="~/Scripts/assets/js/login.js"></script>
+</body>
+
+</html> 

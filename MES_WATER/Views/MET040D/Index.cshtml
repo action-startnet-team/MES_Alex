@@ -1,0 +1,231 @@
+﻿@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@using System.Data;
+
+@*修改點 向下*@
+@model MES_WATER.Models.MET01_0000
+@*修改點 向上*@
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //公用函數庫
+    Comm comm = new Comm();
+    GetModelValidation gmv = new GetModelValidation();
+    MET040DController CT = new MET040DController();
+
+    //公用變數
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string limit_str = comm.Get_LimitByUsrCode(User.Identity.Name, sPrgCode);
+    string actionName = ViewContext.RouteData.Values["action"].ToString();
+    //DataTable dtPro = ViewBag.pro_data;
+    //DataTable dtMo = ViewBag.mo_data;
+
+
+    DataTable dtMo = new DataTable();
+    if (ViewBag.mo_data != null) { dtMo = ViewBag.mo_data; }
+
+    DataTable dtPro = new DataTable();
+
+    DataTable dtRec = new DataTable();
+    if (ViewBag.rec_data != null) {
+        dtRec = ViewBag.rec_data;
+    }
+
+    string chk_data = "";
+    if (!string.IsNullOrEmpty(ViewBag.chk_data)) {
+        chk_data = ViewBag.chk_data;
+    }
+
+    string sShare = "";
+    if (!string.IsNullOrEmpty(ViewBag.Share)) {
+        sShare = ViewBag.Share;
+    }
+    string sDate = "";
+    if (!string.IsNullOrEmpty(ViewBag.date))
+    {
+        sDate = ViewBag.date;
+    }
+
+
+}
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Scripts/assets/jquery-ui-1.12.1/jquery-ui.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/ui.multiselect.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/ui.jqgrid.css" />
+<link rel="stylesheet" href="~/Content/assets/css/bootstrap-timepicker.min.css" />
+<link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+<link rel="stylesheet" href="~/Content/assets/css/bootstrap-datetimepicker.min.css" />
+<link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+
+}
+@Html.Partial("pPrgName")
+
+
+@using (Html.BeginForm("Index", sPrgCode, FormMethod.Post, new { @class = "form-horizontal", id = "validation_form", role = "form" }))
+{
+    <div class="text-left">
+        <label class="col-sm-3 control-label no-padding-right" for="usr_date_end">
+            日期
+        </label>
+
+        <div class="col-sm-5">
+            <input type="text" id="cal_date" name="cal_date" value="@ViewBag.date" placeholder="yyyy/MM/dd " class="col-xs-10 col-sm-5 datepicker"> &nbsp;
+            <input type="submit" id="btn_share" name="btn_share" value="查詢" class="btn btn-white btn-info btn-bold" />
+        </div>
+   </div>
+
+    <div class="clearfix">
+
+        <table id="dtable" class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th style="text-align:center;background-color:powderblue;">工單</th>
+                    <th style="text-align:center;background-color:powderblue;">產品</th>
+                    <th style="text-align:center;background-color:powderblue;">預計產量</th>
+                    <th style="text-align:center;background-color:powderblue;">實際產量</th>
+                    <th style="text-align:center;background-color:powderblue;">單位</th>
+                    <th style="text-align:center;background-color:powderblue;">生產比例</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int j = 0; j < dtMo.Rows.Count; j++)
+                {
+                    DataRow rMo = dtMo.Rows[j];
+                    dtPro = CT.Get_ModTable(rMo["mo_code"].ToString(), sShare);
+                    <tr>
+                        <td style="text-align:center;">@rMo["mo_code"].ToString()</td>
+                        <td style="text-align:center;">@rMo["pro_name"].ToString()</td>
+                        <td style="text-align:center;">@comm.sGetDecimal(rMo["plan_qty"].ToString()).ToString("G29")</td>
+                        <td style="text-align:center;">@comm.sGetDecimal(rMo["up_qty"].ToString()).ToString("G29")</td>
+                        <td style="text-align:center;">@rMo["pro_unit"].ToString()</td>
+                        <td style="text-align:center;">@rMo["rate"].ToString() %</td>
+                    </tr>
+                        <tr>
+                            <td colspan="4">
+                                <table id="dtable" class="table table-bordered table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th style="text-align:center;">是否共用料</th>
+                                            <th style="text-align:center;">用料</th>
+                                            <th style="text-align:center;">單位</th>
+                                            <th style="text-align:center;">批號</th>
+                                            <th style="text-align:center;">用料數量</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @for (int i = 0; i < dtPro.Rows.Count; i++)
+                                        {
+                                            DataRow rPro = dtPro.Rows[i];
+                                            <tr>
+                                                <td style="text-align:center;">@CT.Chk_ProCodeIsShare(rPro["pro_code"].ToString())</td>
+                                                <td style="text-align:center;">@rPro["pro_name"].ToString()</td>
+                                                <td style="text-align:center;">@rPro["pro_unit"].ToString()</td>
+                                                <td style="text-align:center;">@rPro["lot_no"].ToString()</td>
+                                                <td style="text-align:center;">
+                                                    <input name="@rMo["mo_code"]@rPro["pro_code"]@rPro["lot_no"]" id="@rMo["mo_code"]@rPro["pro_code"]@rPro["lot_no"]" value="@comm.sGetDecimal(rPro["pro_qty"].ToString()).ToString("G29")" />
+                                                </td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                }
+            </tbody>
+        </table>
+        <div class="text-center">
+            @if (chk_data == "Y")
+                {
+                <span style="color:red">已送出領料紀錄</span>
+            }
+            else
+            {
+                <input type="submit" value="儲存" class="btn btn-white btn-info btn-bold" />
+            }
+        </div>
+        <br>
+
+        <table id="dtable" class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th style="text-align:center;">取消</th>
+                    <th style="text-align:center;">報工單號</th>
+                    <th style="text-align:center;">報工日期</th>
+                    <th style="text-align:center;">製令單號</th>
+                    <th style="text-align:center;">物料料號</th>
+                    <th style="text-align:center;">物料名稱</th>
+                    <th style="text-align:center;">領料數量</th>
+                    <th style="text-align:center;">單位</th>
+                    <th style="text-align:center;">批號</th>
+                    <th style="text-align:center;">SAP號碼</th>
+                    <th style="text-align:center;">SAP年份</th>
+                    <th style="text-align:center;">SAP訊息</th>
+                    <th style="text-align:center;">是否取消</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (int i = 0; i < dtRec.Rows.Count; i++)
+                {
+                    DataRow row = dtRec.Rows[i];
+                    string sIsDel = row["is_del"].ToString();
+                    string sColor = "";
+                    if (sIsDel == "Y") { sColor = "darkgray"; }
+                    <tr>
+                        <td style="text-align:center;background-color:@sColor;">
+                            @if (sIsDel == "" || sIsDel == "N")
+                            {
+                                <a href="@Url.Action("Delete", sPrgCode)?pTkCode=@row["ureport_date"].ToString()" onclick="return del();">
+                                    <span class="fa fa-tachometer"></span>
+                                </a>
+                            }
+                        </td>
+                        <td style="text-align:left;background-color:@sColor;">@row["ureport_code"].ToString()</td>
+                        <td style="text-align:center;background-color:@sColor;">@row["ureport_date"].ToString()</td>
+                        <td style="text-align:left;background-color:@sColor;">@row["mo_code"].ToString()</td>
+                        <td style="text-align:left;background-color:@sColor;">@row["pro_code"].ToString()</td>
+                        <td style="text-align:left;background-color:@sColor;">@row["pro_name"].ToString()</td>
+                        <td style="text-align:left;background-color:@sColor;">@row["pro_qty"].ToString()</td>
+                        <td style="text-align:left;background-color:@sColor;">@row["pro_unit"].ToString()</td>
+                        <td style="text-align:left;background-color:@sColor;">@row["lot_no"].ToString()</td>
+                        <td style="text-align:left;background-color:@sColor;">@row["sap_code"].ToString()</td>
+                        <td style="text-align:left;background-color:@sColor;">@row["sap_no"].ToString()</td>
+                        <td style="text-align:left;background-color:@sColor;">@row["sap_message"].ToString()</td>
+                        <td style="text-align:left;background-color:@sColor;">@sIsDel</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+    <!-- bootstrap-datetimepicker -->
+<script src="~/Scripts/assets/js/moment.min.js"></script>
+<script src="~/Scripts/assets/js/bootstrap-datetimepicker.min.js"></script>
+
+<!-- bootstrap-datepicker -->
+<script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+<script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+
+<script type="text/javascript">
+    //$('#btn_share').click(function () {
+    //    $('form').submit()
+
+    //})
+
+    jQuery(function ($) {
+        $(".datepicker").datepicker({ language: 'zh-TW', format: 'yyyy/mm/dd', autoclose: true }).attr('autocomplete', 'off')
+
+
+        function del() {
+            var msg = "確定要取消？";
+            if (confirm(msg) == true) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    });
+</script>

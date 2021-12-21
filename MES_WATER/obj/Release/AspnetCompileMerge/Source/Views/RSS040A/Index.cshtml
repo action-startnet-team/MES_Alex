@@ -1,0 +1,157 @@
+﻿@using MES_WATER.Models;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Comm comm = new Comm();
+
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string sAction = ViewContext.RouteData.Values["action"].ToString();
+
+    string sSql = "";
+    sSql = "select report_code as field_code, report_name as field_name " +
+           "  from RSS02_0000" +
+           " where report_code in(select report_code from EPB04_0000 where is_use = 'Y' and report_code <> '')";
+    List<DDLList> report_code_list = comm.Get_DDLOptionBySql(sSql,"A");
+
+    Html.RenderAction("ViewPlugin", "AjaxFunction");
+    Html.RenderAction("AjaxFunction", "AjaxFunction");
+}
+
+
+@Html.Partial("pPrgName")
+
+<div class="row">
+    <ul class="nav nav-tabs" id="myTab">
+        <li class="active">
+            <a data-toggle="tab" href="#home">
+                <i class="green ace-icon fa fa-home bigger-120"></i>
+                主檔
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="home" class="tab-pane fade in active">
+            @using (Html.BeginForm("Index", sPrgCode, FormMethod.Post, new { @class = "form-horizontal", id = "validation_form", role = "form" , enctype = "multipart/form-data" }))
+            {              
+                @*修改點 向下 主檔輸入畫面編排*@
+                <div class="row">
+                    <div class="col-sm-offset-2 col-md-6">         
+                        
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label class="col-sm-4  col-xs-7 control-label no-padding-right" for="form-field-1">
+                                   選擇報表
+                                </label>
+                                <div class="col-sm-6">
+                                    <select class="chosen-select col-xs-12" id="report_code" name="report_code">
+                                        @CustomHelper.Get_Option(report_code_list, "", true)
+                                    </select>                                    
+                                </div>
+                            </div>
+                        </div>
+                        
+                                     
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <label class="col-sm-4  col-xs-5 control-label no-padding-right">上傳報表</label>
+                                <div class="col-md-8 col-xs-7">
+                                    <div class="clearfix">
+                                        <input class="col-sm-6 text-box single-line" name="file" type="file" accept=".xls,.xlsx" style="margin-top:7px"  >
+                                    </div>
+                                </div>
+                            </div>
+                        </div>     
+                                        
+                    </div>
+                </div>
+
+                <br />
+                <br />
+                <div class="clearfix">
+                    <div class="col-md-offset-4 col-md-7">
+
+                        <input type="submit" value="送審" class="btn btn-white btn-info btn-bold" />
+                                               
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    $('form').submit(function () {
+        var file = $('[name=file]').val()
+        var ReportCode = $('[name=report_code]').val()
+        var ReviewCode = Get_Data("EPB04_0000", ReportCode,"report_code","review_code")
+
+        if (ReportCode == "") {
+            alert("請選擇報表")
+            return false
+        }
+
+        if (file == "") {
+            alert("請上傳報表")
+            return false
+        }
+
+        if (Chk_UsrIsReviewerOfReport(ReportCode)) {
+            alert("審核人員不可送審，請重新確認")
+            return false
+        }
+
+        if (Get_ReviewUser(ReviewCode) == "") {
+            alert("請先設定審核層級人員")
+            return false
+        }
+
+    })
+
+
+    function Chk_UsrIsReviewerOfReport(report_code) {
+        var bool = false
+        $.ajax({
+            method: "post",
+            async: false,
+            url: '@Url.Action("Chk_UsrIsReviewerOfReport")',
+            data: {
+                pReportCode: function () { return report_code; },
+            },
+            success: function (data) {
+                if (data == "True") {
+                    bool = true
+                }
+            }
+        })
+        return bool
+    }
+
+    function Get_ReviewUser(review_code) {
+        var val = ""
+        $.ajax({
+            method: "post",
+            async: false,
+            url: '@Url.Action("Get_ReviewUser")',
+            data: {
+                pReviewCode: function () { return review_code; },
+            },
+            success: function (data) {
+                if (data != "") {
+                    val = data
+                }
+            }
+        })
+        return val
+    }
+
+
+
+
+
+</script>

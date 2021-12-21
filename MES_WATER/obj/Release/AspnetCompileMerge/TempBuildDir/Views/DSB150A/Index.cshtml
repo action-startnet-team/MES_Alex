@@ -1,0 +1,257 @@
+﻿@using MES_WATER.Models;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Comm comm = new Comm();
+
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string sAction = ViewContext.RouteData.Values["action"].ToString();
+
+    //檢驗項目
+    List<DDLList> spc_code_list = comm.Get_DDLOption("QMB14_0000", "spc_code", "spc_name");
+
+}
+
+<link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+<link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+
+@Html.Partial("pPrgName")
+
+<div class="row">
+    <label class="col-lg-offset-1 control-label no-padding-right" style="float:left">
+        管制項目
+    </label>
+    <div class="col-sm-3">
+        <select class="chosen-select" id="" name="spc_code">
+           @CustomHelper.Get_Option(spc_code_list, "", true)
+        </select>
+    </div>
+</div>
+
+<p></p>
+<div class="row">
+    <label class="col-lg-offset-1 control-label no-padding-right" style="float:left">
+        管制時間
+    </label>
+    <div class="col-sm-3">
+       <input name="ins_date" class="datepicker" type="text" value="@DateTime.Now.ToString("yyyy/MM/dd")" />
+    </div>
+</div>
+
+
+<div style="clear:both"></div>
+<p></p>
+
+
+<div class = "line_chart" style="height: 85vh"></div>
+
+@section footer_plugin{
+    <script src="~/Scripts/assets/POMES_DASHBOARD/assets/lib/echarts-4.8.0/dist/echarts.min.js"></script>
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+}
+
+@section footer_script {
+<script>
+    jQuery(function ($) {
+        $(document).ready(function () {
+            if (localStorage.getItem('@sPrgCode' + "_spc_code") != null) {
+                $('[name=spc_code]').val(localStorage.getItem('@sPrgCode' + "_spc_code")).trigger("chosen:updated")
+            }
+            if (localStorage.getItem('@sPrgCode' + "_ins_date") != null) {
+                $('[name=ins_date]').val(localStorage.getItem('@sPrgCode' + "_ins_date")).trigger("chosen:updated")
+                localStorage.removeItem('@sPrgCode' + "_ins_date")
+            }
+
+            update()
+        })
+
+        $('[name=spc_code]').change(function () {
+            localStorage.setItem('@sPrgCode' + "_spc_code", $(this).val())
+            update()
+        })
+        $('[name=ins_date]').change(function () {
+            if (localStorage.getItem('@sPrgCode' + "_ins_date") == null) {
+                localStorage.setItem('@sPrgCode' + "_ins_date", $(this).val())
+            }
+            update()
+        })
+
+        $(".datepicker").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr('autocomplete', 'off');
+
+
+        var dom = document.getElementsByClassName("line_chart")[0];
+        var myChart = echarts.init(dom);
+
+        var option = {
+            title: {
+                text: '管制圖'
+            },
+            tooltip: {
+                trigger: 'axis'
+            },
+            legend: {
+                show: false,
+                data: ['上限', '下限', '檢驗結果']
+            },
+            grid: {
+                left: '3%',
+                right: '4%',
+                bottom: '3%',
+                containLabel: true
+            },
+            toolbox: {
+                feature: {
+                    saveAsImage: {
+                        title: '下載圖片'
+                    }
+                }
+            },
+            xAxis: {
+                type: 'category',
+                boundaryGap: false,
+                splitLine: {
+                    show: false
+                },
+                data: [],
+            },
+            yAxis: {
+                type: 'value',
+                max: 0,
+                min: 0,
+                splitLine: {
+                    show: false,
+                },
+                axisLabel: {}
+            },
+            series: [
+                {
+                    name: '上限',
+                    type: 'line',
+                    data: [],
+                    lineStyle: {
+                        color: 'red',
+                        type: 'dashed'
+                    },
+                    markLine: {
+                        data: [
+                            {type: 'average', name: '平均值'}
+                        ]
+                    },
+                    symbol: 'none'
+                },
+                {
+                    name: '下限',
+                    type: 'line',
+                    data: [],
+                    lineStyle: {
+                        color: 'red',
+                        type: 'dashed'
+                    },
+                    markLine: {
+                        data: [
+                            { type: 'average', name: '平均值' }
+                        ]
+                    },
+                    symbol: 'none'
+                },
+                {
+                    name: '平均',
+                    type: 'line',
+                    data: [],
+                    lineStyle: {
+                        color: 'grey',
+                    },
+                    symbol: 'none'
+                },
+                {
+                    name: '檢驗結果',
+                    type: 'line',
+                    data: [],
+                    lineStyle: {
+                        color: 'blue',
+                        //type: 'dashed'
+                    },
+                    symbolSize: 15,
+                    symbol: 'diamond',
+                    itemStyle: {
+                        color: 'blue'
+                    }
+                }
+            ]
+        };
+
+        function update(interval_ms) {
+            $.ajax({
+                method: 'post',
+                url: '/DSB150A/Get_LineChartData',
+                data: {
+                    pTkCode: function () { return $('[name=spc_code]').val() },
+                    pInsDate: function () { return $('[name=ins_date]').val() },
+                }
+            }).done(function (json) {
+                // 設置chart option
+                option.yAxis.max = json.yAxis_max
+                option.yAxis.min = json.yAxis_min
+                option.yAxis.axisLabel.formatter = function (value, index) {
+                    let showLabels = [json.upperLmt, json.lowerLmt, json.average]
+                    return value
+                }
+
+                option.xAxis.data = json.xAxis_data
+                option.series[0].data = json.upperLmt_data  // 上限
+                option.series[1].data = json.lowerLmt_data  // 下限
+                //option.series[2].data = json.average_data  // 平均
+                option.series[3].data = json.coordinate_data  // 座標
+
+                // 實際畫圖
+                if (option && typeof option === "object") {
+                    myChart.clear()
+                    myChart.setOption(option, true);
+                }
+            }).fail(function () {
+                alert('抓取資料失敗! ')
+            }).always(function () {
+                //setTimeout(function () {
+                //    update(interval_ms)
+                //}, interval_ms)
+            })
+        }
+
+        // 開始ajax抓資料畫圖並定時更新
+        //update(5000)  // ms
+
+        setInterval(function () {
+            update()
+        }, 5000)
+
+
+
+        if (!ace.vars['touch']) {
+            $('.chosen-select').chosen({ allow_single_deselect: true });
+            //resize the chosen on window resize
+
+            $(window)
+            .off('resize.chosen')
+            .on('resize.chosen', function () {
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            }).trigger('resize.chosen');
+            //resize chosen on sidebar collapse/expand
+            $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                if (event_name != 'sidebar_collapsed') return;
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            });
+        }
+
+
+    })
+</script>
+}

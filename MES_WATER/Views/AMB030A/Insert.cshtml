@@ -1,0 +1,326 @@
+﻿@using MES_WATER.Models;
+@using System.Reflection;
+@using System.ComponentModel.DataAnnotations;
+@using System.ComponentModel.DataAnnotations.Schema;
+
+@*修改點 以下*@
+@model MES_WATER.Models.AMB02_0000
+@*修改點 以上*@
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Insert";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //公用函數庫
+    Comm comm = new Comm();
+    GetModelValidation gmv = new GetModelValidation();
+
+    //公用變數
+    string sPrgCode = ViewBag.prg_code;
+    string key = gmv.GetKey<AMB02_0000>(new AMB02_0000());
+
+    //修改點 向下//
+    AMB02_0000 obj = new AMB02_0000();
+
+    //取得畫面上下拉選單的選項值
+
+    List<DDLList> is_use_list = comm.Get_DDLOption("is_use");
+    List<DDLList> usr_code_list = comm.Get_DDLOption("BDP08_0000", "usr_code", "usr_name");
+    List<DDLList> mac_code_list = comm.Get_DDLOption("MEB15_0000", "mac_code", "mac_name");
+
+
+    //修改點 向上//
+}
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-multiselect.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/jquery-ui.custom.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+
+    <link rel="stylesheet" href="~/Content/assets/css/jquery-ui-timepicker-addon.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-timepicker.min.css" />
+}
+
+@Html.Partial("pPrgName")
+<div class="row">
+    <ul class="nav nav-tabs" id="myTab">
+        <li class="active">
+            <a data-toggle="tab" href="#home">
+                <i class="green ace-icon fa fa-home bigger-120"></i>
+                主檔
+            </a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div id="home" class="tab-pane fade in active">
+            @using (Html.BeginForm("Insert", sPrgCode, FormMethod.Post, new { @class = "form-horizontal", id = "validation_form", role = "form" }))
+            {
+                <div id="errMsgSummary" class="alert alert-danger @( (ViewBag.showErrMsg ?? false ) ? "" : "hidden" )">
+                    <button type="button" class="close" data-dismiss="alert">
+                        <i class="ace-icon fa fa-times"></i>
+                    </button>
+                    <strong>
+                        <i class="ace-icon fa fa-times"></i>
+                        系統訊息!
+                    </strong>
+                    @Html.ValidationSummary("", new { @class = "text-danger" })
+                    <br />
+                </div>
+                @*修改點 向下 輸入畫面編排*@
+                <div class="row">
+                    <div class="col-sm-offset-2 col-md-6 col-xs-12 ">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "alm_code", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.alm_code, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.alm_code, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "usr_code", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+
+                                <div class="col-sm-8 col-xs-6">
+                                    <select class="chosen-select" name="usr_code" id="usr_code">
+                                        @CustomHelper.Get_Option(usr_code_list, Model.usr_code, true)
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.usr_code, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "mac_code", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+
+                                <div class="col-sm-8 col-xs-6">
+                                    <select class="chosen-select" name="mac_code" id="mac_code">
+                                        @CustomHelper.Get_Option(mac_code_list, Model.mac_code, true)
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.mac_code, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "is_use", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+
+                                <div class="col-sm-8 col-xs-6">
+                                    <select class="chosen-select" name="is_use" id="is_use">
+                                        @CustomHelper.Get_Option(is_use_list, Model.is_use, false)
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.is_use, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "time_start", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.time_start, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.time_start, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "time_end", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.time_end, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.time_end, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "alm_message", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div class="clearfix">
+                                        <textarea id="alm_message" name="alm_message" class="col-xs-12" form="validation_form">@Model.alm_message</textarea>
+                                    </div>
+                                    @Html.ValidationMessageFor(model => model.alm_message, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @*修改點 向上 輸入畫面編排*@
+                <br />
+                <div class="clearfix">
+                    <div class="col-md-offset-5 col-md-7">
+                        <input type="submit" value="儲存" class="btn btn-white btn-info btn-bold" />
+                        &nbsp;
+                        <a class="btn btn-white btn-pink btn-round" href=@Url.Action("Index", sPrgCode)>
+                            <i class="ace-icon fa fa-undo "></i>
+                            返回
+                        </a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section footer_plugin{
+    <script src="~/Scripts/assets/js/wizard.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery-additional-methods.min.js"></script>
+    <script src="~/Scripts/assets/js/bootbox.js"></script>
+    <script src="~/Scripts/assets/js/jquery.maskedinput.min.js"></script>
+    <script src="~/Scripts/assets/js/select2.min.js"></script>
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="~/Scripts/assets/js/autosize.min.js"></script>
+
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-timepicker.min.js"></script>
+}
+@section footer_script{
+    <script type="text/javascript">
+        jQuery(function ($) {
+            @*修改點 向下 控制項輸入控制參考*@
+            @*
+            // 鍵值的唯讀
+            $('input[name=@key]').attr('readonly', 'readonly');
+
+            //下拉的編號帶名稱
+            $('#pro_code').change(function () {
+                $.get('Get_ProData?pProCode=' + $('#pro_code').val() + '&pType=pro_spc', function (data) {
+                    $('#pro_spc').val(data);
+                });
+            });
+
+            // 報價人 (廠商-連絡人)
+            $("select[name=alm_code]").change(function () {
+                $.get("Get_SupAtn?alm_code=" + $(this).val(), function (data) {
+                    $('select[name=inq_per]').empty()
+                    if (data.length > 0) {
+                        for (let i = 0 ; i < data.length ; i++) {
+                            let inq_per = data[i].per_name + '(' + data[i].ext_no + ')'
+                            let option = $('<option value="' + data[i].per_name + '">' + inq_per + '</option>')
+                            $('select[name=inq_per]').append(option)
+                        }
+                    } else {
+                        $('select[name=inq_per]').append($('<option value="">沒有連絡人!</option>'))
+                    }
+                    $('select[name=inq_per]').trigger("chosen:updated");
+
+                });
+            })
+
+            // 日期的輸入控制
+            $("input[name=inq_date]").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr('autocomplete', 'off');
+            $("input[name=can_date]").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr('autocomplete', 'off');
+     *@
+
+            $("input[name=time_start]").timepicker({
+                startTime:new Date(0, 0, 0, 2, 0, 0),
+                endTime:new Date(0, 0, 0, 15, 30, 0),
+                showMeridian: false,
+                separator:'.',
+                step: 15});
+
+            $("input[name=time_end]").timepicker({
+                startTime:new Date(0, 0, 0, 2, 0, 0),
+                endTime:new Date(0, 0, 0, 15, 30, 0),
+                showMeridian: false,
+                separator:'.',
+                step: 15});
+
+            @*修改點 向上 控制項輸入控制參考*@
+
+            $("input[name='@key']").change(function () {
+                $.ajax({
+                    method: "post",
+                    url: '@Url.Action("Check_Data", sPrgCode)',
+                    data: { @key: function() { return $("input[name='@key']").val(); } },
+                    success: function (data) {
+                        if (data.IsSuccess) {
+                            let validator = $('#validation_form').validate();
+                            validator.showErrors(data.ModelStateErrors)
+                            $('form input:submit').attr('disabled', 'disabled');
+                        }
+                        else {
+                            $('form input:submit').removeAttr('disabled')
+                        }
+                    },
+                    error: function () {
+                        alert("error");
+                    }
+                });
+            })
+            $('input').change(function () {
+                $('#time_start').val($('#time_start').val().toUpperCase())
+                $('#time_end').val($('#time_end').val().toUpperCase())
+            })
+
+            $("#validation_form").bind("invalid-form.validate", function () {
+                $("#errMsgSummary").removeClass('hidden');
+            });
+            $('#validation_form').submit(function () {
+                if ($(this).valid()) {
+                    $('form input:submit').attr('disabled', 'disabled');
+                } else {
+                    $('form input:submit').removeAttr('disabled')
+                }
+            });
+
+            autosize($('textarea[class*=autosize]'));
+            $(document).one('ajaxloadstart.page', function (e) {
+                autosize.destroy('textarea[class*=autosize]')
+
+                $('.limiterBox,.autosizejs').remove();
+                $('.daterangepicker.dropdown-menu,.colorpicker.dropdown-menu,.bootstrap-datetimepicker-widget.dropdown-menu').remove();
+            });
+
+            if (!ace.vars['touch']) {
+                $('.chosen-select').chosen({ allow_single_deselect: true });
+                //resize the chosen on window resize
+
+                $(window)
+                .off('resize.chosen')
+                .on('resize.chosen', function () {
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                }).trigger('resize.chosen');
+                //resize chosen on sidebar collapse/expand
+                $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                    if (event_name != 'sidebar_collapsed') return;
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                });
+
+                $('#chosen-multiple-style .btn').on('click', function (e) {
+                    var target = $(this).find('input[type=radio]');
+                    var which = parseInt(target.val());
+                    if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                    else $('#form-field-select-4').removeClass('tag-input-style');
+                });
+            }
+
+        })
+    </script>
+}

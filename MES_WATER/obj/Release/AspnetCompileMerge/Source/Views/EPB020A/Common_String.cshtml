@@ -1,0 +1,616 @@
+﻿@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Comm comm = new Comm();
+    GetData GD = new GetData();
+    DynamicTable DT = new DynamicTable();
+    CheckData CD = new CheckData();
+
+    EPB020AController CT = new EPB020AController();
+
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string sAction = ViewContext.RouteData.Values["action"].ToString();
+
+    string limit_str = comm.Get_LimitByUsrCode(User.Identity.Name, sPrgCode);
+
+    string Key = ViewBag.Key;
+    string sTable = ViewBag.Table; //搜尋條件:資料表
+    string sTableField = DT.Get_TableField(sTable); ; //資料表的欄位，","分隔的字串
+    string sKey = DT.Get_Table_PKField(sTable); //資料表鍵值
+
+
+
+}
+
+
+
+@section head_plugin{
+    <link rel="stylesheet" href="~/Content/assets/css/ui.jqgrid.css" />
+}
+
+@Html.Partial("pPrgName")
+
+<form id="validation-form" method="post" action="@Url.Action(sAction, sPrgCode)" class="form-horizontal" role="form" enctype="multipart/form-data">
+
+    <div class="row">
+        @*<label class="col-sm-2 control-label no-padding-right">
+            欄位代碼
+        </label>
+        <div class="col-sm-2">
+            <input type="text" class="check col-sm-12" id="epb_code" name="epb_code" value="@Key" readonly />
+        </div>*@
+        <label class="col-sm-3 control-label no-padding-right">
+            欄位名稱
+        </label>
+        <div class="col-sm-2">
+            <input type="text" class="check col-sm-12" id="epb_name" name="epb_name" value="@GD.Get_Data("EPB02_0100",Key,"epb02_0100","field_name")" readonly />
+        </div>
+    </div>
+    <br />
+    <br />
+    <div style="clear:both"></div>
+
+
+    <table id="grid-table"></table>
+    <div id="grid-pager"></div>
+</form>
+
+@section footer_plugin{
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.jqGrid.min.js"></script>
+    <script src="~/Scripts/assets/js/grid.locale-cn.js"></script>
+}
+
+<script type="text/javascript">
+    jQuery(function ($) {
+        $(document).ready(function(){
+            
+
+        })
+
+
+        var grid_selector = "#grid-table";
+        var pager_selector = "#grid-pager";
+        var parent_column = $(grid_selector).closest('[class*="col-"]');
+
+        //resize to fit page size
+        $(window).on('resize.jqGrid', function () {
+            $(grid_selector).jqGrid('setGridWidth', parent_column.width());
+        })
+
+        //resize on sidebar collapse/expand
+        $(document).on('settings.ace.jqGrid', function (ev, event_name, collapsed) {
+            if (event_name === 'sidebar_collapsed' || event_name === 'main_container_fixed') {
+                //setTimeout is for webkit only to give time for DOM changes and then redraw!!!
+                setTimeout(function () {
+                    $(grid_selector).jqGrid('setGridWidth', parent_column.width());
+                }, 20);
+            }
+        })
+
+        var getColumnIndexByName = function (grid, columnName) {
+            var cm = grid.jqGrid('getGridParam', 'colModel'), i, l = cm.length;
+            for (i = 0; i < l; i++) {
+                if (cm[i].name === columnName) {
+                    return i; // return the index
+                }
+            }
+            return -1;
+        }
+        var Get_selectObject = function (list) {
+            let arr = JSON.parse(list);
+            let selectObject = {};
+            selectObject[""] = [""];
+            for (let i = 0; i < arr.length; i++) {
+                selectObject[arr[i]['field_code']] = [arr[i]['field_code']] + " - " + [arr[i]['field_name']]
+            }
+            return selectObject;
+        }
+
+        //JqGrid本體主要設定
+        jQuery(grid_selector).jqGrid({
+            url: "@Url.Action("Get_GridData_Common", sPrgCode)",
+            mtype: "Post",
+            datatype: "json",
+            width:"100%",
+            autowidth: true,
+            postData: {
+                Key: function(){ return '@Key' ;}
+            },
+            height: 'auto',
+            colModel: [
+                {
+                    label:'功能', name: 'myac', index: '', width: 30, sortable: false, resize: false, search: false,
+                    formatter: 'actions',
+                    formatoptions: {
+                        keys: true,
+                        delbutton: false,
+                        editbutton: true
+                    }
+                },
+                {
+                    label:'識別碼', name: 'epb02_0200', index: 'epb02_0200', width: 30, sorttype: "string", editable: true, edittype: "text",
+                    editoptions: { readonly: true, maxlength: 10, defaultValue: "" }
+                },
+                {
+                    label:'常用字串代號', name: 'option_code', index: 'option_code', width: 30, sorttype: "string", editable: true, edittype: "text",
+                    editoptions: { readonly: false, maxlength: 50, defaultValue: "" },editrules:{ required:true }
+                },{
+                    label:'常用字串名稱', name: 'option_name', index: 'option_name', sorttype: "string", editable: true, edittype: "text",
+                    editoptions: { readonly: false, maxlength: 50, defaultValue: "" },editrules:{ required:true }
+                },{
+                    label:'序號', name: 'scr_no', index: 'scr_no', sorttype: "string", editable: true, edittype: "text",
+                    editoptions: { readonly: false, maxlength: 10, defaultValue: "0" },editrules:{ number:true,minvalue:0, required:true }
+                },
+                {
+                    label:'欄位代碼', name: 'epb02_0100', index: 'epb02_0100', width: 40, sorttype: "string", editable: true, edittype: "text",
+                    editoptions: { readonly: true, maxlength: 10, defaultValue: "@Key" }
+                },              
+            ],
+            viewrecords: true,
+            rowNum: DisplayRowNum(),  //10,
+            rowList: [10, 20, 30, 50, 100],
+            pager: pager_selector,
+            altRows: true,
+            //toppager: true,
+            multiselect: true,
+            //multikey: "ctrlKey",
+            multiboxonly: true,
+            multiselectWidth: -6,  // hide checkbox column
+            loadonce: true,   // sort, change datatype to local
+            //navOptions: { reloadGridOptions: { fromServer: true } },  // not works,  maybe need to use "free jqgrid"
+            loadComplete: function () {
+                loadGridParameters($(grid_selector));
+                var table = this;
+                setTimeout(function () {
+                    styleCheckbox(table);
+                    updateActionIcons(table);
+                    updatePagerIcons(table);
+                    enableTooltips(table);
+                }, 0);
+
+                Set_SearchToolbar()
+
+                var iCol = getColumnIndexByName(jQuery(grid_selector), 'myac');
+                // inline delete button
+                $(this).find(">tbody>tr.jqgrow>td:nth-child(" + (iCol + 1) + ")")
+                .each(function (rowId) {
+
+                    $("<div>", {
+                        title: "刪除所選記錄",
+                        mouseover: function () {
+                            $(this).addClass('ui-state-hover');
+                        },
+                        mouseout: function () {
+                            $(this).removeClass('ui-state-hover');
+                        },
+                        click: function (e) {
+                            // Get data from selected row
+                            let id = $(e.target).closest("tr.jqgrow").attr("id")
+                            jQuery(grid_selector).jqGrid('delGridRow', id, {
+                                recreateForm: true,
+                                beforeShowForm: beforeDeleteCallback,
+                                url: "@Url.Action("Delete_Common", sPrgCode)",
+                                mtype: 'post',
+                                delData: {
+                                    Key: function () {
+
+                                        // Get data from selected row
+                                        let id = jQuery(grid_selector).jqGrid('getGridParam', 'selrow');
+                                        let data = jQuery(grid_selector).jqGrid('getRowData', id);
+                                        return data.@sKey; @*修改點 主檔鍵值*@
+                                    }
+                                },
+                            });
+                        }
+                    }
+                  ).css({ "margin-right": "5px", float: "left", cursor: "pointer" })
+                   .addClass("ui-pg-div ui-inline-custom")
+                   .append('<span class="ui-icon ui-icon-trash"></span>')
+                   .prependTo($(this).children("div"));
+
+                });
+
+                // inline edit button
+                @*$(this).find(">tbody>tr.jqgrow>td:nth-child(" + (iCol + 1) + ")")
+                .each(function (rowId) {
+                    $("<div>", {
+                        title: "編輯所選記錄",
+                        mouseover: function () {
+                            $(this).addClass('ui-state-hover');
+                        },
+                        mouseout: function () {
+                            $(this).removeClass('ui-state-hover');
+                        },
+                        click: function (e) {
+                            // Get data from selected row
+                            let id = $(e.target).closest("tr.jqgrow").attr("id")
+                            let data = jQuery(grid_selector).jqGrid('getRowData', id);
+                            window.location.href = "@Url.Action("Update", sPrgCode)?pTkCode=" + data.@sKey;
+
+                        }
+                    }
+                   ).css({ "margin-right": "8px", float: "left", cursor: "pointer" })
+                       .addClass("ui-pg-div ui-inline-custom")
+                       .append('<span class="ui-icon ui-icon-pencil bigger-150"></span>')
+                       .prependTo($(this).children("div"));
+                });*@
+            },
+            editurl: "@Url.Action("Update_Common", sPrgCode)",
+            onSelectRow: function (rowid) {
+                localStorage.setItem("selrowId", rowid)
+            }
+        });
+        $(window).triggerHandler('resize.jqGrid');//trigger window resize to make the grid get the correct size
+
+        //enable search/filter toolbar
+
+        //switch element when editing inline
+        function aceSwitch(cellvalue, options, cell) {
+            setTimeout(function () {
+                $(cell).find('input[type=checkbox]')
+                    .addClass('ace ace-switch ace-switch-5')
+                    .after('<span class="lbl"></span>');
+            }, 0);
+        }
+        //enable datepicker
+        function pickDate(cellvalue, options, cell) {
+            setTimeout(function () {
+                $(cell).find('input[type=text]')
+                    .datepicker({ format: 'yyyy-mm-dd', autoclose: true });
+            }, 0);
+        }
+
+        //navButtons
+        jQuery(grid_selector).jqGrid('navGrid', pager_selector,
+            { 	//navbar options
+                edit: false,
+                editicon: 'ace-icon fa fa-pencil blue',
+                add: true,
+                addicon: 'ace-icon fa fa-plus-circle purple',
+                del: false,
+                delicon: 'ace-icon fa fa-trash-o red',
+                search: true,
+                searchicon: 'ace-icon fa fa-search orange',
+                refresh: true,
+                refreshicon: 'ace-icon fa fa-refresh green',
+                view: true,
+                viewicon: 'ace-icon fa fa-search-plus grey'
+            },
+        {}, {
+            //new record form 明細新增記錄的form
+            //width: 700,
+            closeAfterAdd: true,
+            recreateForm: true,
+            refresh: true,
+            viewPagerButtons: false,
+            beforeShowForm: function (e) {
+
+                var form = $(e[0]);
+                form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar')
+                .wrapInner('<div class="widget-header" />')
+                style_edit_form(form)
+            },
+            afterShowForm: function(form) {
+
+                form.closest('div.ui-jqdialog').center();
+            },
+            reloadAfterSubmit: true,
+            // .trigger('reloadGrid')
+            afterSubmit: function (response, postdata) {
+
+                $(this).jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid')
+
+                return [true, ""]
+            },
+            afterComplete: function(response, postdata, formid){
+                // set last page
+                let lastpage = $(this).getGridParam('lastpage')
+
+                $(this).jqGrid('setGridParam', { page: lastpage }).trigger('reloadGrid')
+
+                // set selected row
+                let lastrowId = $(this).find(">tbody>tr.jqgrow:last").attr('id');
+                $(this).jqGrid('resetSelection');
+                $(this).jqGrid('setSelection', lastrowId , false);
+
+            },
+            url: "@Url.Action("Insert_Common", sPrgCode)"
+        },
+            {
+                //del
+                closeAfterEdit: true,
+                recreateForm: true,
+                beforeShowForm: function (e) {
+                    var form = $(e[0]);
+                    form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+                    style_edit_form(form);
+                },
+                afterSubmit: function () { $(this).jqGrid('setGridParam', { datatype: 'json' }); return [true, ""] }
+            },
+            {
+                //search form
+                recreateForm: true,
+                afterShowSearch: function (e) {
+                    var form = $(e[0]);
+                    form.closest('.ui-jqdialog').find('.ui-jqdialog-title').wrap('<div class="widget-header" />')
+                    style_search_form(form);
+                },
+                afterRedraw: function () {
+                    style_search_filters($(this));
+                }
+                ,
+                multipleSearch: true,
+                /**
+                multipleGroup:true,
+                showQuery: true
+                */
+            },
+            {
+                //view record form
+                recreateForm: true,
+                beforeShowForm: function (e) {
+                    var form = $(e[0]);
+                    form.closest('.ui-jqdialog').find('.ui-jqdialog-title').wrap('<div class="widget-header" />')
+                },
+                afterSubmit: function () { $(this).jqGrid('setGridParam', { datatype: 'json' }); return [true, ""] }
+            }
+        )
+
+        // toolbar initial
+        jQuery(grid_selector).jqGrid('filterToolbar', {
+            stringResult: true,
+            searchOnEnter: false
+        });
+
+
+        function Set_SearchToolbar(){
+            let search_toolbar = $('#gbox_' + grid_selector.substring(1)).find('.ui-search-toolbar').eq(0)
+            // set height
+            search_toolbar.css('height', '4em')
+            // set input placeholder and autocomplete off
+            let labels = $('#gbox_' + grid_selector.substring(1)).find('.ui-jqgrid-labels').eq(0);
+            let colName = "";
+            search_toolbar.find('th').find('input').attr('autocomplete', 'off')
+            search_toolbar.find('th').each(function (i) {
+                colName = labels.find('th').eq(i).text();
+                $(this).find('input').attr('placeholder', '搜尋 ' + colName)
+            })
+
+        }
+
+        // *** JqGrid Persist State *** //
+        // jqgrid save state function
+        function saveGridParameters(grid) {
+            // Load GridParam
+            let gridInfo = new Object();
+
+            gridInfo.url = grid.jqGrid('getGridParam', 'url');
+            gridInfo.sortname = grid.jqGrid('getGridParam', 'sortname');
+            gridInfo.sortorder = grid.jqGrid('getGridParam', 'sortorder');
+            //gridInfo.selrow = grid.jqGrid('getGridParam', 'selrow');
+            gridInfo.page = grid.jqGrid('getGridParam', 'page');
+            gridInfo.rowNum = grid.jqGrid('getGridParam', 'rowNum');
+            gridInfo.postData = grid.jqGrid('getGridParam', 'postData');
+            gridInfo.search = grid.jqGrid('getGridParam', 'search');
+
+            let ids = [];
+            grid.find("tr:has(.sgexpanded)").each(function () {
+                ids.push($(this).attr('id'));
+            });
+            gridInfo.subgridIds = ids;
+
+            // Serialize it to as JSON-String
+            let gridParams = JSON.stringify(gridInfo);
+
+            // Save the serialized Griddata in the localStorage
+            //localStorage.setItem("gridParams", gridParams);
+            localStorage.setItem(grid.jqGrid('getGridParam', 'url'), gridParams);
+        };
+
+        // jqgrid load state function
+        function loadGridParameters(grid) {
+
+            let url = grid.jqGrid('getGridParam', 'url')
+            // jqgrid state save
+            if (localStorage.getItem(url) != "" && localStorage.getItem(url) != null) {
+                let gridInfo = JSON.parse(localStorage.getItem(url));
+
+                //var $this = $(this);
+                let $this = grid;
+
+                // selrow
+                $this.jqGrid('setSelection', localStorage.getItem("selrowId"), false);
+
+                if ($this.jqGrid("getGridParam", "datatype") === "json") {
+                    setTimeout(function () {
+                        //$this.trigger("reloadGrid", [{
+                        //    current: true,
+                        //    page: gridInfo.page,
+                        //    postData: gridInfo.postData,
+                        //}]);
+                        $this.jqGrid("setGridParam", {
+                            datatype: "local",
+                            page: gridInfo.page,
+                            //postData: gridInfo.postData,
+                            sortname: gridInfo.sortname,
+                            sortorder: gridInfo.sortorder,
+                            rowNum: gridInfo.rowNum,
+                            search: gridInfo.search
+                        });
+                        if (gridInfo.postData.filters != "" && gridInfo.postData.filters != null) {
+                            let rules = JSON.parse(gridInfo.postData.filters).rules;
+                            if (rules != [] && rules != "") {
+                                $this.jqGrid("setGridParam", {
+                                    postData: gridInfo.postData,
+
+                                });
+                            }
+                        }
+                        $this.trigger("reloadGrid");
+                    }, 50);
+
+                }
+                // retain subgrid expand
+                if (gridInfo.subgridIds != null && gridInfo.subgridIds != []) {
+                    for (var j = 0; j < gridInfo.subgridIds.length; j = j + 1) {
+                        $this.jqGrid('expandSubGridRow', gridInfo.subgridIds[j]);
+                    }
+                }
+                // end
+            }
+        }
+        function DisplayRowNum() {
+            if (localStorage.getItem("gridParams") != "" && localStorage.getItem("gridParams") != null) {
+                let gridInfo = JSON.parse(localStorage.getItem("gridParams"));
+                return gridInfo.rowNum;
+            } else {
+                return 10;
+            }
+        }
+
+        window.addEventListener("beforeunload", function (event) {
+            saveGridParameters(jQuery(grid_selector))
+        });
+
+        // *** JqGrid Persist State End *** //
+
+        // reset jqgrid params
+        $('#refresh_grid-table').click(function () {
+            localStorage.setItem("gridParams", "");
+            localStorage.setItem("selrowId", "");
+            localStorage.setItem($(grid_selector).jqGrid('getGridParam', 'url'), "");
+            $(grid_selector).jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid')
+        })
+
+        function style_delete_form(form) {
+            var buttons = form.next().find('.EditButton .fm-button');
+            buttons.addClass('btn btn-sm btn-white btn-round').find('[class*="-icon"]').hide();//ui-icon, s-icon
+            buttons.eq(0).addClass('btn-danger').prepend('<i class="ace-icon fa fa-trash-o"></i>');
+            buttons.eq(1).addClass('btn-default').prepend('<i class="ace-icon fa fa-times"></i>')
+        }
+
+        function style_search_filters(form) {
+            form.find('.delete-rule').val('X');
+            form.find('.add-rule').addClass('btn btn-xs btn-primary');
+            form.find('.add-group').addClass('btn btn-xs btn-success');
+            form.find('.delete-group').addClass('btn btn-xs btn-danger');
+        }
+        function style_search_form(form) {
+            var dialog = form.closest('.ui-jqdialog');
+            var buttons = dialog.find('.EditTable')
+            buttons.find('.EditButton a[id*="_reset"]').addClass('btn btn-sm btn-info').find('.ui-icon').attr('class', 'ace-icon fa fa-retweet');
+            buttons.find('.EditButton a[id*="_query"]').addClass('btn btn-sm btn-inverse').find('.ui-icon').attr('class', 'ace-icon fa fa-comment-o');
+            buttons.find('.EditButton a[id*="_search"]').addClass('btn btn-sm btn-purple').find('.ui-icon').attr('class', 'ace-icon fa fa-search');
+        }
+
+        function beforeDeleteCallback(e) {
+            var form = $(e[0]);
+            if (form.data('styled')) return false;
+            form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+            style_delete_form(form);
+            form.data('styled', true);
+        }
+
+        function beforeEditCallback(e) {
+            var form = $(e[0]);
+            form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+            style_edit_form(form);
+        }
+
+        //it causes some flicker when reloading or navigating grid
+        //it may be possible to have some custom formatter to do this as the grid is being created to prevent this
+        //or go back to default browser checkbox styles for the grid
+        function styleCheckbox(table) {
+            /**
+                $(table).find('input:checkbox').addClass('ace')
+                .wrap('<label />')
+                .after('<span class="lbl align-top" />')
+
+
+                $('.ui-jqgrid-labels th[id*="_cb"]:first-child')
+                .find('input.cbox[type=checkbox]').addClass('ace')
+                .wrap('<label />').after('<span class="lbl align-top" />');
+            */
+        }
+
+        //unlike navButtons icons, action icons in rows seem to be hard-coded
+        //you can change them like this in here if you want
+        function updateActionIcons(table) {
+            /**
+            var replacement =
+            {
+                'ui-ace-icon fa fa-pencil' : 'ace-icon fa fa-pencil blue',
+                'ui-ace-icon fa fa-trash-o' : 'ace-icon fa fa-trash-o red',
+                'ui-icon-disk' : 'ace-icon fa fa-check green',
+                'ui-icon-cancel' : 'ace-icon fa fa-times red'
+            };
+            $(table).find('.ui-pg-div span.ui-icon').each(function(){
+                var icon = $(this);
+                var $class = $.trim(icon.attr('class').replace('ui-icon', ''));
+                if($class in replacement) icon.attr('class', 'ui-icon '+replacement[$class]);
+            })
+            */
+        }
+
+        function style_edit_form(form) {
+            //enable datepicker on "sdate" field and switches for "stock" field
+            form.find('input[name=sdate]').datepicker({format:'yyyy-mm-dd' , autoclose:true})
+
+            form.find('input[name=stock]').addClass('ace ace-switch ace-switch-5').after('<span class="lbl"></span>');
+            //don't wrap inside a label element, the checkbox value won't be submitted (POST'ed)
+            //.addClass('ace ace-switch ace-switch-5').wrap('<label class="inline" />').after('<span class="lbl"></span>');
+
+
+            //update buttons classes
+            var buttons = form.next().find('.EditButton .fm-button');
+            buttons.addClass('btn btn-sm').find('[class*="-icon"]').hide();//ui-icon, s-icon
+            buttons.eq(0).addClass('btn-primary').prepend('<i class="ace-icon fa fa-check"></i>');
+            buttons.eq(1).prepend('<i class="ace-icon fa fa-times"></i>')
+
+            buttons = form.next().find('.navButton a');
+            buttons.find('.ui-icon').hide();
+            buttons.eq(0).append('<i class="ace-icon fa fa-chevron-left"></i>');
+            buttons.eq(1).append('<i class="ace-icon fa fa-chevron-right"></i>');
+        }
+
+        //replace icons with FontAwesome icons like above
+        function updatePagerIcons(table) {
+            var replacement =
+            {
+                'ui-icon-seek-first': 'ace-icon fa fa-angle-double-left bigger-140',
+                'ui-icon-seek-prev': 'ace-icon fa fa-angle-left bigger-140',
+                'ui-icon-seek-next': 'ace-icon fa fa-angle-right bigger-140',
+                'ui-icon-seek-end': 'ace-icon fa fa-angle-double-right bigger-140'
+            };
+            $('.ui-pg-table:not(.navtable) > tbody > tr > .ui-pg-button > .ui-icon').each(function () {
+                var icon = $(this);
+                var $class = $.trim(icon.attr('class').replace('ui-icon', ''));
+
+                if ($class in replacement) icon.attr('class', 'ui-icon ' + replacement[$class]);
+            })
+        }
+
+        function enableTooltips(table) {
+            $('.navtable .ui-pg-button').tooltip({ container: 'body' });
+            $(table).find('.ui-pg-div').tooltip({ container: 'body' });
+        }
+
+        //var selr = jQuery(grid_selector).jqGrid('getGridParam','selrow');
+
+        $(document).one('ajaxloadstart.page', function (e) {
+            $.jgrid.gridDestroy(grid_selector);
+            $('.ui-jqdialog').remove();
+        });
+
+
+        function AdjustGridWidth(tableId){
+            let grid_selector = 'table[id^="' + tableId + '"]'
+            var parent_column = $(grid_selector).closest('[class*="col-"]');
+            $(grid_selector).jqGrid('setGridWidth', parent_column.width());
+        }
+
+    });
+</script>
+

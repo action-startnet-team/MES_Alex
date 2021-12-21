@@ -1,0 +1,524 @@
+﻿@using MES_WATER.Models;
+@model System.Data.DataTable
+@using System.Data;
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+
+    Comm comm = new Comm();
+    GetModelValidation gmv = new GetModelValidation();
+
+    DataTable TempTable = ViewBag.TempTable;
+    string TempTable2 = ViewBag.TempTable2;
+    string isDisplay = ViewBag.isDisplay;
+    List<ECT02_0000> notSaveList = ViewBag.notSaveList ?? new List<ECT02_0000>();
+    List<DDLList> cus_code_DDL = comm.Get_DDLOption("ECB01_0000", "CUSTOMER_CODE", "CUSTOMER_NAME");
+}
+
+<style>
+    .no-search {
+        display: none !important;
+    }
+
+    .chosen-search:after .chosen-search:before {
+        /*display:none !important;*/
+        position: relative;
+        z-index: 1010;
+        margin: 0;
+        padding: 3px 4px;
+        white-space: nowrap;
+        box-sizing: border-box;
+        display: block;
+    }
+</style>
+
+@Html.Partial("pPrgName")
+
+@{
+    @*Func<object, HelperResult>
+        customBtnTemplate =
+        @<text>
+            <div class="pull-left" style="margin-left: 10px">
+                <a href="/ECT020C/Download_Data?tmp=@ViewBag.TempTable2&cusname=@ViewBag.cus_name" id="downdata" class="btn-group" role="button">
+                    <span class='downbtn btn btn-white btn-info btn-bold'>下載</span>
+                </a>
+            </div>
+        </text>;
+    string sHeaderBtns = customBtnTemplate.Invoke(null).ToString();*@
+}
+
+@*@{
+    Func<object, HelperResult>
+        customBtnTemplate =
+        @<text>
+            <div class="pull-left" style="margin-left: 10px">
+                <a href="/ECT010B/Download_Data" id="downdata" class="btn btn-white btn-success btn-bold" role="button">
+                    <span class=''>下載</span>
+                </a>
+            </div>
+        </text>;
+    string sHeaderBtns = customBtnTemplate.Invoke(null).ToString();
+}*@
+
+@if (ViewBag.count > 0)
+{
+    <div class="alert alert-block alert-success">
+        <button type="button" class="close" data-dismiss="alert">
+            <i class="ace-icon fa fa-times"></i>
+        </button>
+
+        <p>
+            <strong>
+                <i class="ace-icon fa fa-check"></i>
+                上傳成功!
+            </strong>
+
+        </p>
+        <p>資料筆數: @ViewBag.count</p>
+    </div>
+}
+@using (Html.BeginForm("Index", sPrgCode, null, FormMethod.Post, new { @class = "form-horizontal", id = "validation_form", role = "form", enctype = "multipart/form-data" }))
+{
+    @*@Html.AntiForgeryToken()*@
+    @Html.ValidationSummary()
+
+    <div class="form-group ">
+        <div class="row">
+            <label class="col-sm-1 control-label no-padding-right" for="cal_date">客戶編號</label>
+            <div class="col-sm-3 chosen-search">
+                <div class="col-sm-10 no-padding-right no-padding-left">
+                    <select id="cus_code" name="cus_code" class="chosen-select" value="" style="width: 200px;">
+                        @CustomHelper.Get_Option(cus_code_DDL, "", true)
+                    </select>
+                </div>
+            </div>
+
+
+            <label class="col-sm-1 control-label no-padding-right" for="cal_date">客戶版次</label>
+            <div class="col-sm-3 chosen-search">
+                <div class="col-xs-10 col-sm-10 no-padding-right no-padding-left">
+                    @*<div class="col-sm-9">*@
+                    @*<input type="text" id="edition" name="edition" placeholder="請輸入版次" class="col-xs-10 col-sm-5 ">*@
+                    @*</div>*@
+                    <select id="edition" name="edition" class="chosen-select" value="">
+                        @*@CustomHelper.Get_Option(edition_code_DDL, "", true)*@
+                        <option value=''>--請選擇--</option>
+                    </select>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    <br />
+
+    @*<label class="col-sm-1 control-label" for="cal_date" >請選擇EXCEL檔案</label>
+        <div class="col-md-5">
+            <div class="clearfix">
+                <input required class="col-xs-10 col-sm-5 text-box single-line" name="upload" type="file" accept=".xls,.xlsx" value="">
+            </div>
+        </div>
+        <br />*@
+
+    <div class="form-actions no-padding-left">
+        <label class="col-sm-1 control-label no-padding-left" style="width:185px; font-size:16px;">請選擇EXCEL檔案</label>
+        <div class="col-md-3" style="width:300px;">
+            <div class="col-md-12">
+                <input required class="col-xs-12 col-sm-12 text-box single-line" name="upload" type="file" accept=".xls,.xlsx" value="">
+            </div>
+        </div>
+
+        <label class="block">
+            <input name="isUpdate" type="checkbox" class="ace input-lg">
+            <span class="lbl bigger-120" style="padding-right: 50px;"> 是否覆蓋已有資料 </span>
+            &nbsp;
+            <input type="submit" value="上傳" class="btn btn-white btn-info btn-bold">
+        </label>
+
+
+
+        @*&nbsp;
+            <a class="btn btn-white btn-pink btn-round" href="/@sPrgCode">
+                返回
+            </a>*@
+
+    </div>
+
+
+
+
+        @*<div class="alert alert-info">
+                <button type="button" class="close" data-dismiss="alert">
+                    <i class="ace-icon fa fa-times"></i>
+                </button>
+                <h4>
+                    <strong>匯入說明:</strong>
+                </h4>
+                <ol>
+                    <li>下載範本: <a href="~/Upload/Sample/帳號匯入範本.csv">帳號匯入範本.csv</a></li>
+                    <li>請勿修改表頭名稱</li>
+                </ol>
+            </div>*@
+if (notSaveList.Count > 0)
+{
+    <div class="alert alert-danger">
+        <button type="button" class="close" data-dismiss="alert">
+            <i class="ace-icon fa fa-times"></i>
+        </button>
+        <h4>
+            <strong>已存在資料:</strong>
+        </h4>
+        <ol>
+            @foreach (ECT02_0000 item in notSaveList)
+            {
+                <li>@ViewBag.cus_name - 出貨單號：@item.SALES_ORDER_NO </li>
+            }
+        </ol>
+    </div>
+}
+
+if (ViewBag.respectcode > 0)
+{
+    <div class="alert alert-danger">
+        <button type="button" class="close" data-dismiss="alert">
+            <i class="ace-icon fa fa-times"></i>
+        </button>
+        <ol>
+            <li style="font-size: 20px;">
+                「EXCEL欄位」對應「出貨單設定欄位」有誤，請從新上傳。
+            </li>
+        </ol>
+    </div>
+    }
+
+    if (ViewBag.respectkeycode > 0)
+    {
+        <div class="alert alert-danger">
+            <button type="button" class="close" data-dismiss="alert">
+                <i class="ace-icon fa fa-times"></i>
+            </button>
+            <ol>
+                <li style="font-size: 20px;">
+                    「出貨單設定」中新增的欄位至少須包含「出貨單號」。
+                </li>
+            </ol>
+        </div>
+    }
+
+    @*<div class="clearfix form-actions">
+
+            <div class="col-md-offset-3 col-md-5">
+                <div class="checkbox">
+                    <label class="block">
+                        <input name="isUpdate" type="checkbox" class="ace input-lg">
+                        <span class="lbl bigger-120"> 是否覆蓋已有資料 </span>
+                    </label>
+                </div>
+
+                <input type="submit" value="上傳" class="btn btn-white btn-info btn-bold">
+                &nbsp;
+                <a class="btn btn-white btn-pink btn-round" href="/@sPrgCode">
+                    返回
+                </a>
+
+            </div>
+        </div>*@
+
+
+
+if (isDisplay == "Y")
+{
+    <div class="row">
+        <label class="col-sm-1 control-label" for="cal_date">客戶簡稱</label>
+        <div class="col-xs-11 col-sm-10 no-padding-right no-padding-left">
+            <div class="col-sm-11">
+                <input type="text" id="cus_name" name="cus_name" value="@ViewBag.cus_name" class="col-xs-11 col-sm-10 " readonly="readonly">
+            </div>
+        </div>
+    </div>
+    <br />
+    <div class="row">
+        <label class="col-sm-1 control-label" for="cal_date">客戶名稱</label>
+        <div class="col-xs-11 col-sm-10 no-padding-right no-padding-left">
+            <div class="col-sm-11">
+                <input type="text" id="cus_fullname" name="cus_fullname" value="@ViewBag.cus_fullname" class="col-xs-11 col-sm-10 " readonly="readonly">
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        &ensp; <br />&ensp;
+    </div>
+
+    <div class="btndiv pull-left" style="margin-left: 10px">
+        <a href="/ECT020C/Download_Data?tmp=@ViewBag.TempTable2&cusname=@ViewBag.cus_name" id="downdata" class="btn-group" role="button">
+            <span class='downbtn btn btn-white btn-info btn-bold'>下載</span>
+        </a>
+        @*<input type="button" id="downdata" name="downdata" value="下載" class="btn btn-white btn-info btn-bold">*@
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-xs-12 table-body">
+            <table id="simple-table" class="table  table-bordered table-hover">
+                <thead>
+                    <tr>
+                        @{
+                            if (TempTable != null)
+                            {
+                                foreach (DataColumn column in TempTable.Columns)
+                                {
+                                    <th class="center">
+                                        @*<input name="text" class="ace input-lg" type="checkbox" />
+                                            <span class="lbl bigger-120" />*@
+                                        @column.ColumnName
+                                    </th>
+                                }
+                            }
+                        }
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        for (int i = 0; i < TempTable.Rows.Count; i++)
+                        {
+                            <tr>
+                                @{
+                                    foreach (DataColumn column in TempTable.Columns)
+                                    {
+                                        <td class="center">@TempTable.Rows[i][column.ColumnName]</td>
+                                    }
+                                }
+                            </tr>
+                                    };
+                    }
+                </tbody>
+            </table>
+        </div><!-- /.span -->
+    </div>
+                                    }
+                                    }
+@*@section footer_plugin{
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+}*@
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-multiselect.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/jquery-ui.custom.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+
+}
+@section footer_plugin{
+    <script src="~/Scripts/assets/js/jquery.jqGrid.min.js"></script>
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="~/Scripts/assets/js/colResizable-1.6.js"></script>
+}
+@*@{
+    <script src="~/Scripts/assets/js/colResizable-1.6.js"></script>
+    <script src="~/Scripts/assets/js/jquery-1.8.0.min.js"></script>
+}*@
+@section footer_script {
+    <script>
+
+        jQuery(function ($) {
+            $("table").colResizable({
+                liveDrag: true,
+                gripInnerHtml: "<div class='grip'></div>",
+                draggingClass: "dragging"
+            });
+
+            $("#simple-table tbody tr").mouseover(function () {
+                $(this).css("background-color", "#D0EBF8");
+            })
+            $("#simple-table tbody tr").mouseout(function () {
+                $(this).css("background-color", "lightgray");
+            });
+        })
+
+        $('form').submit(function () {
+            if ($("#cus_code").val() == "") {
+                alert("請選擇客戶編號")
+                return false
+            } else if ($("#edition").val() == "") {
+                alert("請選擇客戶版次")
+                return false
+            }else {
+                $('form input:submit').attr('disabled', 'disabled');
+            }
+        });
+
+        @*$('#downdata').on('click', function () {
+            var tmp = '@ViewBag.TempTable2';
+            $.ajax({
+                async: false,
+                method: 'post',
+                url: '/ECT020C/Download_Data',
+                data: { tmp: tmp, },
+                datatype: 'json',
+                success: function (data) {
+                    console.log('test');
+                },
+                error: function (xhr) {
+                    console.log(xhr);
+                }
+            })
+        })*@
+
+        $("#cus_code").change(function () {
+            $.ajax({
+                async: false,
+                method: 'post',
+                url: '/ECT020C/Get_Edition',
+                data: { cus_code: $("#cus_code").val(), },
+                datatype: 'json',
+                success: function (data) {
+                    $('select[name=edition]').empty();
+                    $('select[name=edition]').append($('<option value="">--請選擇--</option>'))
+                    if (data.length > 0) {
+                        for (let i = 0; i < data.length; i++) {
+                            let option = $('<option value="' + data[i].EDITION + '">' + data[i].EDITION + '</option>')
+                            $('select[name=edition]').append(option)
+                        }
+                    }
+                    $('select[name=edition]').trigger("chosen:updated");
+                },
+                error: function (xhr) {
+                    alert("抓資料失敗");
+                }
+            })
+
+            //$.get("Get_Edition?cus_code=" + $("#cus_code").val(), function (data) {
+            //    alert("444")
+            //    $('select[name=edition]').empty();
+            //    $('select[name=edition]').append($('<option value="">--請選擇--</option>'))
+            //    if (data.length > 0) {
+            //        for (let i = 0; i < data.length; i++) {
+            //            let option = $('<option value="' + data[i].CUSTOMER_CODE + '">' + data[i].CUSTOMER_CODE + '</option>')
+            //            $('select[name=edition]').append(option)
+            //        }
+            //    }
+            //    $('select[name=edition]').trigger("chosen:updated");
+            //});
+        });
+
+        // chosen select
+        if (!ace.vars['touch']) {
+            $('.chosen-select').chosen({ allow_single_deselect: true });
+            //resize the chosen on window resize
+
+            $(window)
+            .off('resize.chosen')
+            .on('resize.chosen', function () {
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            }).trigger('resize.chosen');
+            //resize chosen on sidebar collapse/expand
+            $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                if (event_name != 'sidebar_collapsed') return;
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            });
+
+            $('#chosen-multiple-style .btn').on('click', function (e) {
+                var target = $(this).find('input[type=radio]');
+                var which = parseInt(target.val());
+                if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                else $('#form-field-select-4').removeClass('tag-input-style');
+            });
+        }
+
+        
+    </script>
+
+    <style>
+        /*滾動條*/
+        .table thead, .table thead tr, .table thead th {
+            position: sticky;
+            top: -1px;
+            /*background: #343A40;*/
+            z-index: 1000;
+            height: 50px;
+            border: none;
+        }
+
+        .skin-1 .table thead, .skin-1 .table thead tr, .skin-1 .table thead th {
+            background: #343A40;
+        }
+
+        .table-body {
+            /*border-top:#fff solid 2px;*/
+            max-height: 60vh;
+            overflow-y: scroll;
+        }
+
+        /*按鈕樣式*/
+        .downbtn{
+            border-radius: 20px;
+            font-weight:bolder;
+            width: 60px;
+            height: 38px;
+            padding-top: 8px;
+        }
+        .btndiv{
+                padding-bottom: 15px;
+        }
+
+        /*表格樣式*/
+        tbody{
+            background-color:lightgray;
+        }
+        tbody td{
+            color:#000000;
+           
+        }
+        .table-bordered > tbody > tr > td, .table-bordered > tbody > tr > td{
+        border-color:gray;
+        }
+        .table-bordered > thead > tr > td, .table-bordered > thead > tr > th {
+        border-color:lightgray;
+        }
+        .skin-3 .table tbody,
+        .skin-3 .table tbody tr,
+        .skin-3 .table tbody td {
+        background-color: #E9E9E9 ;
+        }
+        .skin-3 .table thead tr,
+        .skin-3 .table thead th {
+        border-color:gray;
+        }
+    </style>
+}
+
+@{
+//if (isDisplay == "Y")
+//{
+//    // 改對應的class
+//    Html.RenderAction("pJqgrid_A", "jqgrid", new
+//    {
+//        pModelType = new ECT02_0000().GetType(),
+//        pPrgCode = sPrgCode,
+//        pCustomHtml_header = sHeaderBtns,
+//    });
+
+//}
+}
+
+@* 修改點 以下 *@
+@*@{
+        // 改對應的class
+        Html.RenderAction("pJqgrid_A", "jqgrid", new
+        {
+            pModelType = new ECT01_0100().GetType(),
+            pPrgCode = sPrgCode,
+            pCustomHtml_header = sHeaderBtns,
+        });
+
+    }*@
+@* 修改點 以上 *@
+
+

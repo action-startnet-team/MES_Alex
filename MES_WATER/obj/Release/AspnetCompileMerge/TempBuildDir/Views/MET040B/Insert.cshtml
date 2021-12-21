@@ -1,0 +1,576 @@
+﻿@using MES_WATER.Models;
+@using System.Data;
+@using System.Reflection;
+@using System.ComponentModel.DataAnnotations;
+@using System.ComponentModel.DataAnnotations.Schema;
+
+@*修改點 以下*@
+@model MES_WATER.Models.MET04_0100
+@*修改點 以上*@
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Insert";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //公用函數庫
+    Comm comm = new Comm();
+    GetModelValidation gmv = new GetModelValidation();
+
+    //公用變數
+    string sPrgCode = ViewBag.prg_code;
+    string key = gmv.GetKey<MET04_0100>(new MET04_0100());
+
+    @*修改點 向下*@
+MET04_0100 obj = new MET04_0100();
+DataTable dtRec = ViewBag.rec_data;
+
+//取得畫面上下拉選單的選項值
+List<DDLList> mo_code_list = comm.Get_DDLOption("MET_MO", "A");
+List<DDLList> pro_code_list = comm.Get_DDLOption("MEB20_0000", "pro_code", "pro_name", "C");
+List<DDLList> is_ok_DDL = comm.Get_DDLOption("is_ok");
+//自定義下拉選單的選項值
+
+
+    @*修改點 向上*@
+}
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-multiselect.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/jquery-ui.custom.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+
+
+    <link rel="stylesheet" href="~/Content/assets/css/jquery-ui-timepicker-addon.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-timepicker.min.css" />
+}
+
+<script type="text/javascript">
+    function OpenMoRecord() {
+        var mo_code = $('#mo_code').val();
+        if (mo_code != '') {
+            o = window.open('@Url.Action("MoRecord", "MoData")?mo_code=' + mo_code, 'MoRecord',
+                'width=900,height=800,location=no,menubar=no,status=no,scrollbars=no,resizable=no top=100,left=600');
+            o.focus();
+        } else {
+            alert('請選擇工單');
+        }
+    }
+</script>
+
+@Html.Partial("pPrgName")
+<div class="row">
+    <ul class="nav nav-tabs" id="myTab">
+        <li class="active">
+            <a data-toggle="tab" href="#home">
+                <i class="green ace-icon fa fa-home bigger-120"></i>
+                主檔
+            </a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div id="home" class="tab-pane fade in active">
+            @using (Html.BeginForm("Insert", sPrgCode, FormMethod.Post, new { @class = "form-horizontal", id = "validation_form", role = "form" }))
+            {
+                <div id="errMsgSummary" class="alert alert-danger @( (ViewBag.showErrMsg ?? false ) ? "" : "hidden" )">
+                    <button type="button" class="close" data-dismiss="alert">
+                        <i class="ace-icon fa fa-times"></i>
+                    </button>
+                    <strong>
+                        <i class="ace-icon fa fa-times"></i>
+                        系統訊息!
+                    </strong>
+                    @Html.ValidationSummary("", new { @class = "text-danger" })
+                    <br />
+                </div>
+                    @*修改點 向下 輸入畫面編排*@
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "ureport_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-md-8 col-xs-7">
+                                        <div>
+                                            @Html.EditorFor(model => model.ureport_code, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                        </div>
+                                        <div style="clear:both;"></div>
+                                        @Html.ValidationMessageFor(model => model.ureport_code, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "ureport_date", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-md-8 col-xs-7">
+                                        <div>
+                                            @Html.EditorFor(model => model.ureport_date, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                        </div>
+                                        <div style="clear:both;"></div>
+                                        @Html.ValidationMessageFor(model => model.ureport_date, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "mo_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-sm-8 col-xs-6">
+                                        <select class="chosen-select" id="mo_code" name="mo_code">
+                                            @CustomHelper.Get_Option(mo_code_list, ViewBag.mo_code, false)
+                                        </select>
+                                        @Html.ValidationMessageFor(model => model.mo_code, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "pro_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-md-8 col-xs-7">
+                                        <div>
+                                            @Html.EditorFor(model => model.pro_code, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                        </div>
+                                        <div style="clear:both;"></div>
+                                        @Html.ValidationMessageFor(model => model.pro_code, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "pro_qty", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-md-8 col-xs-7">
+                                        <div>
+                                            @Html.EditorFor(model => model.pro_qty, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                        </div>
+                                        <div style="clear:both;"></div>
+                                        @Html.ValidationMessageFor(model => model.pro_qty, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "pro_unit", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-md-8 col-xs-7">
+                                        <div>
+                                            @Html.EditorFor(model => model.pro_unit, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                        </div>
+                                        <div style="clear:both;"></div>
+                                        @Html.ValidationMessageFor(model => model.pro_unit, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="row">
+                                    <div class="col-sm-12">
+                                        @CustomHelper.Get_Label(Model, sPrgCode, "loc_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                        <div class="col-md-8 col-xs-7">
+                                            <div>
+                                                @Html.EditorFor(model => model.loc_code, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                            </div>
+                                            <div style="clear:both;"></div>
+                                            @Html.ValidationMessageFor(model => model.loc_code, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                            <div class="row">
+                                    <div class="col-sm-12">
+                                        @CustomHelper.Get_Label(Model, sPrgCode, "lot_no", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                        <div class="col-md-8 col-xs-7">
+                                            <div>
+                                                @Html.EditorFor(model => model.lot_no, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                            </div>
+                                            <div style="clear:both;"></div>
+                                            @Html.ValidationMessageFor(model => model.lot_no, "", new { @class = "text-danger" })
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "pro_date_s", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-md-8 col-xs-7">
+                                        <div>
+                                            @Html.EditorFor(model => model.pro_date_s, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                        </div>
+                                        <div style="clear:both;"></div>
+                                        @Html.ValidationMessageFor(model => model.pro_date_s, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "pro_time_s", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-md-8 col-xs-7">
+                                        <div>
+                                            @Html.EditorFor(model => model.pro_time_s, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                        </div>
+                                        <div style="clear:both;"></div>
+                                        @Html.ValidationMessageFor(model => model.pro_time_s, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "pro_date_e", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-md-8 col-xs-7">
+                                        <div>
+                                            @Html.EditorFor(model => model.pro_date_e, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                        </div>
+                                        <div style="clear:both;"></div>
+                                        @Html.ValidationMessageFor(model => model.pro_date_e, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "pro_time_e", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-md-8 col-xs-7">
+                                        <div>
+                                            @Html.EditorFor(model => model.pro_time_e, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                        </div>
+                                        <div style="clear:both;"></div>
+                                        @Html.ValidationMessageFor(model => model.pro_time_e, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "is_ok", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-sm-8 col-xs-6">
+                                        <select class="chosen-select" id="is_ok" name="is_ok">
+                                            @CustomHelper.Get_Option(is_ok_DDL, "N", false)
+                                        </select>
+                                        @Html.ValidationMessageFor(model => model.is_ok, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                        </div>
+
+                        <div class="col-md-4">
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "usr_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-md-8 col-xs-7">
+                                        <div>
+                                            @Html.EditorFor(model => model.usr_code, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                        </div>
+                                        <div style="clear:both;"></div>
+                                        @Html.ValidationMessageFor(model => model.usr_code, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "sap_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-md-8 col-xs-7">
+                                        <div>
+                                            @Html.EditorFor(model => model.sap_code, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                        </div>
+                                        <div style="clear:both;"></div>
+                                        @Html.ValidationMessageFor(model => model.sap_code, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "sap_no", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-md-8 col-xs-7">
+                                        <div>
+                                            @Html.EditorFor(model => model.sap_no, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                        </div>
+                                        <div style="clear:both;"></div>
+                                        @Html.ValidationMessageFor(model => model.sap_no, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "sap_message", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-md-8 col-xs-7">
+                                        <div>
+                                            @Html.EditorFor(model => model.sap_message, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                        </div>
+                                        <div style="clear:both;"></div>
+                                        @Html.ValidationMessageFor(model => model.sap_message, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "ins_date", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-md-8 col-xs-7">
+                                        <div>
+                                            @Html.EditorFor(model => model.ins_date, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                        </div>
+                                        <div style="clear:both;"></div>
+                                        @Html.ValidationMessageFor(model => model.ins_date, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    @CustomHelper.Get_Label(Model, sPrgCode, "ins_time", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                    <div class="col-md-8 col-xs-7">
+                                        <div>
+                                            @Html.EditorFor(model => model.ins_time, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                        </div>
+                                        <div style="clear:both;"></div>
+                                        @Html.ValidationMessageFor(model => model.ins_time, "", new { @class = "text-danger" })
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @*修改點 向上 輸入畫面編排*@
+                    <br />
+                    <div class="clearfix">
+                        <div class="col-md-offset-5 col-md-7">
+                            <a class="btn btn-white btn-success btn-bold" href="#" style="" onclick="OpenMoRecord(); return false;">
+                                報工資訊
+                            </a>
+                            <input type="submit" value="儲存" class="btn btn-white btn-info btn-bold" />
+                            &nbsp;
+                            <a class="btn btn-white btn-pink btn-round" href=@Url.Action("Index", "MET040A")>
+                                <i class="ace-icon fa fa-undo "></i>
+                                返回
+                            </a>
+                        </div>
+                    </div>
+            }
+        </div>
+    </div>
+
+    <table id="dtable" class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th style="text-align:center;">取消</th>
+                <th style="text-align:center;">報工單號</th>
+                <th style="text-align:center;">報工日期</th>
+                <th style="text-align:center;">製令單號</th>
+                <th style="text-align:center;">產品編號</th>
+                <th style="text-align:center;">產品名稱</th>
+                <th style="text-align:center;">上報數量</th>
+                <th style="text-align:center;">單位</th>
+                <th style="text-align:center;">儲存地點</th>
+                <th style="text-align:center;">批號</th>
+                <th style="text-align:center;">生產開始時間</th>
+                <th style="text-align:center;">生產完成時間</th>
+                <th style="text-align:center;">SAP號碼</th>
+                <th style="text-align:center;">SAP年份</th>
+                <th style="text-align:center;">SAP訊息</th>
+                <th style="text-align:center;">確認狀態</th>
+                <th style="text-align:center;">是否取消</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (int i = 0; i < dtRec.Rows.Count; i++)
+            {
+                DataRow row = dtRec.Rows[i];
+                string time_s = row["pro_date_s"].ToString() + " " + row["pro_time_s"].ToString();
+                string time_e = row["pro_date_e"].ToString() + " " + row["pro_time_e"].ToString();
+                string sIsOK = "";
+                string sIsDel = row["is_del"].ToString();
+                string sColor = "";
+                if (sIsDel == "Y") { sColor = "darkgray"; }
+                if (row["is_ok"].ToString() == "Y") { sIsOK = "已確認"; }
+                <tr>
+                    <td style="text-align:center;background-color:@sColor;">
+                        @if (sIsDel == "" || sIsDel == "N")
+                        {
+                            <a href="@Url.Action("Delete", sPrgCode)?pTkCode=@row["ureport_code"].ToString()" onclick="return del();">
+                                <span class="fa fa-tachometer"></span>
+                            </a>
+                        }
+                    </td>
+                    <td style="text-align:left;background-color:@sColor;">@row["ureport_code"].ToString()</td>
+                    <td style="text-align:center;background-color:@sColor;">@row["ureport_date"].ToString()</td>
+                    <td style="text-align:left;background-color:@sColor;">@row["mo_code"].ToString()</td>
+                    <td style="text-align:left;background-color:@sColor;">@row["pro_code"].ToString()</td>
+                    <td style="text-align:left;background-color:@sColor;">@row["pro_name"].ToString()</td>
+                    <td style="text-align:left;background-color:@sColor;">@row["pro_qty"].ToString()</td>
+                    <td style="text-align:left;background-color:@sColor;">@row["pro_unit"].ToString()</td>
+                    <td style="text-align:left;background-color:@sColor;">@row["loc_code"].ToString()</td>
+                    <td style="text-align:left;background-color:@sColor;">@row["lot_no"].ToString()</td>
+                    <td style="text-align:left;background-color:@sColor;">@time_s</td>
+                    <td style="text-align:left;background-color:@sColor;">@time_e</td>
+                    <td style="text-align:left;background-color:@sColor;">@row["sap_code"].ToString()</td>
+                    <td style="text-align:left;background-color:@sColor;">@row["sap_no"].ToString()</td>
+                    <td style="text-align:left;background-color:@sColor;">@row["sap_message"].ToString()</td>
+                    <td style="text-align:left;background-color:@sColor;">@sIsOK</td>
+                    <td style="text-align:left;background-color:@sColor;">@sIsDel</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@section footer_plugin{
+    <script src="~/Scripts/assets/js/wizard.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery-additional-methods.min.js"></script>
+    <script src="~/Scripts/assets/js/bootbox.js"></script>
+    <script src="~/Scripts/assets/js/jquery.maskedinput.min.js"></script>
+    <script src="~/Scripts/assets/js/select2.min.js"></script>
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="~/Scripts/assets/js/autosize.min.js"></script>
+
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-timepicker.min.js"></script>
+}
+@section footer_script{
+    <script type="text/javascript">
+        function del() {
+            var msg = "確定要取消？";
+            if (confirm(msg) == true) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        jQuery(function ($) {
+            @*修改點 向下 控制項輸入控制參考*@
+
+
+            // 鍵值的唯讀
+            $('input[name=@key]').attr('readonly', 'readonly');
+
+            $('#mo_code').change(function () {
+                $.get('Get_MoData?pMoCode=' + $('#mo_code').val() + '&pType=pro_code', function (data) {
+                    $('#pro_code').val(data);
+                });
+                $.get('Get_MoData?pMoCode=' + $('#mo_code').val() + '&pType=pro_unit', function (data) {
+                    $('#pro_unit').val(data);
+                });
+            });
+            @*
+            //下拉的編號帶名稱
+            $('#pro_code').change(function () {
+                $.get('Get_ProData?pProCode=' + $('#pro_code').val() + '&pType=pro_spc', function (data) {
+                    $('#pro_spc').val(data);
+                });
+            });
+
+            // 報價人 (廠商-連絡人)
+            $("select[name=sup_code]").change(function () {
+                $.get("Get_SupAtn?sup_code=" + $(this).val(), function (data) {
+                    $('select[name=inq_per]').empty()
+                    if (data.length > 0) {
+                        for (let i = 0 ; i < data.length ; i++) {
+                            let inq_per = data[i].per_name + '(' + data[i].ext_no + ')'
+                            let option = $('<option value="' + data[i].per_name + '">' + inq_per + '</option>')
+                            $('select[name=inq_per]').append(option)
+                        }
+                    } else {
+                        $('select[name=inq_per]').append($('<option value="">沒有連絡人!</option>'))
+                    }
+                    $('select[name=inq_per]').trigger("chosen:updated");
+
+                });
+            })
+
+
+
+            @*修改點 向上 控制項輸入控制參考*@
+            // 日期的輸入控制
+            $("input[name=ureport_date]").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr('autocomplete', 'off');
+            $("input[name=pro_date_s]").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr('autocomplete', 'off').datepicker("setDate", new Date());
+            $("input[name=pro_date_e]").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr('autocomplete', 'off').datepicker("setDate", new Date());
+
+            $("input[name=pro_time_s]").timepicker({
+                timeFormat: 'HH:mm:ss',
+                startTime: new Date(0, 0, 0, 2, 0, 0),
+                endTime: new Date(0, 0, 0, 15, 30, 0),
+                showMeridian: false,
+                defaultTime: '08:00',
+                separator: '.',
+                dynamic: true,
+                dropdown: true,
+                scrollbar: false,
+                step: 15
+            });
+
+            $("input[name=pro_time_e]").timepicker({
+                timeFormat: 'HH:mm:ss',
+                startTime: new Date(0, 0, 0, 2, 0, 0),
+                endTime: new Date(0, 0, 0, 15, 30, 0),
+                showMeridian: false,
+                defaultTime: '17:00',
+                separator: '.',
+                step: 15
+
+            });
+
+
+
+            $("#validation_form").bind("invalid-form.validate", function () {
+                $("#errMsgSummary").removeClass('hidden');
+            });
+            $('#validation_form').submit(function () {
+                if ($(this).valid()) {
+                    $('form input:submit').attr('disabled', 'disabled');
+                } else {
+                    $('form input:submit').removeAttr('disabled')
+                }
+            });
+
+            autosize($('textarea[class*=autosize]'));
+            $(document).one('ajaxloadstart.page', function (e) {
+                autosize.destroy('textarea[class*=autosize]')
+
+                $('.limiterBox,.autosizejs').remove();
+                $('.daterangepicker.dropdown-menu,.colorpicker.dropdown-menu,.bootstrap-datetimepicker-widget.dropdown-menu').remove();
+            });
+
+            if (!ace.vars['touch']) {
+                $('.chosen-select').chosen({ allow_single_deselect: true });
+                //resize the chosen on window resize
+
+                $(window)
+                .off('resize.chosen')
+                .on('resize.chosen', function () {
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                }).trigger('resize.chosen');
+                //resize chosen on sidebar collapse/expand
+                $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                    if (event_name != 'sidebar_collapsed') return;
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                });
+
+                $('#chosen-multiple-style .btn').on('click', function (e) {
+                    var target = $(this).find('input[type=radio]');
+                    var which = parseInt(target.val());
+                    if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                    else $('#form-field-select-4').removeClass('tag-input-style');
+                });
+            }
+
+        })
+    </script>
+}

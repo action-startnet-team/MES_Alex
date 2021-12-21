@@ -1,0 +1,480 @@
+﻿@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@{
+    ViewBag.Title = "Title";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string sAction = ViewContext.RouteData.Values["action"].ToString();
+
+    MET020AController CT = new MET020AController();
+    Comm comm = new Comm();
+    GetData GD = new GetData();
+
+
+}
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/jquery-ui.custom.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/fullcalendar.min.css" />
+}
+
+@Html.Partial("pPrgName")
+
+<form id="validation-form" method="post" action="/@sPrgCode/@sAction" class="form-horizontal" role="form">
+    <div class="row">
+        <div class="col-xs-12">
+            <!-- PAGE CONTENT BEGINS -->
+            <div class="row">
+                <div class="col-sm-9">
+                    <div class="space"></div>
+
+                    <div id="calendar"></div>
+                </div>
+
+                <div class="col-sm-3">
+                    <div class="widget-box transparent">
+                        <div class="widget-header">
+                            <h4>請拖曳排程至指定日期</h4>
+                        </div>
+
+                        <div class="widget-body">
+                            <div class="widget-main no-padding">
+                                <div id="external-events">
+
+                                </div>
+                                <label style="visibility:hidden">
+                                    <input type="checkbox" class="ace ace-checkbox" id="drop-remove" checked />
+                                    <span class="lbl"> Remove after drop</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE CONTENT ENDS -->
+        </div><!-- /.col -->
+    </div><!-- /.row -->
+</form>
+
+
+<script src="~/Scripts/assets/js/jquery-ui.custom.min.js"></script>
+<script src="~/Scripts/assets/js/jquery.ui.touch-punch.min.js"></script>
+<script src="~/Scripts/assets/js/moment.min.js"></script>
+<script src="~/Scripts/assets/fullcalendar/fullcalendar.min.js"></script>
+<!-- fullcalendar locale, use v2,  v3 not work  -->
+<script src="~/Scripts/assets/fullcalendar/lang-all.js"></script>
+<!-- bootbox version 5.3.2 -->
+<script src="~/Scripts/assets/js/bootbox.js"></script>
+
+
+
+<script type="text/javascript">
+    jQuery(function ($) {
+
+        $(document).ready(function () {
+            Set_Drag()
+            Get_DateOfMod($('#calendar').fullCalendar('getView').name, $('#calendar').fullCalendar('getDate').format("YYYY/MM/DD"))
+
+        })
+
+
+        var date = new Date();
+        var d = date.getDate();
+        var m = date.getMonth();
+        var y = date.getFullYear();
+
+        //預設日期類型
+        var DateState = 'agendaWeek';
+        if ('@Request.Cookies["DateState"].Value.ToString()' != "") {
+            DateState = '@Request.Cookies["DateState"].Value.ToString()'
+        }
+
+
+
+        var calendar = $('#calendar').fullCalendar({
+            //isRTL: true,
+            //firstDay: 1,// >> change first day of week
+            lang: 'zh-tw',
+
+            //預設日期類型
+            defaultView: DateState,
+            allDaySlot: false,
+
+            //間隔時間
+            //slotMinutes: 10,
+            //slotDuration:'00:30:00',
+
+            minTime: "07:00:00",
+            maxTime: "24:00:00",
+
+            buttonHtml: {
+                prev: '<i class="ace-icon fa fa-chevron-left"></i>',
+                next: '<i class="ace-icon fa fa-chevron-right"></i>'
+            },
+
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,agendaWeek,agendaDay'
+            },
+
+            events: {
+                url: '@Url.Action("GetCalendarData", sPrgCode)',
+                type: 'POST',
+                cache: false,
+            },
+
+
+            eventResize: function (event, delta, revertFunc) {
+                TableUpdate(event.id, event.start.format('YYYY/MM/DD HH:mm:ss'), event.end.format('YYYY/MM/DD HH:mm:ss'))
+            },
+
+            editable: true,
+            droppable: true, // this allows things to be dropped onto the calendar !!!
+            drop: function (date) { // this function is called when something is dropped
+
+                // retrieve the dropped element's stored Event Object
+                var originalEventObject = $(this).data('eventObject');
+                //var $extraEventClass = $(this).attr('data-class');
+                var $extraEventClass = "label-" + Get_Class($(this).attr('id'));
+
+                // we need to copy it, so that multiple events don't have a reference to the same object
+                var copiedEventObject = $.extend({}, originalEventObject);
+
+                // assign it the date that was reported
+                copiedEventObject.id = $(this).attr('id');
+                copiedEventObject.start = date.format("YYYY/MM/DD") + " 08:00:00";
+                copiedEventObject.allDay = false;
+                if ($extraEventClass) copiedEventObject['className'] = [$extraEventClass];
+
+
+                // render the event on the calendar
+                // the last `true` argument determines if the event "sticks" (http://arshaw.com/fullcalendar/docs/event_rendering/renderEvent/)
+                $('#calendar').fullCalendar('renderEvent', copiedEventObject, false);
+
+                // is the "remove after drop" checkbox checked?
+                if ($('#drop-remove').is(':checked')) {
+                    // if so, remove the element from the "Draggable Events" list
+                    $(this).remove();
+                }
+                TableUpdate(copiedEventObject.id, copiedEventObject.start, '')
+            },
+
+            selectable: true,
+            selectHelper: true,
+            select: function (start, end, allDay) {
+
+                //bootbox.prompt("New Event Title:", function (title) {
+                //    if (title !== null) {
+                //        calendar.fullCalendar('renderEvent',
+                //            {
+                //                title: title,
+                //                start: start,
+                //                end: end,
+                //                allDay: allDay,
+                //                className: 'label-info'
+                //            },
+                //            true // make the event "stick"
+                //        );
+                //    }
+                //});
+
+
+                calendar.fullCalendar('unselect');
+            }
+            ,
+
+            eventDrop: function (event, jsEvent, ui, view) {
+                TableUpdate(event.id, event.start.format('YYYY/MM/DD HH:mm:ss'), '')
+            },
+
+
+            eventClick: function (calEvent, jsEvent, view) {
+
+                var modal = $(Modal(calEvent.id,true)).appendTo('body');
+
+                modal.find('form').on('submit', function (ev) {
+
+                    ev.preventDefault();
+
+                    calEvent.title = $(this).find("input[type=text]").val();
+                    calendar.fullCalendar('updateEvent', calEvent);
+                    modal.modal("hide");
+                });
+                modal.find('button[data-action=delete]').on('click', function () {
+                    TableUpdate(calEvent.id, '', '')
+
+                    $(EventSource(calEvent.id, calEvent.title)).appendTo('#external-events')
+                    Set_Drag()
+
+                    calendar.fullCalendar('removeEvents', function (ev) {
+                        return (ev._id == calEvent._id);
+                    })
+                    modal.modal("hide");
+                    //$("form").submit()
+                });
+
+                modal.modal('show').on('hidden', function () {
+                    modal.remove();
+                });
+
+            }
+
+        });
+
+
+
+
+        $('.fc-month-button').click(function () {
+            Save_Cookie("DateState", "month")
+        })
+        $('.fc-agendaWeek-button').click(function () {
+            Save_Cookie("DateState", "agendaWeek")
+        })
+        $('.fc-agendaDay-button').click(function () {
+            Save_Cookie("DateState", "agendaDay")
+        })
+
+        $('.fc-button').click(function () {
+            Get_DateOfMod($('#calendar').fullCalendar('getView').name, $('#calendar').fullCalendar('getDate').format("YYYY/MM/DD"))
+        })
+
+        $(document).on('click', '.external-event', function () {
+            var id = $(this).attr('id')
+            var modal = $(Modal(id)).appendTo('body')
+
+            modal.modal('show').on('hidden', function () {
+                modal.remove();
+            });
+        })
+
+
+
+
+        //更新排程日期
+        function TableUpdate(k, d, ed) {
+            $.ajax({
+                method: 'post',
+                async: false,
+                url: '@Url.Action("TableUpdate", sPrgCode)',
+                data: {
+                    K: function () { return k; },
+                    D: function () { return d; },
+                    ED: function () { return ed; },
+                },
+            })
+        }
+
+        //取得製令資訊
+        function GetData(k, f) {
+            var Val = ""
+            $.ajax({
+                method: 'post',
+                async: false,
+                url: '@Url.Action("GetData", sPrgCode)',
+                data: {
+                    K: function () { return k; },
+                    F: function () { return f; },
+                },
+                success: function (data) {
+                    Val = data
+                },
+            })
+            return Val;
+        }
+
+        //取得製令資訊
+        function GetTableData(t, k, kf, f) {
+            var Val = ""
+            $.ajax({
+                method: 'post',
+                async: false,
+                url: '@Url.Action("GetTableData", sPrgCode)',
+                data: {
+                    T: function () { return t; },
+                    K: function () { return k; },
+                    KF: function () { return kf; },
+                    F: function () { return f; },
+                },
+                success: function (data) {
+                    Val = data
+                },
+            })
+            return Val;
+        }
+
+
+        //更新該日期區間的排程
+        function Get_DateOfMod(dt, d) {
+            $.ajax({
+                method: 'post',
+                async: true,
+                url: '@Url.Action("Get_DateOfMod", sPrgCode)',
+                data: {
+                    DateType: function () { return dt; },
+                    D: function () { return d; },
+                },
+                success: function (data) {
+                    $('#external-events').empty()
+                    if (data != "") {
+                        for (let i = 0; i < data.split(",").length; i++) {
+                            var d = data.split(",")[i]
+                            var sProCode = GetData(d, "pro_code")
+                            var sProName = GetTableData("MEB20_0000", sProCode, "pro_code", "pro_name")
+                            var eventsource = EventSource(d, sProName + ' - ' + d)
+                            $(eventsource).appendTo('#external-events')
+                        }
+                        Set_Drag()
+                    }
+                }
+            })
+        }
+
+
+
+        //創建待排程工單
+        function EventSource(id, title) {
+            //檢查工單狀態判斷顏色
+            var eventclass = ''
+            var alert_str = ''
+            var mo_image = ''
+            var mo_status = GetData(id, "mo_status")
+            switch (mo_status) {
+                case "10":
+                    eventclass = 'grey'
+                    mo_image = '<i class="ace-icon fa fa-arrows"></i>'
+                    break
+                case "70":
+                    eventclass = 'danger'
+                    mo_image = '<i class="ace-icon fa fa-exclamation-triangle"></i>'
+                    alert_str = `<span style="font-weight:bold;font-size:14px">工單異常</span>`
+                    break
+            }
+            var event = '<div class="external-event label-' + eventclass + ' ui-draggable ui-draggable-handle"  id="' + id + '" data-class="label-' + eventclass + '" style="position: relative;">\
+                        ' + mo_image + '\
+                        ' + alert_str + '  ' + title + '  \
+                    </div>'                    
+            return event
+        }
+
+
+
+        //跳出工單資訊視窗
+        function Modal(id,fun) {
+            var ModalShowDataName = "製令號碼,產品代號,計劃產量,單位,計劃投入線別,計劃開工日,計劃完工日,計劃出貨日,排程開工日,排程開工時間,排程結束日,排程結束時間,工單狀態代號,實際開工日,實際完工日,實際出貨日"
+            var ModalShowData = "mo_code,pro_code,plan_qty,pro_unit,plan_line_code,plan_start_date,plan_end_date,plan_out_date,sch_date_s,sch_time_s,sch_date_e,sch_time_e,mo_status,mo_start_date,mo_end_date,mo_out_date"
+            var showdata = ''
+
+            for (let i = 0; i < ModalShowData.split(",").length; i++) {
+                var name = ModalShowDataName.split(",")[i]
+                var data = ModalShowData.split(",")[i]
+                showdata += '<div class="form-group"><label>' + name + ' &nbsp;</label><input class="middle input-xlarge" autocomplete="off" type="text" value="' + GetData(id, data) + '" readonly />\</div>'
+
+                switch (data) {
+                    case "pro_code":
+                        showdata += '<div class="form-group"><label>產品名稱 &nbsp;</label><input class="middle input-xlarge" autocomplete="off" type="text" value="' + GetTableData("MEB20_0000", GetData(id, data), "pro_code", "pro_name") + '" readonly />\</div>'
+                        break
+                    case "mo_status":
+                        showdata += '<div class="form-group"><label>工單狀態名稱 &nbsp;</label><input class="middle input-xlarge" autocomplete="off" type="text" value="' + GetTableData("BDP21_0100", GetData(id, data), "field_code", "field_name") + '" readonly />\</div>'
+                        break
+                    default:
+                        break
+                }
+            }
+
+            //刪除功能
+            var mo_function = ''
+            var mo_status = GetData(id,"mo_status")
+            if (fun == true) {
+                switch (mo_status) {
+                    case "10":
+                        mo_function = '<button type="button" class="btn btn-sm btn-danger" data-action="delete"><i class="ace-icon fa fa-trash-o"></i> 刪除本日排程</button>'
+                        break
+                }
+            } else {
+                switch (mo_status) {
+                    case "70":
+                        mo_function = '<a href="/MET010A/Index" class="btn btn-sm btn-success"><i class="ace-icon fa fa-share"></i> 跳轉至工單維護作業</a>'
+                        break
+                }
+            }
+
+            //display a modal
+            var modal =
+            '<div class="modal fade">\
+			  <div class="modal-dialog">\
+			   <div class="modal-content">\
+				 <div class="modal-body">\
+				   <button type="button" class="close" data-dismiss="modal" style="margin-top:-10px;">&times;</button>\
+				   <form class="no-margin">\
+                    ' + showdata + '\
+				   </form>\
+				 </div>\
+				 <div class="modal-footer">\
+					' + mo_function + '\
+					<button type="button" class="btn btn-sm" data-dismiss="modal"><i class="ace-icon fa fa-times"></i> 取消</button>\
+				 </div>\
+			  </div>\
+			 </div>\
+			</div>';
+
+            return modal
+        }
+
+        function Get_Class(m) {
+            var val = ''
+            $.ajax({
+                method: "post",
+                async: false,
+                url: '@Url.Action("Get_Class", sPrgCode)',
+                data: {
+                    pMoCode: function () { return m; },                    
+                },
+                success: function (data) {
+                    val = data
+                }
+            })
+            return val
+        }
+
+
+
+        function Save_Cookie(n, v) {
+            $.ajax({
+                method: "post",
+                async: true,
+                url: '@Url.Action("Save_Cookie", sPrgCode)',
+                data: {
+                    pCookieName: function () { return n; },
+                    pValue: function () { return v; },
+                },
+            })
+        }
+
+        //設定拖曳事件
+        function Set_Drag() {
+            $('#external-events div.external-event.label-grey').each(function () {
+
+                // create an Event Object (http://arshaw.com/fullcalendar/docs/event_data/Event_Object/)
+                // it doesn't need to have a start or end
+                var eventObject = {
+                    title: $.trim($(this).text()) // use the element's text as the event title
+                };
+
+                // store the Event Object in the DOM element so we can get to it later
+                $(this).data('eventObject', eventObject);
+
+                // make the event draggable using jQuery UI
+                $(this).draggable({
+                    zIndex: 999,
+                    revert: true,      // will cause the event to go back to its
+                    revertDuration: 0  //  original position after the drag
+                });
+            });
+        }
+
+
+    })
+</script>

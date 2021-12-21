@@ -1,0 +1,48 @@
+﻿
+@{ 
+    string mac_code = ViewBag.mac_code;
+    string mac_name = ViewBag.mac_name;
+    string img_url = ViewBag.img_url;
+}
+
+
+<div data-mac_code="@mac_code" class="profile_details">
+    <div class="well profile_view">
+        <div class="col-sm-12">
+            <div class="left col-xs-7">
+                <span class="h3 mac-label">@mac_code</span>
+                <h3 class="mac-label">@mac_name</h3>
+                <p class="utilization_rate">
+                    <strong class="utilization_rate-label">稼動率: </strong>
+                    <span class="utilization_rate-value">0</span>%
+                </p>
+                <p>
+                    <strong class="capacity_efficiency-label">產能效率: </strong>
+                    <span class="capacity_efficiency-value">0</span>%
+                </p>
+                <p>
+                    <strong class="yield-label">良率: </strong>
+                    <span class="yield-value">0</span>%
+                </p>
+            </div>
+            <div class="right col-xs-5 text-center">
+                <img src="@img_url" class="img-circle img-responsive">
+            </div>
+
+        </div>
+        <div class="col-xs-12 bottom text-center">
+            <div class="col-xs-12 col-sm-6 emphasis">
+                <div class="progress progress_sm">
+                    <div class="progress-bar" role="progressbar" data-transitiongoal=""></div>
+                </div>
+                <small class="oee-label">0</small>%
+            </div>
+            <div class="col-xs-12 col-sm-6 emphasis">
+                <button type="button" class="btn btn-primary btn-xs">
+                    <i class="fa fa-user"> </i> View
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>

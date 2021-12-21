@@ -1,0 +1,195 @@
+﻿@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@model WMT090AController.WMT090A
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // 公用函數
+    Comm comm = new Comm();
+    WMT090AController.WMT09_0100 WMT08_0100 = new WMT090AController.WMT09_0100();
+    string pro_qty = WMT08_0100.pro_qty.ToString();
+    string sto_qty = WMT08_0100.sto_qty.ToString();
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewBag.sPrgCode ?? ViewContext.RouteData.Values["controller"].ToString();
+}
+
+
+@Html.Partial("pPrgName")
+
+
+@* 修改點 以下 *@
+@{
+
+    // 上面的按鈕列的 html
+    Func<object, HelperResult> customBtnTemplate =
+        @<text>
+            <div class="pull-left" style="margin-left: 10px">
+                <a id="btn_upd_erpdata" class="btn btn-white btn-warning btn-bold" role="button">
+                    <span>確認送出至SAP</span>
+                </a>
+            </div>
+        </text>;
+    string customBtnHtml = customBtnTemplate.Invoke(null).ToString();
+
+    /*  額外查詢條件 範例   */
+    // 在上方按鈕列 增加按鈕
+    List<DDLList> label_type_list = comm.Get_LabelDDL("WMB09_0000", "label_code", "label_name", "B");
+    List<DDLList> WmsIventorylist = comm.Get_DDLOption("WMT08_0000", "inventory_code", "inventory_code", "A");
+    List<DDLList> ErpIventorylist = comm.Get_DDLOption("WMT09_0000", "erp_inventory_code", "erp_inventory_code", "A");
+    Func<object, HelperResult> customBtnTemplate2 =
+        @<text>
+            <div class="pull-left" style="margin-left: 10px; width: 250px">
+                <select id="erp_code" class="chosen-select">
+                    @CustomHelper.Get_Option(ErpIventorylist, "", true, "-----請選擇ERP單號-----");
+                </select>
+            </div>
+        </text>;
+
+    string head_btn = customBtnTemplate2.Invoke(null).ToString();
+
+    customBtnTemplate2 =
+        @<text>
+            <div class="pull-left" style="margin-left: 10px; width: 250px">
+                <select id="wms_code" class="chosen-select">
+                    @CustomHelper.Get_Option(WmsIventorylist, "", true, "-----請選擇WMS單號-----");
+                </select>
+            </div>
+        </text>;
+
+    customBtnHtml += head_btn;
+
+    customBtnHtml += customBtnTemplate2.Invoke(null).ToString();
+
+    // 觸發事件
+    string bottomJs = @"
+$('#erp_code').change(function () {
+refreshGrid()
+})
+";
+    bottomJs += @"
+$('#wms_code').change(function () {
+refreshGrid()
+})
+";
+
+    bottomJs += @"
+$('#grp_code_beginwith').on('keyup paste', function () {
+setTimeout(function(){
+refreshGrid()
+})
+
+})
+";
+    // 在抓資料時另外傳參數
+    string addPostData = ",pInventoryCode: () => $('#erp_code').val() ";
+    addPostData += ",pWmsCode:()=>$('#wms_code').val() ";
+    addPostData += ",pGrpCode: function(){ return $('#grp_code_beginwith').val() }";
+
+    //-------
+
+    Func<object, HelperResult> sCustomJs_bottomTemplate =
+        @<text>
+            $('#btn_upd_erpdata').click(function(){
+
+            $.ajax({
+
+            method: 'post',
+            data:{
+            pInventoryCode:$('#erp_code').val(),
+            pWmsCode:$('#wms_code').val()
+            },
+            url: '/WMT090A/InsDts',
+            }).done(function(json){
+            if(json){alert(json);}
+            console.log(123);
+            return;
+            })
+            })
+        </text>;
+    string sCustomJs_bottom2 = sCustomJs_bottomTemplate.Invoke(null).ToString();
+    /* 在功能欄位 增加按鈕 (其實也在loadComplete裡面)  */
+    List<JqgridButton> addBtnsInActionCol = new List<JqgridButton>();
+
+
+    //var actionBtn1 = new JqgridButton()
+    //{
+    //    icon_class = "ui-icon ace-icon fa fa-bookmark red",
+    //    title = "跳轉到BDP210頁面",
+    //    clickJs = " window.location.href = '/BDP210A' ",
+    //    showCondJs = " rowData.usr_code == 'admin' "
+    //};
+
+    //var actionBtn2 = new JqgridButton()
+    //{
+    //    icon_class = "ui-icon fa fa-search green",
+    //    title = "點擊後到console查看row data",
+    //    clickJs = " console.log(rowData) ",
+    //    showCondJs = " rowData.grp_code == 'M001' "
+    //};
+
+    //var actionBtn3 = new JqgridButton()
+    //{
+    //    icon_class = "ui-icon fa fa-pencil orange",
+    //    title = "測試3",
+    //};
+
+    //addBtnsInActionCol.Add(actionBtn1);
+    //addBtnsInActionCol.Add(actionBtn2);
+    //addBtnsInActionCol.Add(actionBtn3);
+
+    /* 欄位格子 字體變色 */
+    //string onEachRowJs = @"
+    //if (!(rowData.can_alarm && rowData.can_alarm.toUpperCase() === 'Y')){
+    //    if (rowData.grp_code == 'M001'){
+    //        $row.find('td[aria-describedby*=usr_name]').css({color: 'blue'})
+    //        $row.find('td[aria-describedby*=grp_code]').css({color: 'blue'})
+    //    }
+
+    //    if (rowData.usr_code == 'admin'){
+    //        $row.find('td[aria-describedby*=usr_code]').css({color: 'red'})
+    //        $row.find('td[aria-describedby*=usr_name]').css({color: 'red'})
+    //    }
+    //}
+    //";
+
+    //string actionBtn_test = @"
+    //$('<div>', {
+    //    title: 'test',
+    //    mouseover: function() {
+    //        $(this).addClass('ui-state-hover');
+    //    },
+    //    mouseout: function() {
+    //        $(this).removeClass('ui-state-hover');
+    //    },
+    //    click: function(e) {
+    //        console.log(rowData)
+    //    }
+    //}).css({ 'margin-right': '8px', float: 'left', cursor: 'pointer' })
+    //    .addClass('ui-pg-div ui-inline-custom')
+    //    .append('<span class=""ui-icon fa fa-pencil purple"" ></span>')
+    //    .prependTo($actionCell.children('div'));
+    //";
+
+    //onEachRowJs += actionBtn_test;
+
+    // 改對應的class
+    Html.RenderAction("pJqgrid_A", "jqgrid", new
+    {
+        pModelType = new WMT090AController.WMT09_0100().GetType(),
+        pPrgCode = sPrgCode,
+        pCustomHtml_header = customBtnHtml,
+        pEnableRowFilter = "N",
+        pIsMultiselect = "Y",
+        pPageCount = 10,
+        pCustomJs_bottom = bottomJs + sCustomJs_bottom2,
+        pAddPostDataJs = addPostData,
+        pAddBtnsInActionCol = addBtnsInActionCol,
+
+
+        //onEachRowJs = onEachRowJs
+    });
+
+}
+@* 修改點 以上 *@

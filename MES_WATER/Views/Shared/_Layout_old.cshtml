@@ -1,0 +1,556 @@
+﻿<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta charset="utf-8" />
+    @using MES_WATER.Models;
+    @{
+        Comm comm = new Comm();
+        var controller = ViewContext.RouteData.Values["controller"].ToString();
+        var action = ViewContext.RouteData.Values["action"].ToString();
+        //var prg_name = comm.Get_QueryData("BDP04_0000", controller, "prg_code", "prg_name");
+        ViewBag.Title = controller + " " + WebUtility.HtmlDecode("&#8211;") + " " + action;
+    }
+    <title>@ViewBag.Title</title>
+
+    <meta name="description" content="" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+
+    <!-- bootstrap & fontawesome -->
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/font-awesome/4.5.0/css/font-awesome.min.css" />
+
+    <!-- basic scripts -->
+    <!--[if !IE]> -->
+    <script src="~/Scripts/assets/js/jquery-2.1.4.min.js"></script>
+
+    <!-- page specific plugin styles -->
+    @RenderSection("head_plugin", required: false)
+
+    <!-- Partial View  -->
+    @Html.RenderResources("head_plugins")
+
+    <link rel="stylesheet" href="~/Content/assets/css/select.dataTables.min.css" />
+    @*<link rel="stylesheet" href="~/Content/assets/css/jquery.dataTables.min.css" />*@
+
+    <!-- text fonts -->
+    <link rel="stylesheet" href="~/Content/assets/css/fonts.googleapis.com.css" />
+
+    <!-- ace styles -->
+    <link rel="stylesheet" href="~/Content/assets/css/ace.min.css" class="ace-main-stylesheet" id="main-ace-style" />
+
+    <!--[if lte IE 9]>
+        <link rel="stylesheet" href="~/Content/assets/css/ace-part2.min.css" class="ace-main-stylesheet" />
+    <![endif]-->
+    <link rel="stylesheet" href="~/Content/assets/css/ace-skins.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/ace-rtl.min.css" />
+
+    <!--[if lte IE 9]>
+      <link rel="stylesheet" href="~/Content/assets/css/ace-ie.min.css" />
+    <![endif]-->
+    <!-- inline styles related to this page -->
+    <!-- ace settings handler -->
+    <script src="~/Scripts/assets/js/ace-extra.min.js"></script>
+
+    <!-- HTML5shiv and Respond.js for IE8 to support HTML5 elements and media queries -->
+    <!--[if lte IE 8]>
+    <script src="~/Scripts/assets/js/html5shiv.min.js"></script>
+    <script src="~/Scripts/assets/js/respond.min.js"></script>
+    <![endif]-->
+    <!-- <![endif]-->
+    <!--[if IE]>
+    <script src="~/Scripts/assets/js/jquery-1.11.3.min.js"></script>
+    <![endif]-->
+    <script type="text/javascript">
+        if ('ontouchstart' in document.documentElement) document.write("<script src='~/Scripts/assets/js/jquery.mobile.custom.min.js'>" + "<" + "/script>");
+    </script>
+
+    <script src="~/Scripts/assets/js/bootstrap.min.js"></script>
+
+    <!-- 自訂函數js -->
+    <script src="~/Scripts/assets/js/action_check.js"></script>
+
+    <!-- Krajee Bootstrap File Input -->
+    @*<script src="~/Scripts/fileinput.min.js"></script>
+        <link rel="stylesheet" href="~/Content/bootstrap-fileinput/css/fileinput.min.css" />*@
+
+</head>
+
+<body class="">
+    <!-- 保存 選擇面板 -->
+    <script>
+        $('body').addClass(localStorage.getItem('ace_skin') || 'no-skin')
+        //document.querySelector('body').classList.add(localStorage.getItem('ace_skin'))
+    </script>
+    @{
+        Html.RenderAction("pTitle", "Title");
+    }
+
+    <div class="main-container ace-save-state" id="main-container">
+        <script type="text/javascript">
+				try{ace.settings.loadState('main-container')}catch(e){}
+        </script>
+
+        <div id="sidebar" class="sidebar                  responsive                    ace-save-state">
+            <script type="text/javascript">
+					try{ace.settings.loadState('sidebar')}catch(e){}
+            </script>
+
+            @*            <div class="sidebar-shortcuts" id="sidebar-shortcuts">
+                           <div class="sidebar-shortcuts-large" id="sidebar-shortcuts-large">
+                    <button class="btn btn-success">
+                        <i class="ace-icon fa fa-signal"></i>
+                    </button>
+
+                    <button class="btn btn-info">
+                        <i class="ace-icon fa fa-pencil"></i>
+                    </button>
+
+                    <button class="btn btn-warning">
+                        <i class="ace-icon fa fa-users"></i>
+                    </button>
+
+                    <button class="btn btn-danger">
+                        <i class="ace-icon fa fa-cogs"></i>
+                    </button>
+                </div>
+
+                <div class="sidebar-shortcuts-mini" id="sidebar-shortcuts-mini">
+                    <span class="btn btn-success"></span>
+
+                    <span class="btn btn-info"></span>
+
+                    <span class="btn btn-warning"></span>
+
+                    <span class="btn btn-danger"></span>
+                </div>
+                        </div>*@<!-- /.sidebar-shortcuts -->
+            @*功能選單開始*@
+            @{
+                Html.RenderAction("pMenu", "Menu");
+            }
+            @*功能選單結束*@
+
+
+            <div class="sidebar-toggle sidebar-collapse" id="sidebar-collapse">
+                <i id="sidebar-toggle-icon" class="ace-icon fa fa-angle-double-left ace-save-state" data-icon1="ace-icon fa fa-angle-double-left" data-icon2="ace-icon fa fa-angle-double-right"></i>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="main-content-inner">
+                @*<div class="nav-search" id="nav-search">
+                    <div class="breadcrumbs ace-save-state" id="breadcrumbs">
+                        <ul class="breadcrumb">
+                            <li>
+                                <i class="ace-icon fa fa-home home-icon"></i>
+                                <a href="#">Home</a>
+                            </li>
+
+                            <li>
+                                <a href="#">Other Pages</a>
+                            </li>
+                            <li class="active">Blank Page</li>
+                        </ul><!-- /.breadcrumb -->
+
+                            <form class="form-search">
+                                <span class="input-icon">
+                                    <input type="text" placeholder="Search ..." class="nav-search-input" id="nav-search-input" autocomplete="off" />
+                                    <i class="ace-icon fa fa-search nav-search-icon"></i>
+                                </span>
+                            </form>
+                        </div><!-- /.nav-search -->
+                                </div>*@
+
+                <div class="page-content">
+                    <div class="ace-settings-container" id="ace-settings-container">
+                        <div class="btn btn-app btn-xs btn-warning ace-settings-btn" id="ace-settings-btn">
+                            <i class="ace-icon fa fa-cog bigger-130"></i>
+                        </div>
+
+                        <div class="ace-settings-box clearfix " id="ace-settings-box">
+                            <div class="pull-left width-50">
+                                <div class="ace-settings-item">
+                                    <div class="pull-left">
+                                        <select id="skin-colorpicker" class="hide">
+                                            @{
+                                                ViewBag.page_skin = comm.Get_QueryData("BDP00_0000", "page_skin", "par_name", "par_value");
+                                                string sSkinType = ViewBag.page_skin;
+                                                try
+                                                {
+                                                    string[] sSkin = sSkinType.Split(',');
+                                                    string[] color = { "438EB9", "222A2D", "C6487E", "D0D0D0" };
+                                                    foreach (var temp in sSkin)
+                                                    {
+                                                        if (temp == "0")
+                                                        {
+                                                            <option data-skin="no-skin" value="#438EB9">#438EB9</option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option data-skin="skin-@temp" value="#@color[int.Parse(temp)]">#@color[int.Parse(temp)]</option>
+                                                        }
+                                                    }
+                                                }
+                                                catch
+                                                {
+                                                    string[] color = { "438EB9", "222A2D", "C6487E", "D0D0D0" };
+                                                    for (int i = 0; i < color.Length; i++)
+                                                    {
+                                                        if (i == 0)
+                                                        {
+                                                            <option data-skin="no-skin" value="#@color[i]">#@color[i]</option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option data-skin="skin-@i" value="#@color[i]">#@color[i]</option>
+                                                        }
+                                                    }
+                                                }
+
+                                            }
+                                        </select>
+                                        <!-- 保存 選擇面板 -->
+                                        <script>
+                                            $('#skin-colorpicker > option').each(function () {
+                                                if ($(this).attr('data-skin') == localStorage.getItem('ace_skin')) {
+                                                    $(this).prop('selected', true)
+                                                    return
+                                                }
+                                            })
+                                        </script>
+                                    </div>
+                                    <span>&nbsp; 選擇面版</span>
+                                </div>
+                                @*<div class="ace-settings-item">
+                                        <input type="checkbox" class="ace ace-checkbox-2 ace-save-state" id="ace-settings-navbar" autocomplete="off" />
+                                        <label class="lbl" for="ace-settings-navbar"> Fixed Navbar</label>
+                                    </div>
+
+                                    <div class="ace-settings-item">
+                                        <input type="checkbox" class="ace ace-checkbox-2 ace-save-state" id="ace-settings-sidebar" autocomplete="off" />
+                                        <label class="lbl" for="ace-settings-sidebar"> Fixed Sidebar</label>
+                                    </div>*@
+
+                                @*<div class="ace-settings-item">
+                                        <input type="checkbox" class="ace ace-checkbox-2 ace-save-state" id="ace-settings-breadcrumbs" autocomplete="off" />
+                                        <label class="lbl" for="ace-settings-breadcrumbs"> Fixed Breadcrumbs</label>
+                                    </div>*@
+
+                                @*<div class="ace-settings-item">
+                                        <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-rtl" autocomplete="off" />
+                                        <label class="lbl" for="ace-settings-rtl"> Right To Left (rtl)</label>
+                                    </div>*@
+
+                                <div class="ace-settings-item">
+                                    <input type="checkbox" class="ace ace-checkbox-2 ace-save-state" id="ace-settings-add-container" autocomplete="off" />
+                                    <label class="lbl" for="ace-settings-add-container">
+                                        固定寬度版型
+                                    </label>
+                                </div>
+                            </div><!-- /.pull-left -->
+
+                            <div class="pull-left width-50">
+                                @*<div class="ace-settings-item">
+                                        <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-hover" autocomplete="off" />
+                                        <label class="lbl" for="ace-settings-hover">子選單展開/收摺</label>
+                                    </div>*@
+
+                                <div class="ace-settings-item">
+                                    <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-compact" autocomplete="off" />
+                                    <label class="lbl" for="ace-settings-compact"> 按鈕式選單</label>
+                                </div>
+
+                                @*<div class="ace-settings-item">
+                                        <input type="checkbox" class="ace ace-checkbox-2" id="ace-settings-highlight" autocomplete="off" />
+                                        <label class="lbl" for="ace-settings-highlight">目前指向列</label>
+                                    </div>*@
+                            </div><!-- /.pull-left -->
+                        </div><!-- /.ace-settings-box -->
+                    </div><!-- /.ace-settings-container -->
+
+                    <div class="row">
+                        <div class="col-xs-12">
+                            <!-- PAGE CONTENT BEGINS -->
+                            @RenderBody()
+                            <!-- PAGE CONTENT ENDS -->
+                        </div><!-- /.col -->
+                    </div><!-- /.row -->
+                </div><!-- /.page-content -->
+            </div>
+        </div><!-- /.main-content -->
+        @*<div class="footer">
+                <div class="footer-inner">
+                    <div class="footer-content">
+                        <span class="bigger-120">
+                            <span class="blue bolder">Ace</span>
+                            Application &copy; 2013-2014
+                        </span>
+
+                        &nbsp; &nbsp;
+                        <span class="action-buttons">
+                            <a href="#">
+                                <i class="ace-icon fa fa-twitter-square light-blue bigger-150"></i>
+                            </a>
+
+                            <a href="#">
+                                <i class="ace-icon fa fa-facebook-square text-primary bigger-150"></i>
+                            </a>
+
+                            <a href="#">
+                                <i class="ace-icon fa fa-rss-square orange bigger-150"></i>
+                            </a>
+                        </span>
+                    </div>
+                </div>
+            </div>*@
+
+        <a href="#" id="btn-scroll-up" class="btn-scroll-up btn btn-sm btn-inverse">
+            <i class="ace-icon fa fa-angle-double-up icon-only bigger-110"></i>
+        </a>
+    </div><!-- /.main-container -->
+    <!-- page specific plugin scripts -->
+    @RenderSection("footer_plugin", required: false)
+
+    @Html.RenderResources("footer_plugins")
+
+    <!-- ECharts -->
+    @* 舊版的，有些圖需要新版 *@
+    @*<script src="~/Scripts/assets/echarts/echarts.min.js"></script>*@
+
+    <!-- echart theme option -->
+    <script>
+        var echarts_theme = {
+            color: [
+                '#26B99A', '#34495E', '#BDC3C7', '#3498DB',
+                '#9B59B6', '#8abb6f', '#759c6a', '#bfd3b7'
+            ],
+
+            title: {
+                itemGap: 8,
+                textStyle: {
+                    fontWeight: 'normal',
+                    color: '#408829'
+                }
+            },
+
+            dataRange: {
+                color: ['#1f610a', '#97b58d']
+            },
+
+            toolbox: {
+                color: ['#408829', '#408829', '#408829', '#408829']
+            },
+
+            tooltip: {
+                backgroundColor: 'rgba(0,0,0,0.5)',
+                axisPointer: {
+                    type: 'line',
+                    lineStyle: {
+                        color: '#408829',
+                        type: 'dashed'
+                    },
+                    crossStyle: {
+                        color: '#408829'
+                    },
+                    shadowStyle: {
+                        color: 'rgba(200,200,200,0.3)'
+                    }
+                }
+            },
+
+            dataZoom: {
+                dataBackgroundColor: '#eee',
+                fillerColor: 'rgba(64,136,41,0.2)',
+                handleColor: '#408829'
+            },
+            grid: {
+                borderWidth: 0
+            },
+
+            categoryAxis: {
+                axisLine: {
+                    lineStyle: {
+                        color: '#408829'
+                    }
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: ['#eee']
+                    }
+                }
+            },
+
+            valueAxis: {
+                axisLine: {
+                    lineStyle: {
+                        color: '#408829'
+                    }
+                },
+                splitArea: {
+                    show: true,
+                    areaStyle: {
+                        color: ['rgba(250,250,250,0.1)', 'rgba(200,200,200,0.1)']
+                    }
+                },
+                splitLine: {
+                    lineStyle: {
+                        color: ['#eee']
+                    }
+                }
+            },
+            timeline: {
+                lineStyle: {
+                    color: '#408829'
+                },
+                controlStyle: {
+                    normal: { color: '#408829' },
+                    emphasis: { color: '#408829' }
+                }
+            },
+
+            k: {
+                itemStyle: {
+                    normal: {
+                        color: '#68a54a',
+                        color0: '#a9cba2',
+                        lineStyle: {
+                            width: 1,
+                            color: '#408829',
+                            color0: '#86b379'
+                        }
+                    }
+                }
+            },
+            map: {
+                itemStyle: {
+                    normal: {
+                        areaStyle: {
+                            color: '#ddd'
+                        },
+                        label: {
+                            textStyle: {
+                                color: '#c12e34'
+                            }
+                        }
+                    },
+                    emphasis: {
+                        areaStyle: {
+                            color: '#99d2dd'
+                        },
+                        label: {
+                            textStyle: {
+                                color: '#c12e34'
+                            }
+                        }
+                    }
+                }
+            },
+            force: {
+                itemStyle: {
+                    normal: {
+                        linkStyle: {
+                            strokeColor: '#408829'
+                        }
+                    }
+                }
+            },
+            chord: {
+                padding: 4,
+                itemStyle: {
+                    normal: {
+                        lineStyle: {
+                            width: 1,
+                            color: 'rgba(128, 128, 128, 0.5)'
+                        },
+                        chordStyle: {
+                            lineStyle: {
+                                width: 1,
+                                color: 'rgba(128, 128, 128, 0.5)'
+                            }
+                        }
+                    },
+                    emphasis: {
+                        lineStyle: {
+                            width: 1,
+                            color: 'rgba(128, 128, 128, 0.5)'
+                        },
+                        chordStyle: {
+                            lineStyle: {
+                                width: 1,
+                                color: 'rgba(128, 128, 128, 0.5)'
+                            }
+                        }
+                    }
+                }
+            },
+            gauge: {
+                startAngle: 255,
+                endAngle: -45,
+                axisLine: {
+                    show: true,
+                    lineStyle: {
+                        color: [[0.2, '#86b379'], [0.8, '#68a54a'], [1, '#408829']],
+                        width: 8
+                    }
+                },
+                axisTick: {
+                    splitNumber: 10,
+                    length: 12,
+                    lineStyle: {
+                        color: 'auto'
+                    }
+                },
+                axisLabel: {
+                    textStyle: {
+                        color: 'auto'
+                    }
+                },
+                splitLine: {
+                    length: 18,
+                    lineStyle: {
+                        color: 'auto'
+                    }
+                },
+                pointer: {
+                    length: '90%',
+                    color: 'auto'
+                },
+                title: {
+                    textStyle: {
+                        color: '#333'
+                    }
+                },
+                detail: {
+                    textStyle: {
+                        color: 'auto'
+                    }
+                }
+            },
+            textStyle: {
+                fontFamily: 'Arial, Verdana, sans-serif'
+            }
+        };
+
+    </script>
+
+    <!-- Partial View Script -->
+    @Html.RenderResources("js")
+
+    <!-- ace scripts -->
+    <script src="~/Scripts/assets/js/ace-elements.min.js"></script>
+    <script src="~/Scripts/assets/js/ace.min.js"></script>
+    <script src="~/Scripts/jquery.cookie.js" type="text/javascript"></script>
+    <!-- inline scripts relaed to this page -->
+    @RenderSection("footer_script", required: false)
+    <script>
+        jQuery.fn.center = function () {
+            this.css("position", "absolute");
+            this.css("top", ($(window).height() - this.height()) / 2 + $(window).scrollTop() + "px");
+            this.css("left", ($(window).width() - this.width()) / 2 + $(window).scrollLeft() + "px");
+            return this;
+        }
+    </script>
+
+</body>
+</html>

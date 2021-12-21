@@ -1,0 +1,107 @@
+﻿
+@model System.Data.DataTable
+@using System.Data;
+@using MES_WATER.Models;
+@{
+    ViewBag.Title = "Upload";
+
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    Comm comm = new Comm();
+    List<QMB03_0000> notSaveList = ViewBag.notSaveList ?? new List<QMB03_0000>();
+
+    if (TempData["message"] != null)
+    {
+        <script type="text/javascript">
+        var message = @Html.Raw(Json.Encode(TempData["message"]));
+        alert(message);
+        </script>
+    }
+}
+
+@Html.Partial("pPrgName")
+@if (ViewBag.count > 0)
+{
+    <div class="alert alert-block alert-success">
+        <button type="button" class="close" data-dismiss="alert">
+            <i class="ace-icon fa fa-times"></i>
+        </button>
+
+        <p>
+            <strong>
+                <i class="ace-icon fa fa-check"></i>
+                上傳成功!
+            </strong>
+
+        </p>
+        <p>資料筆數: @ViewBag.count</p>
+    </div>
+}
+@using (Html.BeginForm("Upload", sPrgCode, null, FormMethod.Post, new { @class = "form-horizontal", id = "validation_form", role = "form", enctype = "multipart/form-data" }))
+{
+    @*@Html.AntiForgeryToken()*@
+    @Html.ValidationSummary()
+    <input class="col-xs-10 col-sm-5 text-box single-line" name="qsheet_code" type="text" value="@ViewData["qsheet_code"]" hidden>
+    <div class="form-group ">
+        <label class="col-sm-3 control-label no-padding-right" for="cal_date">請選擇檔案</label>
+        <div class="col-md-9">
+            <div class="clearfix">
+                <input required class="col-xs-10 col-sm-5 text-box single-line" name="upload" accept=".pdf"  type="file"  value="">
+            </div>
+        </div>
+    </div>
+
+    <div class="alert alert-info">
+        <button type="button" class="close" data-dismiss="alert">
+            <i class="ace-icon fa fa-times"></i>
+        </button>
+        <h4>
+            <strong>上傳說明:</strong>
+        </h4>
+        <ol>
+            @*<li>下載範本: <a href="~/Upload/Sample/產品檢驗計畫範本.csv">帳號匯入範本.csv</a></li>*@
+            @*<li>請勿修改表頭名稱</li>*@
+            <li>上傳時，系統自動更改檔案名稱 </li>
+            <li>更改格式: 檢驗類型 - 產品名稱.pdf </li>
+            <li>檔案只能有一個"PDF"的檔案</li>
+        </ol>
+    </div>
+    if (notSaveList.Count > 0)
+    {
+        <div class="alert alert-danger">
+            <button type="button" class="close" data-dismiss="alert">
+                <i class="ace-icon fa fa-times"></i>
+            </button>
+            <h4>
+                <strong>已存在資料:</strong>
+            </h4>
+            <ol>
+                @foreach (QMB03_0000 item in notSaveList)
+                {
+                    <li>@item.usr_code @item.usr_name</li>
+                }
+            </ol>
+        </div>
+    }
+    <div class="clearfix form-actions">
+
+        <div class="col-md-offset-3 col-md-9">
+            <input type="submit" value="上傳" class="btn btn-white btn-info btn-bold">
+            &nbsp;
+            <a class="btn btn-white btn-pink btn-round" href="/@sPrgCode">
+                返回
+            </a>
+            @*<a class="btn btn-white btn-pink btn-round" href='@Html.Action(sPrgCode, "DeteleFile?QsheetCode="+ ViewData["qsheet_code"])'>
+                Test
+            </a>*@
+        </div>
+    </div>
+
+}
+@section footer_script {
+    <script>
+        $("form").submit(function () {
+            $('input[type=submit], a').attr('disabled', 'disabled');
+        });
+    </script>
+
+}

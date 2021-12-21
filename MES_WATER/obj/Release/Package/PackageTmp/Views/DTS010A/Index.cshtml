@@ -1,0 +1,1972 @@
+﻿@using MES_WATER.Models;
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //公用函數庫
+    Comm comm = new Comm();
+    GetModelValidation gmv = new GetModelValidation();
+
+    //公用變數
+    // 功能代號，預設是controller的名稱
+    string sPrgCode = ViewBag.sPrgCode ?? ViewContext.RouteData.Values["controller"].ToString();
+
+    // 權限字串
+    string sLimitStr = comm.Get_LimitByUsrCode(User.Identity.Name, sPrgCode);
+
+    // 查詢的運算子的下拉清單
+    List<DDLList> field_op_DDL = comm.Get_DDLOption("field_operator");
+}
+
+@* jqGrid 部分功能控制  *@
+@{
+    // 控制開啟jqGrid 的rowfitler ( Y / N )
+    string sEnableRowFilter = comm.Get_QueryData("BDP00_0000", "jqgrid_rowfilter", "par_name", "par_value");
+    sEnableRowFilter = string.IsNullOrEmpty(sEnableRowFilter) ? "Y" : "N";  // 預設開啟
+
+    // 控制開啟明細 ( Y / N )
+    string sEnableSubgrid = "Y";
+
+    // 是否多選
+    string sIsMulti = "N";
+
+    // 每頁顯示筆數
+    int sPageCount = comm.sGetInt32(comm.Get_QueryData("BDP00_0000", "page_count", "par_name", "par_value"));
+    sPageCount = sPageCount <= 0 ? 30 : sPageCount;  // 預設30
+
+    // 資料處理相關Url
+    string sUpdateUrl = Url.Action("Update", sPrgCode);  // 點擊修改按鈕，跳轉頁面的url
+    string sDeleteUrl = Url.Action("Delete", sPrgCode);  // 刪除資料的ajax url
+    string sChkDelUrl = Url.Action("Chk_Del_Main", sPrgCode);  // 刪除資料前檢查的ajax url
+}
+
+@* 修改點 以下 *@
+@{
+    // 查詢的欄位(下拉清單)
+    List<DDLList> query_DDL = comm.Get_BDP30_0200(sPrgCode, "C");
+
+    /* 主檔 jqgrid */
+    // 資料來源 (ajax url)
+    string sGetDataUrl = Url.Action("Get_GridDataByQuery", sPrgCode);
+
+    // 欄位設定
+    DTS01_0000 model = new DTS01_0000();
+    List<ColumnInfo> ColumnInfoList = gmv.Get_ColumnInfoList(model);
+
+    // 主檔鍵值，在Model設定
+    string key = gmv.GetKey(model);
+
+    /* 明細 jqgrid */
+    // 資料來源 (ajax url)
+    string sGetDataUrl_D1 = Url.Action("Get_GridData_D1", sPrgCode);
+
+    // 欄位設定
+    DTS01_0100 model_D1 = new DTS01_0100();
+    List<ColumnInfo> ColumnInfoList_D1 = gmv.Get_ColumnInfoList(model_D1);
+
+}
+@* 修改點 以上 *@
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Scripts/assets/jquery-ui-1.12.1/jquery-ui.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/ui.multiselect.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/ui.jqgrid.css" />
+}
+
+<style>
+    /* 開合subgrid按鈕 */
+    #expandAllSubgrid span:hover {
+        transform: scale(1.2);
+        color: deepskyblue;
+    }
+
+    #collapseAllSubgrid span:hover {
+        transform: scale(1.2);
+        color: deepskyblue;
+    }
+</style>
+
+@Html.Partial("pPrgName")
+
+<div class="clearfix">
+    @{
+        if (sLimitStr.Contains("A"))
+        {
+            <div class="pull-left">
+                <a class="btn btn-white btn-primary btn-bold" href="@Url.Action("Insert", @sPrgCode)">
+                    <i style="font-weight: 400" class='glyphicon glyphicon-plus bigger-110 blue'></i>
+                    <span class=''>新增</span>
+                </a>
+            </div>
+        }
+    }
+
+    <!-- 設定按鈕 -->
+    <div class="pull-left" style="margin-left: 10px">
+        <div class="btn-group">
+            <button data-toggle="dropdown" class="btn btn-white btn-bold btn-success  dropdown-toggle" aria-expanded="false">
+                設定
+                <i class="ace-icon fa fa-angle-down icon-on-right"></i>
+            </button>
+
+            <ul class="dropdown-menu dropdown-success">
+                <li>
+                    <a id="saveStateInDB">儲存欄位設定</a>
+                </li>
+                <li>
+                    <a id="fitPageWidth">自動調整主檔Grid寬度 (100%)</a>
+                </li>
+                <li>
+                    <a id="200pWidth">自動調整主檔Grid寬度 (200%)</a>
+                </li>
+                <li>
+                    <a id="columnChooser">主檔欄位調整</a>
+                </li>
+
+                @if (sEnableSubgrid == "Y")
+                {
+                    <li>
+                        <a id="sub_columnChooser">明細欄位調整</a>
+                    </li>
+                }
+
+
+                <li>
+                    <a id="clearState">還原預設欄位</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="pull-left" style="margin-left: 10px">
+        <a id="query_btn" class="btn btn-white btn-info btn-bold" href="#modal-form" role="button" data-toggle="modal">
+            <span class=''>查詢</span>
+        </a>
+    </div>
+    @{
+        if (sLimitStr.Contains("E"))
+        {
+            <div class="pull-left" style="margin-left: 10px">
+                <a id="exportToCsv" class="btn btn-white btn-success btn-bold" role="button">
+                    <span class=''>匯出</span>
+                </a>
+            </div>
+        }
+    }
+
+    <!-- Modal Content -->
+    <div id="modal-form" class="modal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <div class="row">
+                        <div class="col-sm-3">
+                            <div class="radio">
+                                <label>
+                                    <input checked name="query_type" type="radio" class="ace input-lg" value="NEW">
+                                    <span class="lbl bigger-110"> 新查詢 </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-4">
+                            <div class="radio">
+                                <label>
+                                    <input name="query_type" type="radio" class="ace input-lg" value="KEEP">
+                                    <span class="lbl bigger-110"> 保留已查詢的資料 </span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-5">
+                            <div class="radio">
+                                <label>
+                                    <input name="query_type" type="radio" class="ace input-lg" value="IN">
+                                    <span class="lbl bigger-110"> 在已查詢的資料中尋找 </span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-body">
+                    <div>
+                        <span class="h4">查詢欄位</span>
+                        <a class="add_query btn btn-white btn-info btn-bold" role="button" style="margin-left: 10px">
+                            <i style="font-weight: 400" class="glyphicon glyphicon-plus  blue"></i>
+                            <span class="">新增查詢條件</span>
+                        </a>
+                        <a class="clear_query_last btn btn-white btn-info btn-bold" role="button" style="margin-left: 10px">
+                            <span class="">清除上一個條件</span>
+                        </a>
+                    </div>
+                    <div id="query_sql_div">
+                        <div class="row">
+                            <div class="space-6"></div>
+                            <div class="col-sm-3">
+                                <select class="form-control" id="" name="field_code">
+                                    @CustomHelper.Get_Option(query_DDL, "", false);
+                                </select>
+                            </div>
+                            <div class="col-sm-2 no-padding-left">
+                                <select class="form-control" id="" name="field_operator">
+                                    @CustomHelper.Get_Option(field_op_DDL, "", false)
+                                </select>
+                            </div>
+                            <div class="col-sm-5 no-padding-left">
+                                <input type="text" name="field_value" placeholder="" class="col-sm-12">
+                            </div>
+                            <div class="col-sm-2 no-padding-left">
+                                <button class="btn btn-danger btn-sm">
+                                    <i class="ace-icon fa fa-trash-o bigger-130"></i>
+                                    刪除
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="modal-footer">
+                    <a class="pull-left btn btn-sm btn-purple clear_query_all">
+                        <span class="ace-icon fa fa-retweet"></span>
+                        清空
+                    </a>
+
+                    <button id="query_jqGrid" class="btn btn-sm btn-primary" data-dismiss="modal">
+                        <i class="ace-icon fa fa-check"></i>
+                        查詢
+                    </button>
+                    <button class="btn btn-sm" data-dismiss="modal">
+                        <i class="ace-icon fa fa-times"></i>
+                        離開
+                    </button>
+                </div>
+
+            </div> <!-- modal-content end -->
+        </div> <!-- modal-dialog end -->
+    </div>
+    <!-- Modal Content end -->
+
+
+</div>
+<br>
+<table id="grid-table"></table>
+<div id="grid-pager"></div>
+@section footer_plugin{
+    <script src="~/Scripts/assets/js/jquery-ui.min.js"></script>
+    <script src="~/Scripts/assets/js/ui.multiselect.js"></script>
+    <script src="~/Scripts/assets/js/jquery.jqGrid.min.js"></script>
+    <script src="~/Scripts/assets/js/grid.locale-cn.js"></script>
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+    <script src="~/Scripts/assets/Custom/query-form.js"></script>
+}
+
+@{
+    if (sLimitStr.Contains("E"))
+    {
+        <text>
+            <!-- 匯出CSV -->
+            <script type="text/javascript">
+                jQuery(function ($) {
+                    // Click 匯出csv
+                    $('#exportToCsv').click(function (e) {
+
+                        let csvData = GetCsvData()
+
+                        let fileName = $('#title-prg_name').text()
+
+                        JSONToCSVConvertor(csvData.json, fileName, csvData.header);
+                    })
+
+
+                    // Jqgrid 資料 for csv
+                    function GetCsvData() {
+                        //
+                        let gridData = $('#grid-table').jqGrid('getGridParam', 'data')
+
+
+                        // 這個方法會取到某些多餘的欄位名稱
+                        //let colNames = $('#grid-table').jqGrid('getGridParam','colNames')
+
+                        let colModel = $('#grid-table').jqGrid('getGridParam', 'colModel')
+
+                        // 篩選 gridData
+                        let hiddenKeys = colModel.filter(x => x.hidden == true).map(x => x.name)
+                        gridData.forEach(function (item) {
+                            // 移除 在colModel中hidden為true的欄位
+                            hiddenKeys.forEach(function (key, index) {
+                                delete item[key]
+                            })
+
+                            // 移除 功能欄位
+                            delete item['myac']
+
+                            //// 移除jgrid內建的rowId
+                            delete item['_id_']
+                        })
+
+                        // 取得 中文標頭
+                        let headerKeys = colModel.filter(function (item) {
+                            // 隱藏的欄位
+                            if (item.hidden) {
+                                return false
+                            }
+                            // jqgrid 的 checkbox 和 subgrid
+                            let ignoreNames = ['cb', 'subgrid']
+                            if (ignoreNames.includes(item.name)) {
+                                return false
+                            }
+                            // 按鈕功能的欄位
+                            if (item.formatter == 'actions') {
+                                return false
+                            }
+                            return true
+                        }).map(x => x.name)
+
+                        let headerNames = headerKeys.map(key => $('#jqgh_grid-table_' + key).text())
+
+                        let sJson = JSON.stringify(gridData)
+
+                        return {
+                            header: headerNames,
+                            json: sJson
+                        }
+
+                    }
+
+                    // Export to csv function
+                    function JSONToCSVConvertor(JSONData, FileName, CustomHeader, ShowHeader) {
+                        // 參數預設
+                        if (typeof CustomHeader === 'undefined') {
+                            CustomHeader = []
+                        }
+                        if (typeof ShowHeader === 'undefined') {
+                            ShowHeader = true
+                        }
+
+                        // parse json if json is not object
+                        var arrData = typeof JSONData != 'object' ? JSON.parse(JSONData) : JSONData;
+
+                        var CSV = '';
+
+                        // Set CSV Header
+                        if (ShowHeader) {
+                            var row = "";
+                            let headerKeys = []
+
+                            // 以第一筆資料的keys當作header (如果有資料)
+                            if (arrData.length > 0) {
+                                headerKeys = Object.keys(arrData[0])
+                            }
+
+                            // 自訂義header (一般將keys替換成中文，依照陣列的index順序)
+                            if (CustomHeader.length > 0) {
+                                //
+                                if (headerKeys.length > 0) {
+                                    for (let i = 0; i < headerKeys.length && i < CustomHeader.length; i++) {
+                                        headerKeys[i] = CustomHeader[i]
+                                    }
+                                } else {
+                                    // json data is empty
+                                    headerKeys = CustomHeader
+                                }
+                            }
+
+                            // csv string
+                            for (let i = 0; i < headerKeys.length; i++) {
+                                row += headerKeys[i] + ',';
+                            }
+
+                            // remove the last comma
+                            row = row.slice(0, -1);
+
+                            //append Label row with line break
+                            CSV += row + '\r\n';
+                        }
+
+                        // Set CSV Body
+                        //1st loop is to extract each row
+                        if (arrData.length > 0) {
+                            for (var i = 0; i < arrData.length; i++) {
+                                var row = "";
+
+                                //2nd loop will extract each column and convert it in string comma-seprated
+                                for (var index in arrData[i]) {
+                                    row += '"' + arrData[i][index] + '",';
+                                }
+
+                                // remove the last comma
+                                row = row.slice(0, -1);
+
+                                //add a line break after each row
+                                CSV += row + '\r\n';
+                            }
+                        }
+
+                        if (CSV == '') {
+                            alert("Invalid data");
+                            return;
+                        }
+
+                        // Initialize file format
+                        // 中文編碼 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURI(CSV)
+                        // 關鍵: %EF%BB%BF
+                        var uri = 'data:text/csv;charset=utf-8,%EF%BB%BF' + encodeURI(CSV);
+
+                        // Now the little tricky part.
+                        // you can use either>> window.open(uri);
+                        // but this will not work in some browsers
+                        // or you will not get the correct file extension
+
+                        var link = document.createElement("a");
+                        link.href = uri;
+                        link.style = "visibility:hidden";  //set the visibility hidden so it will not effect on your web-layout
+                        link.download = FileName + ".csv";
+
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+                    }
+                })
+            </script>
+        </text>
+    }
+}
+
+<!-- 查詢與預設 jqgrid -->
+<script typeof="text/javascript">
+    jQuery(function ($) {
+
+        /* 以下是查詢視窗的 script */
+
+        // 讓視窗可以拖動
+        // Make bootstrap modal draggable
+        $(".modal").draggable({
+            handle: ".modal-header",
+        })
+        $(".modal-header").css({
+            'cursor': 'all-scroll'
+        });
+
+        // 點擊查詢按鈕 autofocus input
+        $('#query_btn').click(function () {
+            // 直接用 $('input[name="field_value"]').focus() 沒有作用
+            setTimeout(function () {
+                $('input[name="field_value"]').focus()
+            }, 0);
+        })
+
+        // 清空條件
+        $('#modal-form').find('.clear_query_all').click(function () {
+            $('#query_sql_div').empty()
+        })
+
+        // 清除上一個條件
+        $('#modal-form').find('.clear_query_last').click(function () {
+            $('#query_sql_div').children().last().remove()
+            $('input[name="field_value"]').focus()
+        })
+
+        // 點擊刪除
+        $('#query_sql_div').on('click', 'button', function () {
+            $(this).closest('.row').remove()
+        })
+
+        // 點擊查詢類別
+        $('#modal-form').find('input[name="query_type"]').click(function () {
+            // 預設一個欄位
+            $('#query_sql_div').empty()
+            let newRow = Get_NewRow()
+            $('#query_sql_div').append(newRow)
+            $('input[name="field_value"]').focus()
+        })
+
+        // 新增查詢條件
+        $('#modal-form').find('.add_query').click(function () {
+            let newRow = Get_NewRow()
+            $('#query_sql_div').append(newRow)
+            $('input[name="field_value"]').focus()
+        })
+
+        // 欄位下拉
+        $('#query_sql_div').on('change', 'select', function () {
+            $('#modal-form').find('input[name="field_value"]').focus()
+        })
+
+        // 點擊查詢
+        $('#query_jqGrid').on('click', function () {
+            // 如果localStorage沒有資料，但是點選保留或已查詢
+            if (!localStorage.getItem(queryStateKey)) {
+                let query_type = $('input[name="query_type"]:checked').val()
+                if (["KEEP", "IN"].includes(query_type.toUpperCase())) {
+                    alert('請先選擇新查詢! ')
+                    $('button[id="query_jqGrid"]').removeAttr('data-dismiss')
+                    return;
+                } else {
+                    $('button[id="query_jqGrid"]').attr('data-dismiss', 'modal')
+                }
+            }
+
+            //  儲存查詢條件
+            let current_queryData = Get_QueryData()
+            Set_QueryDatas(current_queryData)
+
+            // 刷新jqgrid
+            refreshGrid()
+        })
+
+
+        @* C# Razor 的變數 *@
+        let queryStateKey = "query_datas_@sPrgCode"
+
+        let fieldOptions = `@CustomHelper.Get_Option(query_DDL, "", false)`  // 查詢的欄位
+        let operatorOptions = `@CustomHelper.Get_Option(field_op_DDL, "", false)`  // 查詢的運算子
+
+        // 查詢狀態操作
+        function Set_QueryState(data){
+            if (!data){
+                return
+            }
+            try{
+                let saveString = JSON.stringify(data)
+                localStorage.setItem(queryStateKey, saveString)
+            }catch(e){
+                console.log(e.message)
+            }
+        }
+
+        function Get_QueryState(){
+            let current = localStorage.getItem(queryStateKey)
+            return current
+        }
+
+        function Del_QueryState(){
+            let current = localStorage.getItem(queryStateKey)
+            if (!current){
+                return
+            }
+            localStorage.removeItem(queryStateKey)
+            return current
+        }
+
+        // 預設查詢狀態
+        if (Get_QueryState()) {
+            // 取得localStorage的資料
+            let query_datas = JSON.parse(Get_QueryState())
+            let last_query = {};
+            if (query_datas.length > 0) {
+                last_query = query_datas[query_datas.length - 1];
+                let query_type = last_query.query_type
+                let query_conditions = last_query.query_conditions
+                // 預設查詢狀態
+                // 查詢類別
+                $('#modal-form').find('input[name="query_type"]').each(function () {
+                    if ($(this).val() == query_type) { $(this).prop("checked", true) }
+                })
+
+                // 清空條件
+                $('#query_sql_div').empty()
+                // 預設查詢欄位
+                for (let i = 0; i < query_conditions.length; i++) {
+                    let query_row = Get_QueryRow(query_conditions[i])
+                    $('#query_sql_div').append(query_row)
+                }
+                // 預設查詢狀態 end
+            }
+        }
+
+        // 取得畫面上目前的查詢條件
+        function Get_QueryData() {
+            // 取得查詢類別
+            let query_type = $('input[name="query_type"]:checked').val()
+
+            // 設這查詢條件 陣列
+            let query_conditions = []
+            $('#query_sql_div').find('.row').each(function () {
+                let field_code = $(this).find('select[name="field_code"]').val()
+                let field_operator = $(this).find('select[name="field_operator"]').val()
+                let input = $(this).find('input[name="field_value"]').val()
+                let data = {
+                    field_code: field_code,
+                    field_operator: field_operator,
+                    field_value: input
+                };
+                if (field_code) {
+                    query_conditions.push(data)
+                }
+            })
+            let query_data = {
+                query_type: query_type,
+                query_conditions: query_conditions
+            }
+            return query_data
+        }
+
+        // 儲存查詢條件
+        function Set_QueryDatas(query_data) {
+            let query_datas = []
+            // 如果localStorage沒有資料或是空字串
+            if (!Get_QueryState()) {
+                query_datas.push(query_data)
+                Set_QueryState(query_datas)
+            } else {
+                // 新查詢，直接覆蓋localStorage資料
+                if (query_data.query_type.toUpperCase() == "NEW") {
+                    query_datas.push(query_data)
+                    Set_QueryState(query_datas)
+                } else {
+                    // 增加查詢資料
+                    query_datas = JSON.parse(Get_QueryState())
+                    query_datas.push(query_data)
+                    Set_QueryState(query_datas)
+                }
+            }
+        }
+
+        // 取得新的條件列
+        function Get_NewRow() {
+            let newRow = $(`
+                <div class="row">
+                    <div class="space-6"></div>
+                    <div class="col-sm-3" >
+                        <select class="form-control" id="" name="field_code">
+                            ${fieldOptions}
+                        </select>
+                    </div>
+                    <div class="col-sm-2 no-padding-left">
+                        <select class="form-control" id="" name="field_operator">
+                            ${operatorOptions}
+                        </select>
+                    </div>
+                    <div class="col-sm-5 no-padding-left" >
+                        <input type="text" name="field_value" placeholder="" class="col-sm-12">
+                    </div>
+                    <div class="col-sm-2 no-padding-left">
+                        <button class="btn btn-danger btn-sm">
+                            <i class="ace-icon fa fa-trash-o bigger-130"></i>
+                            刪除
+                        </button>
+                    </div>
+                </div>
+            `)
+            return newRow
+        }
+
+        // 取得新的條件列 (設置資料)
+        function Get_QueryRow(field_data) {
+            let newRow = Get_NewRow()
+            // 欄位參數
+            newRow.find('select[name="field_code"]').children().each(function () {
+                if ($(this).val() == field_data.field_code) {
+                    $(this).prop("selected", true)
+                    return;
+                }
+            })
+            // 邏輯運算子
+            newRow.find('select[name="field_operator"]').children().each(function () {
+                if ($(this).val() == field_data.field_operator) {
+                    $(this).prop("selected", true)
+                    return;
+                }
+            })
+            // 欄位值
+            newRow.find('input[name="field_value"]').val(field_data.field_value)
+            return newRow
+        }
+
+        /* 以上是查詢視窗的 script */
+
+
+        /* 以下是jqgrid 的 script */
+        // 初始變數和其他
+        let grid_selector = "#grid-table";
+        let pager_selector = "#grid-pager";
+        let parent_column = $(grid_selector).closest('[class*="col-"]');
+
+        @* C# Razor 的變數 *@
+        // 資料處理相關Url
+        let updateUrl = `@sUpdateUrl`  // 點擊修改按鈕，跳轉頁面的url
+        let deleteUrl = `@sDeleteUrl`  // 刪除資料的ajax url
+        //let chkDelUrl = `@sChkDelUrl`  // 刪除資料前檢查的ajax url
+
+        // jqGrid部分功能 控制
+        let sEnableRowFilter = "@sEnableRowFilter"  // 是否要有表頭的欄位篩選 (row filter) ( 'Y' / 'N' )
+        let sEnableSubgrid = "@sEnableSubgrid"  // 是否要有subgrid ( 'Y'/ 'N' )
+        let sIsMulti = "@sIsMulti"  // 是否多選
+        let page_count = '@sPageCount' // 每頁顯示筆數
+
+        // 主檔鍵值，一般和明細關聯 (ajax取得明細資料的篩選條件)
+        // 設定在Model，沒設定預設是空字串
+        let modelKey = '@key'
+
+        /* jqGrid 的資料來源和欄位 */
+        // 主檔
+        // 資料來源的url (ajax)
+        let getDataUrl = `@sGetDataUrl`
+
+        // 欄位設定
+        let columnData = @Html.Raw(Json.Encode(ColumnInfoList));
+
+        // 明細
+        // 資料來源的url (ajax)
+        let getDataUrl_D1 = `@sGetDataUrl_D1`
+
+        // 欄位設定
+        let columnData_D1 = @Html.Raw(Json.Encode(ColumnInfoList_D1));
+
+        // 將columnData轉換成jqgrid的colModel
+        // 主檔
+        let jqgrid_colModel = [
+            {
+                label: '(功能)',
+                name: 'myac', index: '', width: 75, sortable: false, fixed: true, //resize: false,
+                search: false,
+                formatter: 'actions',
+                formatoptions: {
+                    delbutton: false,
+                    editbutton: false
+                }
+            }
+        ] // 先加入功能欄位
+        jqgrid_colModel = jqgrid_colModel.concat(columnData.map(function(item, index){
+            let props = {
+                name: item.name,
+                index: item.name,
+                hidden: item.hidden,
+                width: 100
+            }
+            // 資料自帶的表頭
+            if (item.displayName){
+                props.label = item.displayName
+            }
+
+            // 貨幣格式
+            if (item.dataType){
+                if (item.dataType.toLowerCase() == "currency"){
+                    // 靠右
+                    props.align = 'right'
+
+                    // 千分位
+                    props.formatter = 'integer'
+                    props.formatoptions = { thousandsSeparator: "," }
+                }
+            }
+
+            return props
+        }))
+
+        let jqgrid_colNames = jqgrid_colModel.map(function(item, index){
+            if (item.label){
+                return item.label
+            }
+            return item.name
+        })
+
+        // 明細
+        let jqgrid_colModel_D1 =  columnData_D1.map(function(item, index){
+            let props = {
+                name: item.name,
+                index: item.name,
+                hidden: item.hidden,
+                width: 150
+            }
+            // 資料自帶的表頭
+            if (item.displayName){
+                props.label = item.displayName
+            }
+
+            // 貨幣格式
+            if (item.dataType){
+                if (item.dataType.toLowerCase() == "currency"){
+                    // 靠右
+                    props.align = 'right'
+
+                    // 千分位
+                    props.formatter = 'integer'
+                    props.formatoptions = { thousandsSeparator: "," }
+                }
+            }
+
+            return props
+        })
+        let jqgrid_colNames_D1 = jqgrid_colModel_D1.map(function(item, index){
+            if (item.label){
+                return item.label
+            }
+            return item.name
+        })
+
+        // subgrid 選項
+        let subgrid_options = {
+            url: getDataUrl_D1,
+            datatype: 'json',
+            mtype: 'post',
+            postData: { pTkCode: '' },
+            colNames: jqgrid_colNames_D1,
+            colModel: jqgrid_colModel_D1,
+            shrinkToFit: false,
+            loadonce: true,
+            loadComplete: function () {},
+            resizeStart: function (event, index) {
+                // 讓最後一欄 可以resize
+                // work around
+                let colModel = $(this).jqGrid('getGridParam', 'colModel')
+
+                let showCols = colModel.filter(x => !x.hidden)
+                let curret_col = colModel[index]
+
+                if (curret_col.name == showCols[showCols.length - 1].name) {
+                    let current_gridWidth = $(this).jqGrid('getGridParam', 'width')
+                    $(this).jqGrid('setGridWidth', 10000)
+                }
+            },
+            onSelectRow: function (rowid, status, e) {
+                // 單選可以取消selrow
+                let isMulti = $(this).jqGrid('getGridParam', 'multiselect')
+                if (!isMulti && !status)  {
+                    $(this).jqGrid('resetSelection')
+                }
+            },
+            resizeStop: function (width, index) {
+                let id = $(this).jqGrid('getGridParam', 'id')
+                saveGridState(id, true)
+
+                //
+                resetGridWidth($(this))
+            }
+            // end subgrid options
+        }
+
+        // jqgrid 選項
+        let default_options = {
+            //subgrid options
+            subGrid: sEnableSubgrid === "Y" ? true : false,
+            subGridWidth: 50,
+            subGridOptions: {
+                plusicon: "ace-icon fa fa-plus center bigger-110 blue",
+                minusicon: "ace-icon fa fa-minus center bigger-110 blue",
+                openicon: "ace-icon fa fa-chevron-right center orange"
+            },
+            subGridRowExpanded: function (subgridDivId, rowId) {
+                // init subgrid
+                var subgridTableId = subgridDivId + "_t";
+
+                let rowData = $(this).jqGrid('getRowData', rowId)
+
+                // 設置抓取subgrid資料的postData
+                // set pTkCode for subgrid options
+                subgrid_options.postData.pTkCode = rowData[modelKey]
+
+                let subgrid_state = getGridState('grid-table', true)
+                let changed_options = adjustOptionsWithState(subgrid_options, subgrid_state)
+
+                // call jqgrid
+                $("#" + subgridDivId).html("<table id='" + subgridTableId + "'></table>");
+                $("#" + subgridTableId).jqGrid(changed_options)
+
+                //toolbar
+                //$("#" + subgridTableId).jqGrid('filterToolbar', { stringResult: true, searchOnEnter: false });
+
+                // save state
+                let id = $(this).jqGrid('getGridParam', 'id')  // 主jqgrid的id
+                setTimeout(function () {  // 直接save 沒儲存到當前的subgrid 的id
+                    saveGridState(id)
+                })
+
+            },
+            subGridRowColapsed: function () {
+                // save state
+                let id = $(this).jqGrid('getGridParam', 'id')  // 主jqgrid的id
+                setTimeout(function () {  // 直接save 沒儲存到當前的subgrid 的id
+                    saveGridState(id)
+                })
+            },
+            url: getDataUrl,
+            mtype: "Post",
+            datatype: "json",
+            postData: {
+                pWhere: function () {
+                    let q = Get_QueryState()
+                    return q ? q : ''
+                }
+            },
+            height: 'auto',
+            //height: 300,
+            colNames: jqgrid_colNames,
+            colModel: jqgrid_colModel,
+            viewrecords: true,
+            rowNum: page_count || 30,
+            rowList: (function(){
+                let list = [30, 50, 100]
+
+                let x = parseInt(page_count)
+                if (!x){
+                    return
+                }
+
+                if (!list.includes(x)){
+                    list.push(x)
+                    list.sort(function(a, b){
+                        return a - b
+                    })
+                }
+                return list
+            })(),
+            pager: pager_selector,
+            shrinkToFit: false,  //
+            altRows: true,
+            //toppager: true,
+            multiselect: sIsMulti === 'Y' ? true : false,
+            //multikey: "ctrlKey",
+            multiboxonly: false,
+            loadonce: true,   // sort, change datatype to local
+            loadComplete: function () {
+
+                let $selfGrid = $(this)
+
+                let gridId = $selfGrid.jqGrid('getGridParam', 'id')
+
+                //
+                loadStateAfterSetGrid(gridId)
+
+                //
+                setTimeout(function () {
+                    saveGridState(gridId)
+                })
+
+                var table = this;
+                setTimeout(function () {
+                    styleCheckbox(table);
+                    updateActionIcons(table);
+                    updatePagerIcons(table);
+                    enableTooltips(table);
+                }, 0);
+
+                // 功能欄位
+                let sActionCol = 'myac'
+                $(this).find(">tbody>tr.jqgrow>td[aria-describedby$='" + sActionCol + "']")
+                .each(function () {
+                    let rowId = $(this).parent("tr").attr("id")
+                    let rowData = $selfGrid.jqGrid('getRowData', rowId) // object
+
+                    // 刪除按鈕
+                    if (rowData.can_delete == "Y") {
+                        $("<div>", {
+                            title: "刪除所選記錄",
+                            mouseover: function () {
+                                $(this).addClass('ui-state-hover');
+                            },
+                            mouseout: function () {
+                                $(this).removeClass('ui-state-hover');
+                            },
+                            click: function (e) {
+                                // Get data from selected row
+                                //let id = $(e.target).closest("tr.jqgrow").attr("id")
+                                $selfGrid.jqGrid('delGridRow', rowId, {
+                                    recreateForm: true,
+                                    beforeShowForm: beforeDeleteCallback,
+                                    // 刪除資料前檢查
+                                    beforeSubmit: function (postdata, formid) {
+                                        // 在這裡官方文件是錯的，實際上postdata是rowid，formid是undefined
+
+                                        // 如果chkDelUrl is not defined
+                                        try {
+                                            chkDelUrl
+                                        } catch(ex) {
+                                            return [true, ""]
+                                        }
+
+                                        // 如果chkDelUrl是undefined或是空字串
+                                        if (!chkDelUrl){
+                                            return [true, ""]
+                                        }
+
+                                        let result = [false, ""];
+
+                                        let rowData = $(this).jqGrid('getRowData', rowId)
+
+                                        $.ajax({
+                                            async: false,
+                                            method: 'post',
+                                            url: chkDelUrl,
+                                            data: rowData,
+                                            datatype: 'json',
+                                            success: function (data) {
+                                                result = [data.isValid,  data.message]
+                                            },
+                                            error: function (xhr) {
+                                                //alert("刪除資料前檢查失敗!");
+                                                result = [false, '刪除資料前檢查失敗!']
+                                            }
+                                        })
+
+                                        return result;
+                                    },
+                                    url: deleteUrl,
+                                    mtype: 'post',
+                                    delData: {
+                                        pTkCode: rowData[modelKey]
+                                    },
+                                });
+                            }
+                        }
+                      ).css({ "margin-right": "5px", float: "left", cursor: "pointer" })
+                       .addClass("ui-pg-div ui-inline-custom")
+                       .append('<span class="ui-icon ui-icon-trash"></span>')
+                       .prependTo($(this).children("div"));
+                    }
+
+                    // 編輯按鈕
+                    if (rowData.can_update == "Y") {
+                        $("<div>", {
+                            title: "編輯所選記錄",
+                            mouseover: function () {
+                                $(this).addClass('ui-state-hover');
+                            },
+                            mouseout: function () {
+                                $(this).removeClass('ui-state-hover');
+                            },
+                            click: function (e) {
+                                window.location.href = updateUrl + '?pTkCode=' + rowData[modelKey]
+                            }
+                        }
+                    ).css({ "margin-right": "8px", float: "left", cursor: "pointer" })
+                        .addClass("ui-pg-div ui-inline-custom")
+                        .append('<span class="ui-icon ui-icon-pencil"></span>')
+                        .prependTo($(this).children("div"));
+                    }
+
+                });
+            },
+            onSelectRow: function (rowid, status, e) {
+                // 單選可以取消selrow
+                let isMulti = $(this).jqGrid('getGridParam', 'multiselect')
+                if (!isMulti && !status)  {
+                    $(this).jqGrid('resetSelection')
+                }
+
+                //
+                let id = $(this).jqGrid('getGridParam', 'id')
+                saveGridState(id)
+            },
+            resizeStart: function (event, index) {
+                // 讓最後一欄 可以resize
+                // work around
+                let colModel = $(this).jqGrid('getGridParam', 'colModel')
+
+                let showCols = colModel.filter(x => !x.hidden)
+                let curret_col = colModel[index]
+
+                if (curret_col.name == showCols[showCols.length - 1].name) {
+                    let current_gridWidth = $(this).jqGrid('getGridParam', 'width')
+                    $(this).jqGrid('setGridWidth', 10000)
+                }
+            },
+            resizeStop: function (width, index) {
+                let id = $(this).jqGrid('getGridParam', 'id')
+                saveGridState(id)
+
+                //
+                resetGridWidth($(this))
+            }
+        }
+
+        // 設置調整的欄位順序、顯示、寬度
+        // oGridState 基本上在localStorage
+        function adjustOptionsWithState(oDefaultOptions, oGridState) {
+            if (!oDefaultOptions) {
+                console.error('adjustOptionsWithState 一定要傳入 default options.')
+                return {}
+            }
+
+            if (!oGridState) {
+                return oDefaultOptions
+            }
+
+            // deep copy default options
+            let default_options = $.extend(true, {}, oDefaultOptions)
+
+            let state_options = oGridState
+
+            //
+            let default_colModel = default_options.colModel
+            let state_colModel = state_options.colModel
+
+            let default_names = default_colModel.map(x => x.name)
+            let state_names = state_colModel.map(x => x.name)
+
+            // set width and hidden
+            default_colModel.forEach((item, index) => {
+                let colIdx = state_names.indexOf(item.name)
+                if (colIdx > -1) {
+                    item.width = state_colModel[colIdx].width
+                    item.hidden = state_colModel[colIdx].hidden
+                }
+            })
+
+            // remap columns index
+            let remapColIdx = state_names.map(x => default_names.indexOf(x))
+
+            // filter not exist col
+            remapColIdx = remapColIdx.filter(x => x != -1)
+
+            // 處理新增的欄位 (和state相比)
+            let add_names = default_names.filter(x => state_names.indexOf(x) == -1)
+            if (add_names.length > 0) {
+                let addColIdx = add_names.map(x => default_names.indexOf(x))
+                remapColIdx = addColIdx.concat(remapColIdx)
+            }
+
+            let remapColModel = remapColIdx.map(x => default_options.colModel[x])
+            let remapColNames = remapColIdx.map(x => default_options.colNames[x])
+
+            default_options.colModel = remapColModel
+            default_options.colNames = remapColNames
+
+            return default_options
+        }
+
+        // 初始化jqgrid函數
+        function init_jqGrid(bDefault) {
+            // 讀取儲存在db的欄位調整
+            // ajax async: false
+            loadStateInDB('grid-table')
+            loadStateInDB('grid-table', true)
+
+            // 呼叫 jqgrid
+            if (bDefault) {
+                // 預設的jqgrid
+                jQuery(grid_selector).jqGrid(default_options);
+            } else {
+                // 調整狀態的的jqgrid
+                let grid_state = getGridState('grid-table')
+                let changed_options = adjustOptionsWithState(default_options, grid_state)
+                jQuery(grid_selector).jqGrid(changed_options);
+            }
+
+            // 打開和摺疊所有subgrid
+            EnableExpandAllSubgrid()
+
+            // 表頭的個別欄位查詢
+            if (sEnableRowFilter.toUpperCase() === 'Y') {
+                jQuery(grid_selector).jqGrid('filterToolbar', {
+                    stringResult: true,
+                    searchOnEnter: false,
+                    beforeSearch: function () {
+                        let id = $(this).jqGrid('getGridParam', 'id')
+                        saveGridState(id)
+                    }
+                });
+
+                // set toolbar style
+                setTimeout(function () {
+                    let search_toolbar = $('#gbox_' + grid_selector.substring(1)).find('.ui-search-toolbar').eq(0)
+                    // set height
+                    search_toolbar.css('height', '4em')
+                    // set input placeholder and autocomplete off
+                    let labels = $('#gbox_' + grid_selector.substring(1)).find('.ui-jqgrid-labels').eq(0);
+                    let colName = "";
+                    search_toolbar.find('th').find('input').attr('autocomplete', 'off');
+                    search_toolbar.find('th').each(function (i) {
+                        colName = labels.find('th').eq(i).text();
+                        $(this).find('input').attr('placeholder', '搜尋 ' + colName)
+                    })
+                })
+            }
+
+            // 表尾的按鈕
+            if (1 > 0) {
+                jQuery(grid_selector).jqGrid('navGrid', pager_selector,
+                    { 	//navbar options
+                        edit: false,
+                        editicon: 'ace-icon fa fa-pencil blue',
+                        add: false,
+                        addicon: 'ace-icon fa fa-plus-circle purple',
+                        del: false,
+                        delicon: 'ace-icon fa fa-trash-o red',
+                        search: true,
+                        searchicon: 'ace-icon fa fa-search orange',
+                        refresh: true,
+                        refreshicon: 'ace-icon fa fa-refresh green',
+                        view: true,
+                        viewicon: 'ace-icon fa fa-search-plus grey'
+                    },
+                    {
+                        //edit record form
+                        //closeAfterEdit: true,
+                        //width: 700,
+                        recreateForm: true,
+                        beforeShowForm: function (e) {
+                            var form = $(e[0]);
+                            form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+                            style_edit_form(form);
+                        }
+                    },
+                            {
+                                //new record form
+                                //width: 700,
+                                closeAfterAdd: true,
+                                recreateForm: true,
+                                viewPagerButtons: false,
+                                beforeShowForm: function (e) {
+                                    var form = $(e[0]);
+                                    form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar')
+                                    .wrapInner('<div class="widget-header" />')
+                                    style_edit_form(form);
+                                },
+                                afterShowForm: function (form) {
+                                    form.closest('div.ui-jqdialog').center();
+                                },
+                            },
+                    {
+                        // del
+                        closeAfterEdit: true,
+                        recreateForm: true,
+                        beforeShowForm: function (e) {
+                            var form = $(e[0]);
+                            form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+                            style_edit_form(form);
+                        },
+                        afterSubmit: function () { $(this).jqGrid('setGridParam', { datatype: 'json' }); return [true, ""] }
+                    },
+                    {
+                        //search form
+                        recreateForm: true,
+                        afterShowSearch: function (e) {
+                            var form = $(e[0]);
+                            form.closest('.ui-jqdialog').find('.ui-jqdialog-title').wrap('<div class="widget-header" />')
+                            style_search_form(form);
+                        },
+                        afterRedraw: function () {
+                            style_search_filters($(this));
+                        }
+                        ,
+                        multipleSearch: true,
+                        /**
+                        multipleGroup:true,
+                        showQuery: true
+                        */
+                    },
+                    {
+                        //view record form
+                        recreateForm: true,
+                        beforeShowForm: function (e) {
+                            var form = $(e[0]);
+                            form.closest('.ui-jqdialog').find('.ui-jqdialog-title').wrap('<div class="widget-header" />')
+                            form.closest('.ui-jqdialog').center()
+                        },
+
+                        afterSubmit: function () { $(this).jqGrid('setGridParam', { datatype: 'json' }); return [true, ""] }
+                    }
+                )
+            }
+        }
+
+        /*  */
+        // 初始化jqgrid
+        init_jqGrid()
+
+        // 設定 columnchooser 的按鈕文字
+        $.extend(true, $.ui.multiselect, {
+            locale: {
+                // addAll btn has problem
+                addAll: '顯示全部',
+                removeAll: '隱藏全部',
+                itemsCount: '個選擇欄位'
+            }
+        });
+
+
+
+        /* 以下是事件處理 */
+
+        // window, document
+        // ace 自帶的
+        // resize on sidebar collapse/expand
+        $(document).on('settings.ace.jqGrid', function (ev, event_name, collapsed) {
+            if (event_name === 'sidebar_collapsed' || event_name === 'main_container_fixed') {
+                //setTimeout is for webkit only to give time for DOM changes and then redraw!!!
+                setTimeout(function () {
+                    $(grid_selector).jqGrid('setGridWidth', parent_column.width());
+                }, 20);
+            }
+        })
+
+        // ace 自帶的
+        //trigger window resize to make the grid get the correct size
+        $(window).triggerHandler('resize.jqGrid');
+
+        // 重整或離開當前頁面
+        window.addEventListener("beforeunload", function (event) {
+            // save grid state
+            //saveGridState('grid-table')
+        });
+
+        // 預設寬度是100%
+        if (!getGridState('grid-table')){
+            $(grid_selector).jqGrid('setGridWidth', parent_column.width(), true);
+        }
+
+        // 自訂義按鈕
+        // 儲存欄位設定
+        $('#saveStateInDB').click(function () {
+            saveStateInDB('grid-table')
+            saveStateInDB('grid-table', true)
+        })
+
+        // 重置調整欄位
+        $('#clearState').click(function () {
+            if (!confirm('確定要還原嗎? (清除設定資料) ')) { return false }
+
+            // remove state in localStorage
+            removeGridState('grid-table')
+            removeGridState('grid-table', true)
+
+            // remove state in db
+            deleteStateInDB('grid-table')
+
+            $.jgrid.gridUnload('grid-table')
+
+            // 有時候重置失敗，用setTimeout看看
+            setTimeout(function () {
+                // default options
+                init_jqGrid(true)
+            }, 100)
+
+        })
+
+        // 自動調整grid寬度 (100%)
+        $('#fitPageWidth').click(function (e) {
+            $(grid_selector).jqGrid('setGridWidth', parent_column.width(), true);
+            console.log(parent_column.width())
+            saveGridState('grid-table')
+        })
+
+        // 自動調整grid寬度 (預設)
+        $('#200pWidth').click(function (e) {
+            $(grid_selector).jqGrid('setGridWidth', 2 * parent_column.width(), true);
+            saveGridState('grid-table')
+        })
+
+        // 主檔欄位調整
+        $('#columnChooser').click(function () {
+            CallColumnChooser('grid-table')
+        })
+
+        // 明細欄位調整
+        $('#sub_columnChooser').click(function () {
+            CallColumnChooser('grid-table', true)
+        })
+
+        // columnchooser add all bug
+        // 點擊remove all後 add all沒有作用
+        // 硬改，在capture階段 點擊add all 阻止原本的事件 觸發每個欄位的click
+        $("body")[0].addEventListener('click', function (e) {
+            let path = e.path
+            let selector = []
+            // 過濾 html, document, window
+            for (let i = 0; i < path.length - 3; i++) {
+                if (path[i].classList) {
+                    if (path[i].classList.contains('add-all')) {
+                        selector.push(i)
+                    }
+                }
+                if (path[i].id) {
+                    if (path[i].id.includes('colchooser')) {
+                        selector.push(i)
+                    }
+                }
+            }
+            // 檢查selector 順序
+            let chk_order = selector.every(function (currentValue, index, array) {
+                let nextValue = array[index + 1]
+                if (typeof nextValue !== 'undefined') {
+                    return currentValue < nextValue
+                } else {
+                    return true
+                }
+            })
+            // callback
+            if (selector.length == 2 && chk_order) {
+                e.stopPropagation()
+                $('[id^=colchooser]').find('.available').find('.action').click()
+
+                // 加點延遲
+                //$('[id^=colchooser]').find('.available').find('.action').each(function (i) {
+                //    let self = $(this)
+                //    setTimeout(function () {
+                //        self.click()
+                //    }, 50*i)
+                //})
+            }
+        }, true);
+
+        // columnchooser remove all bug
+        // 第一次 點擊remove all後 無法加回去，但是關掉再打開就沒問題，後來發現發現問題是select取到的值是null
+        // 當select改變就設值
+        $('body').on('DOMSubtreeModified', '[id^=colchooser] > div > select[multiple] ', function (e) {
+            let $select = $('[id^=colchooser]').find('select[multiple="multiple"]')
+            let multi_val = []
+
+            $select.find('option').each(function (e) {
+                if (typeof $(this).attr('selected') !== 'undefined') {
+                    multi_val.push($(this).attr('value'))
+                }
+            })
+            $select.val(multi_val)
+        })
+
+        /* 以上是事件處理 */
+
+
+
+        /* 以下是自訂義的函數 (for jqgrid)  */
+        // 打開和摺疊所有subgrid
+        function EnableExpandAllSubgrid() {
+            let gridId = 'grid-table',
+                plusIcon = "ace-icon fa fa-plus center bigger-110 ",
+                minusIcon = "ace-icon fa fa-minus center bigger-110 ",
+                expandAllTitle = "打開所有明細",
+                collapseAllTitle = "關閉所有明細";
+
+            let $container = $("#jqgh_" + gridId + "_subgrid")
+            let expandBtnHtml = '<a id="expandAllSubgrid" style="cursor: pointer; margin-left: 10px; "><span class="ui-icon ' + plusIcon +
+                        '" title="' + expandAllTitle + '"  ></span></a>'
+            let collapseBtnHtml = '<a id="collapseAllSubgrid" style="cursor: pointer; margin-left: 10px; "><span class="ui-icon ' + minusIcon +
+                        '" title="' + collapseAllTitle + '"  ></span></a>'
+
+            $(expandBtnHtml)
+                .click(function () {
+                    var $body = $(this).closest(".ui-jqgrid-view").find(">.ui-jqgrid-bdiv>div>.ui-jqgrid-btable>tbody");
+                    $body.find(">tr.jqgrow>td.sgcollapsed").click();
+                })
+                .appendTo($container)
+
+
+            $(collapseBtnHtml)
+                .click(function () {
+                    var $body = $(this).closest(".ui-jqgrid-view").find(">.ui-jqgrid-bdiv>div>.ui-jqgrid-btable>tbody");
+                    $body.find(">tr.jqgrow>td.sgexpanded").click();
+                })
+                .appendTo($container)
+        }
+
+
+        // 儲存狀態 (DB)
+        // ajax async: false
+        function saveStateInDB(gridId, IsSubgrid) {
+            try {
+                let current_state
+                if (IsSubgrid === true) {
+                    current_state = getGridState(gridId, true)
+                } else {
+                    current_state = getGridState(gridId)
+                }
+
+                if (current_state == null) {
+                    //if (IsSubgrid === true) {
+                    //    alert('尚未設定明細欄位。 ')
+                    //} else {
+                    //    alert('尚未設定主檔欄位。 ')
+                    //}
+                    return
+                }
+
+                if (current_state !== null) {
+                    //alert('開始儲存設定，請稍後...。 ')
+                }
+
+                // 篩選要儲存的資料
+                let save_state = {}
+                let selectedParams = ['colModel', 'colNames']
+
+                let keys = Object.keys(current_state)
+                selectedParams.forEach((item, index) => {
+                    if (keys.includes(item)) {
+                        save_state[item] = current_state[item]
+                    }
+                })
+
+                // filter colModel props
+                let colModel_filterProps = ['name', 'width', 'hidden']
+                let filterColModel = []
+                save_state.colModel.forEach((item) => {
+                    let o = {}
+                    colModel_filterProps.forEach((prop) => {
+                        o[prop] = item[prop]
+                    })
+                    filterColModel.push(o)
+                })
+
+                save_state.colModel = filterColModel
+
+                $.ajax({
+                    async: false,
+                    method: 'post',
+                    url: '/jqgrid/SaveState',
+                    data: {
+                        pUrlPath: location.pathname,
+                        pGridId: gridId,
+                        pJsonState: JSON.stringify(save_state),
+                        pIsSubgrid: IsSubgrid === true ? "Y" : ""
+                    }
+                }).done(function () {
+                    //
+                    if (IsSubgrid === true) {
+                        //alert('儲存明細欄位設定成功! ')
+                    } else {
+                        alert('儲存設定成功! ')
+                    }
+                })
+            } catch (e) {
+                console.log(e)
+            }
+
+            return save_state
+
+        }
+
+        // 取得狀態 (DB)
+        // ajax async: false
+        // get state in db and set it to localStorage
+        function loadStateInDB(gridId, IsSubgrid) {
+            try {
+                $.ajax({
+                    async: false,
+                    method: 'get',
+                    url: '/jqgrid/GetState',
+                    data: {
+                        pUrlPath: location.pathname,
+                        pGridId: gridId,
+                        pIsSubgrid: IsSubgrid === true ? "Y" : ""
+                    }
+                }).done(function (data) {
+                    //
+                    if (data) {
+                        let saved_state = JSON.parse(data)
+                        if (IsSubgrid === true) {
+                            let current_state = getGridState(gridId, true)
+
+                            // merge current and saved state
+                            $.extend(current_state, saved_state)
+
+                            localStorage.setItem(`subjqGrid_grid-table_${location.pathname}`, JSON.stringify(current_state))
+                        } else {
+                            let current_state = getGridState(gridId)
+
+                            // merge current and saved state
+                            $.extend(current_state, saved_state)
+
+                            localStorage.setItem(`jqGrid_grid-table_${location.pathname}`, JSON.stringify(current_state))
+                        }
+
+                    }
+                })
+            } catch (e) {
+                console.log(e)
+            }
+        }
+
+        // 刪除狀態 (DB)
+        function deleteStateInDB(gridId) {
+            try {
+                $.ajax({
+                    method: 'post',
+                    url: '/jqgrid/DeleteState',
+                    data: {
+                        pUrlPath: location.pathname,
+                        pGridId: gridId
+                    }
+                }).done(function () {
+                    //alert('清除設定成功! ')
+                })
+            } catch (e) {
+                console.log(e)
+            }
+        }
+
+        // 呼叫columnchooser函數
+        function CallColumnChooser(gridId, isSubgrid) {
+            let grid_selector
+            if (isSubgrid === true) {
+                grid_selector = `table[id^="${gridId}_"]`
+            } else {
+                grid_selector = '#' + gridId
+            }
+            let $grid = $(grid_selector)
+
+            if ($grid.length > 0) {
+                $grid.jqGrid('columnChooser', {
+                    modal: true,
+                    done: function (perm) {
+                        if (perm) {
+                            // remapColumns會改變原本的colModel順序
+                            // params => permutation: array, updateCells: bool, keepHeader: bool
+                            this.jqGrid("remapColumns", perm, true, false);
+
+
+                            let id = this.jqGrid("getGridParam", 'id');
+                            saveGridState(id, isSubgrid)
+
+                            //
+                            resetGridWidth(this)
+
+                        }
+                    }
+                })
+            }
+            else {  // 畫面上沒有jqgrid
+                if (isSubgrid === true){
+                    msg = '請打開明細! '
+                } else {
+                    msg = '沒有資料! '
+                }
+
+                alert(msg)
+            }
+
+        }
+
+        // 儲存狀態 (localStorage)
+        function saveGridState(gridId, isSubgrid) {
+            let $grid = $('#' + gridId)
+            if (!$grid) {
+                return {}
+            }
+
+            // $.jgrid.saveState方法存在localStorage的key只用grid id識別，應該會跟其他頁面有同樣id的grid的儲存狀態互相覆蓋
+            let state = $.jgrid.saveState(gridId);  // return string
+
+            let currentState = null
+            try {
+                currentState = JSON.parse(state)
+            } catch (e) {
+                console.log(e)
+                return {}
+            }
+
+            // 移除 $.jgrid.saveState 自己儲存的state
+            localStorage.removeItem(`jqGrid${gridId}_data`)
+            localStorage.removeItem(`jqGrid${gridId}`)
+
+            // remove local data in state ( too large beyond localStorage limit )
+            delete currentState.data
+
+            if (isSubgrid === true) {
+
+                let parseId = gridId.split('_')[0]
+
+                let saveKey = `subjqGrid_${parseId}_${location.pathname}`
+
+                localStorage.setItem(saveKey, JSON.stringify(currentState))
+            } else {
+                // expand subgrid
+                let expandSubGridIds = [];
+                $grid.find("tr:has(.sgexpanded)").each(function () {
+                    expandSubGridIds.push($(this).attr('id'));
+                });
+                currentState['expandSubGridIds'] = expandSubGridIds
+
+                //
+                let savedState = getGridState(gridId)
+
+                let currentPageRowIds = []
+                $grid.find("tr.jqgrow").each(function () {
+                    currentPageRowIds.push($(this).attr('id'));
+                })
+
+                if (savedState) {
+                    // selarrrow
+                    if (savedState.selarrrow) {
+                        // 當前頁面 + 當前頁面以外的 (已儲存的)
+                        let addSelarrow = savedState.selarrrow.filter(x => !currentPageRowIds.includes(x))
+                        currentState.selarrrow = currentState.selarrrow.concat(addSelarrow)
+                    }
+
+                    // expand subgrid
+                    if (savedState.selarrrow) {
+                        // 當前頁面 + 當前頁面以外的 (已儲存的)
+                        let addExpandSubGridIds = savedState.expandSubGridIds.filter(x => !currentPageRowIds.includes(x))
+                        currentState.expandSubGridIds = currentState.expandSubGridIds.concat(addExpandSubGridIds)
+                    }
+                }
+
+
+                let saveKey = `jqGrid_${gridId}_${location.pathname}`
+                localStorage.setItem(saveKey, JSON.stringify(currentState))
+
+            }
+
+            return currentState
+        }
+
+        // 取得狀態 (localStorage)
+        function getGridState(gridId, isSubgrid) {
+            // 預設gridId為grid-table
+            var args = Array.prototype.slice.call(arguments)
+            if (typeof args[0] !== 'string') {
+                gridId = 'grid-table'
+            }
+
+            let key = ''
+            if (isSubgrid === true) {
+                let parseId = gridId.split('_')[0]
+                key = `subjqGrid_${parseId}_${location.pathname}`
+            } else {
+                key = `jqGrid_${gridId}_${location.pathname}`
+            }
+
+            let state = localStorage.getItem(key)
+
+            if (!state) {
+                return null
+            }
+
+            try {
+                return JSON.parse(state)
+            } catch (e) {
+                return null  // null
+            }
+        }
+
+        // 刪除狀態 (localStorage)
+        function removeGridState(gridId, isSubgrid) {
+            // 預設gridId為grid-table
+            var args = Array.prototype.slice.call(arguments)
+            if (typeof args[0] !== 'string') {
+                gridId = 'grid-table'
+            }
+
+            let key = ''
+            if (isSubgrid === true) {
+                key = `subjqGrid_${gridId}_${location.pathname}`
+            } else {
+                key = `jqGrid_${gridId}_${location.pathname}`
+            }
+
+            let state = localStorage.getItem(key)
+            localStorage.removeItem(key)
+            return state
+        }
+
+        // 儲存jqgrid狀態
+        function setGridState(gridId, state, isSubgrid) {
+            // 預設gridId為grid-table
+            var args = Array.prototype.slice.call(arguments)
+            if (typeof args[0] !== 'string') {
+                gridId = 'grid-table'
+            }
+
+            let key = ''
+            if (isSubgrid === true) {
+                key = `subjqGrid_${parseId}_${location.pathname}`
+            } else {
+                key = `jqGrid_${gridId}_${location.pathname}`
+            }
+
+            localStorage.setItem(key, JSON.stringify(state))
+        }
+
+        // 設置jqgrid狀態 (在jqgrid初始化後)
+        // 放在 loadComplete (jqgrid event) 裡
+        function loadStateAfterSetGrid(gridId) {
+            let grid_selector = `table[id^="${gridId}"]`
+            let $grid = $(grid_selector)
+            let data = getGridState(gridId)
+            if (!data) {
+                return
+            }
+
+
+            // selrow
+            if (data.selarrrow) {
+                data.selarrrow.forEach((item, index) => {
+                    $grid.jqGrid('setSelection', item, false);
+                })
+            }
+            if (data.selrow) {
+                if (!data.selarrrow || data.selarrrow.length == 0) {
+                    $grid.jqGrid('setSelection', data.selrow, false);
+                }
+            }
+
+            // filters
+            if ($grid.jqGrid("getGridParam", "datatype") === "json") {
+                if (data.postData) {
+                    //
+                    setTimeout(function () {
+
+                        let localPostData = {
+                            nd: data.postData.nd,
+                            page: data.postData.page,
+                            rows: data.postData.rows,
+                            sidx: data.postData.sidx,
+                            sord: data.postData.sord,
+                            filters: data.postData.filters
+                        }
+
+                        $grid.jqGrid('setGridParam', {
+                            page: data.page,
+                            //sortname: data.sortname,
+                            //sortorder: data.sortorder,
+                            search: data.search,
+                            postData: localPostData
+                        })
+
+                        $grid.trigger("reloadGrid")
+                    })
+                }
+
+            }
+
+            // expand subgrid
+            if (data.expandSubGridIds) {
+                // 上面的reload會重複打開subgrid (重複發送抓subgrid data的ajax)
+                // 設置setTimeout 在reloadGrid後
+                setTimeout(function () {
+                    data.expandSubGridIds.forEach((item, index) => {
+                        $grid.jqGrid('expandSubGridRow', item);
+                    })
+                }, 10)
+            }
+
+            // toolbar (內建的篩選條件為"開頭是")
+            if (data.postData && data.postData.filters) {
+                let filters = typeof (data.postData.filters) === 'string' ? JSON.parse(data.postData.filters) : data.postData.filters
+                let rules_bw = filters.rules.filter(x => x.op == 'bw')
+                rules_bw.forEach((item, index) => {
+                    $('.ui-search-toolbar').find("input[name=" + item.field + "]").val(item.data)
+                })
+            }
+
+            // end of load
+        }
+
+        // 重新計算jqgrid寬度 (有顯示的欄位)
+        function resetGridWidth($grid) {
+            if (!$grid) { return; }
+            // reset grid width
+            // column chooser在隱藏欄位時會自己計算，但是顯示欄位時不會
+            let colModel = $grid.jqGrid("getGridParam", 'colModel');
+            let gridWidth = colModel.filter(x => !x.hidden).map(x => x.width).reduce((a, b) => a + b, 0)
+            $grid.jqGrid("setGridWidth", gridWidth);
+        }
+
+        // 刷新jqgrid
+        function refreshGrid($grid) {
+            // 預設: #grid-table
+            if (!$grid) {
+                $grid = $('#grid-table')
+            }
+
+            $grid.jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid')
+        }
+
+        /* 以上是自訂義的函數 (for jqgrid) */
+
+
+        /* 以下是 ace-admin 自帶的東西*/
+
+        function style_delete_form(form) {
+            var buttons = form.next().find('.EditButton .fm-button');
+            buttons.addClass('btn btn-sm btn-white btn-round').find('[class*="-icon"]').hide();//ui-icon, s-icon
+            buttons.eq(0).addClass('btn-danger').prepend('<i class="ace-icon fa fa-trash-o"></i>');
+            buttons.eq(1).addClass('btn-default').prepend('<i class="ace-icon fa fa-times"></i>')
+        }
+
+        function style_search_filters(form) {
+            form.find('.delete-rule').val('X');
+            form.find('.add-rule').addClass('btn btn-xs btn-primary');
+            form.find('.add-group').addClass('btn btn-xs btn-success');
+            form.find('.delete-group').addClass('btn btn-xs btn-danger');
+        }
+
+        function style_search_form(form) {
+            var dialog = form.closest('.ui-jqdialog');
+            var buttons = dialog.find('.EditTable')
+            buttons.find('.EditButton a[id*="_reset"]').addClass('btn btn-sm btn-info').find('.ui-icon').attr('class', 'ace-icon fa fa-retweet');
+            buttons.find('.EditButton a[id*="_query"]').addClass('btn btn-sm btn-inverse').find('.ui-icon').attr('class', 'ace-icon fa fa-comment-o');
+            buttons.find('.EditButton a[id*="_search"]').addClass('btn btn-sm btn-purple').find('.ui-icon').attr('class', 'ace-icon fa fa-search');
+        }
+
+        function beforeDeleteCallback(e) {
+            var form = $(e[0]);
+            if (form.data('styled')) return false;
+            form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+            style_delete_form(form);
+            form.data('styled', true);
+        }
+
+        function beforeEditCallback(e) {
+            var form = $(e[0]);
+            form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+            style_edit_form(form);
+        }
+
+        function styleCheckbox(table) {
+            /**
+                $(table).find('input:checkbox').addClass('ace')
+                .wrap('<label />')
+                .after('<span class="lbl align-top" />')
+                $('.ui-jqgrid-labels th[id*="_cb"]:first-child')
+                .find('input.cbox[type=checkbox]').addClass('ace')
+                .wrap('<label />').after('<span class="lbl align-top" />');
+            */
+        }
+
+        function updateActionIcons(table) {
+            /**
+            var replacement =
+            {
+                'ui-ace-icon fa fa-pencil' : 'ace-icon fa fa-pencil blue',
+                'ui-ace-icon fa fa-trash-o' : 'ace-icon fa fa-trash-o red',
+                'ui-icon-disk' : 'ace-icon fa fa-check green',
+                'ui-icon-cancel' : 'ace-icon fa fa-times red'
+            };
+            $(table).find('.ui-pg-div span.ui-icon').each(function(){
+                var icon = $(this);
+                var $class = $.trim(icon.attr('class').replace('ui-icon', ''));
+                if($class in replacement) icon.attr('class', 'ui-icon '+replacement[$class]);
+            })
+            */
+        }
+
+        //replace icons with FontAwesome icons like above
+        function updatePagerIcons(table) {
+            var replacement =
+            {
+                'ui-icon-seek-first': 'ace-icon fa fa-angle-double-left bigger-140',
+                'ui-icon-seek-prev': 'ace-icon fa fa-angle-left bigger-140',
+                'ui-icon-seek-next': 'ace-icon fa fa-angle-right bigger-140',
+                'ui-icon-seek-end': 'ace-icon fa fa-angle-double-right bigger-140'
+            };
+            $('.ui-pg-table:not(.navtable) > tbody > tr > .ui-pg-button > .ui-icon').each(function () {
+                var icon = $(this);
+                var $class = $.trim(icon.attr('class').replace('ui-icon', ''));
+
+                if ($class in replacement) icon.attr('class', 'ui-icon ' + replacement[$class]);
+            })
+        }
+
+        function enableTooltips(table) {
+            $('.navtable .ui-pg-button').tooltip({ container: 'body' });
+            $(table).find('.ui-pg-div').tooltip({ container: 'body' });
+        }
+
+        //var selr = jQuery(grid_selector).jqGrid('getGridParam','selrow');
+
+        $(document).one('ajaxloadstart.page', function (e) {
+            $.jgrid.gridDestroy(grid_selector);
+            $('.ui-jqdialog').remove();
+        });
+
+        //$('#gbox_grid-table').css({width: parent_column.width()})
+
+        /* 以上是 ace-admin 自帶的 */
+
+    }) // jQuery(function(){ ... }) end
+</script>

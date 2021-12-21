@@ -1,0 +1,399 @@
+﻿@using MES_WATER.Models;
+@{
+    //ViewBag.Title = "Index";
+    //Layout = "~/Views/Shared/_Layout.cshtml";
+    Layout = null;
+    string TkCode = ViewBag.TkCode;
+    List<DDLList> station_list = ViewBag.station_list;
+}
+
+
+
+<link rel="stylesheet" type="text/css" href="~/Scripts/assets/gooflow/css/GooFlow2.css" />
+
+<!--自订制程 -->
+<style type="text/css">
+    .GooFlow .ico_WS01 {
+        background: url(../../Scripts/assets/gooflow/img/gooflow_icon2.png) no-repeat -116px -45px;
+    }
+
+    .GooFlow .ico_WS02 {
+        background: url(../../Scripts/assets/gooflow/img/gooflow_icon2.png) no-repeat -116px -45px;
+    }
+
+    .GooFlow .ico_WS03 {
+        background: url(../../Scripts/assets/gooflow/img/gooflow_icon2.png) no-repeat -116px -45px;
+    }
+
+    .GooFlow [class*="ico_L"] {
+        background: url(../../Scripts/assets/gooflow/img/gooflow_icon2.png) no-repeat -116px -45px;
+    }
+
+
+</style>
+
+<script src="~/Scripts/jquery-2.2.1.min.js" type="text/javascript"></script>
+<script type="text/javascript" src="~/Scripts/assets/gooflow/js/GooFunc.js"></script>
+
+<link rel="stylesheet" type="text/css" href="~/Scripts/assets/gooflow/css/default.css" />
+<script type="text/javascript" src="~/Scripts/assets/gooflow/js/GooFlow.js"></script>
+
+
+<div id="demo" style="margin: 5px; float: left"></div>
+
+<script type="text/javascript">
+
+        var property = {
+            //width: gooflow_width,
+            //height: gooflow_height,
+            width: 1280,
+            //width: 980,
+            height: 650,
+            //height: 550,
+            toolBtns: ["start round", @for (int i = 0; i < station_list.Count; i++) { <text> '@station_list[i].field_code', </text> }"end round"],
+            haveHead: true,
+            headBtns: ["new", "open", "save", "undo", "redo"],//如果haveHead=true，则定义HEAD区的按钮
+            haveTool: true,
+            haveGroup: false,
+            useOperStack: true
+        };
+        var showMsg = true;
+        var head = {
+            new: "清空",
+            open: "讀檔",
+            save: "存檔",
+            undo: "復原",
+            redo: "重作"
+        };
+        var remark = {
+            cursor: "指標",
+            direct: "連線Y]",
+            direct2: "連線[N]",
+            start: "入口結點",
+            end: "結束結點",
+            "start round": "入口",
+            "end round": "結束",
+            @for (int i = 0; i < station_list.Count; i++) {
+                 <text>
+                    '@station_list[i].field_code': '@station_list[i].field_name',
+                 </text>
+            }
+            WS01: "自動機製程",
+            WS02: "半自動機製程",
+            WS03: "人工製程",
+            group: "組織劃分框編輯開關"
+        };
+        var demo;
+        $(document).ready(function () {
+
+            // 初始
+            demo = $.createGooFlow($("#demo"), property);
+            demo.setNodeRemarks(remark);
+
+
+
+            // 按下鍵盤按鍵 ( 目前只有 ctrl + z 和 ctrl + v )
+            document.onkeydown = function KeyPress(e) {
+                var evtobj = window.event ? event : e
+
+                // ctrl + z 復原
+                if (evtobj.keyCode == 90 && evtobj.ctrlKey) {
+                    demo.undo()
+                }
+
+                // ctrl + y 重作
+                if (evtobj.keyCode == 89 && evtobj.ctrlKey) {
+                    demo.redo()
+                }
+            };
+
+            // 節點或線刪除
+            demo.onItemDel = function (id, type) {
+                if (showMsg == false) {
+                    this.blurItem();
+                    return true;
+                }
+
+                this.blurItem();
+                return true;
+
+                //if (confirm("確定要刪除該單元嗎?")) {
+                //    this.blurItem();
+                //    return true;
+                //} else {
+                //    return false;
+                //}
+            }
+
+            // 計算判斷用的各種數量，回傳object
+            function GetCountForChk(oNodes, oLines) {
+                //
+                let iStartCnt = 0  // 只有一個起點
+                let iEndCnt = 0  // 只有一個終點
+                let iFromStartCnt = 0   // 起點需要有接站
+                let iToStartCnt = 0  // 沒有站接到起點
+                let iFromEndCnt = 0  // 終點沒有接任何站
+                let iToEndCnt = 0  // 終點要有接站
+                //let iStationCnt = 0  // 所有站都有線連接
+                let NotConnStations = [] // 未連接線的站
+
+                // 計算[入口]和[結束]的數量
+                for (let key in oNodes) {
+                    // 入口 數量
+                    if (oNodes[key]['type'].includes('start')) {
+                        iStartCnt += 1
+                    }
+
+                    // 結束 數量
+                    if (oNodes[key]['type'].includes('end')) {
+                        iEndCnt += 1
+                    }
+                }
+
+                // 計算連接[入口]和[結束]的起止數量
+                for (let key in oLines) {
+                    // line的 from 和 to 對應 node 的 key
+                    // 取得node的屬性: oNodes[*node_key*]
+
+                    // from [入口]
+                    if (oNodes[oLines[key]['from']]['type'].includes('start')) {
+                        iFromStartCnt += 1
+                    }
+
+                    // to [入口]
+                    if (oNodes[oLines[key]['to']]['type'].includes('start')) {
+                        iToStartCnt += 1
+                    }
+
+                    // from [結束]
+                    if (oNodes[oLines[key]['from']]['type'].includes('end')) {
+                        iFromEndCnt += 1
+                    }
+
+                    // to [結束]
+                    if (oNodes[oLines[key]['to']]['type'].includes('end')) {
+                        iToEndCnt += 1
+                    }
+                }
+
+                /* 檢查所有製程(入口和結束以外的節點)都要有線連接 */
+                // 不包含入口和結束的node keys
+                let MiddleNodeKeys = Object.keys(oNodes).filter(x => !(oNodes[x]['type'].includes('start') || oNodes[x]['type'].includes('end')))
+
+                // from node list
+                let LinesFrom = Object.keys(oLines).map(x => oLines[x]['from'])
+
+                // to node list
+                let LinesTo = Object.keys(oLines).map(x => oLines[x]['to'])
+
+                // 檢查node是否在from node list和 to node list中都存在
+                MiddleNodeKeys.forEach(function (item, index) {
+                    if (!(LinesFrom.includes(item) && LinesTo.includes(item))) {
+                        NotConnStations.push(item)
+                    }
+                })
+                return {
+                    iStartCnt : iStartCnt,  // 只有一個起點
+                    iEndCnt : iEndCnt,  // 只有一個終點
+                    iFromStartCnt : iFromStartCnt,   // 起點需要有接站
+                    iToStartCnt : iToStartCnt,  // 沒有站接到起點
+                    iFromEndCnt : iFromEndCnt,  // 終點沒有接任何站
+                    iToEndCnt : iToEndCnt, // 終點要有接站
+                    //iStationCnt : iStationCnt,  // 所有站都有線連接
+                    NotConnStations: NotConnStations,// 未連接線的站
+                }
+            }
+
+            // 檢查節點和線的函數，回傳訊息(string)陣列
+            //function CheckNodes(oNodes, oLines) {
+            //    // 取得判斷用的數量object
+            //    let obj = GetCountForChk(oNodes, oLines)
+
+            //    // 個別數量
+            //    let iStartCnt = obj.iStartCnt  // 只有一個起點
+            //    let iEndCnt = obj.iEndCnt  // 只有一個終點
+            //    let iFromStartCnt = obj.iFromStartCnt   // 起點需要有接站
+            //    let iToStartCnt = obj.iToStartCnt  // 沒有站接到起點
+            //    let iFromEndCnt = obj.iFromEndCnt  // 終點沒有接任何站
+            //    let iToEndCnt = obj.iToEndCnt  // 終點要有接站
+            //    //let iStationCnt = obj.iStationCnt  // 所有站都有線連接
+            //    let NotConnStations = obj.NotConnStations // 未連接線的站
+
+
+            //    /* 開始邏輯判斷，加入訊息 */
+            //    let errMsgList = []
+
+            //    if (iStartCnt === 0) {
+            //        errMsgList.push('需要有[入口]節點')
+            //    }
+
+            //    if (iEndCnt === 0) {
+            //        errMsgList.push('需要有[結束]節點')
+            //    }
+
+            //    if (iEndCnt > 1) {
+            //        errMsgList.push('[結束]節點只能有一個')
+            //    }
+
+            //    if (iStartCnt > 1) {
+            //        errMsgList.push('[入口]節點只能有一個')
+            //    }
+
+            //    if (iFromStartCnt == 0) {
+            //        errMsgList.push('未連線[入口]節點')
+            //    }
+
+            //    if (iToStartCnt > 0) {
+            //        errMsgList.push('[入口]不可設為終點')
+            //    }
+
+            //    if (iFromEndCnt > 0) {
+            //        errMsgList.push('[結束]不可設為起點')
+            //    }
+
+            //    if (iToEndCnt == 0) {
+            //        errMsgList.push('未連線[結束]節點')
+            //    }
+
+            //    if (NotConnStations.length > 0) {
+            //        errMsgList.push('未連線[製程]節點')
+            //    }
+
+            //    return errMsgList
+
+            //}
+
+            // 存檔
+            demo.onBtnSaveClick = function () {
+                // 流程圖資料 object
+                let data = demo.exportData()
+                let nodes = data.nodes
+                let lines = data.lines
+
+                // nodes or lines is empty object
+                if (Object.keys(nodes).length === 0 || Object.keys(lines).length === 0) {
+                    if (!confirm('當前畫面沒有節點或線，確定要儲存嗎? ')) {
+                        return
+                    }
+                }
+
+                // 檢查資料的訊息
+                //let errMsgList = CheckNodes(nodes, lines)
+
+                //if (errMsgList.length > 0) {
+                //    let summary = errMsgList.join('\n')
+                //    alert(summary)
+                //    return
+                //}
+
+                //
+                $.ajax({
+                    method: 'post',
+                    url: '/FlowChart/SaveFlowData',
+                    data: {
+                        pTkCode: '@TkCode',
+                        pJson: JSON.stringify(data)
+                    },
+                }).done(function (data) {
+                    if(data = "儲存成功")
+                        data = "製程設定儲存成功"
+                    alert(data)
+                })
+            }
+
+
+            // 清空
+            demo.onBtnNewClick = function () {
+                //刷新
+                showMsg = false;
+                demo.clearData();
+                showMsg = true;
+                demo.$undoStack = [];
+                demo.$redoStack = [];
+                //demo.loadData(jsondata);
+            }
+
+            // 讀檔
+            demo.onBtnOpenClick = function () {
+                showMsg = false;
+                demo.clearData();
+                showMsg = true;
+                demo.$undoStack = [];
+                demo.$redoStack = [];
+
+                //
+                $.ajax({
+                    type: "get",
+                    url: "/FlowChart/GetFlowData",
+                    data: {
+                        pTkCode: '@TkCode'
+                    },
+                    success: function (data) {
+                        if (data) {
+                            showMsg = false;
+                            demo.clearData();
+                            showMsg = true;
+                            demo.$undoStack = [];
+                            demo.$redoStack = [];
+                            demo.loadData(data);
+                        } else {
+                            alert('無存檔資料');
+                        }
+                    }
+                });
+            }
+
+            // 預設讀取
+            $.ajax({
+                type: "get",
+                url: "/FlowChart/GetFlowData",
+                data: {
+                    pTkCode: '@TkCode'
+                },
+                success: function (data) {
+                    if (data) {
+                        showMsg = false;
+                        demo.clearData();
+                        showMsg = true;
+                        demo.$undoStack = [];
+                        demo.$redoStack = [];
+                        demo.loadData(data);
+                    } else {
+                        //alert('無存檔資料');
+                    }
+                }
+            });
+
+
+        });
+        //var out;
+        //function Export() {
+        //    document.getElementById("result").value = JSON.stringify(demo.exportData());
+    //}
+
+    $('#test').click(function (e) {
+
+        e.preventDefault()
+
+        let flowJson = demo.exportData()
+        console.log(flowJson)
+    })
+
+    function test(){
+        alert("test")
+    }
+
+</script>
+
+<!-- 自訂義調整 -->
+<style>
+    .GooFlow_tool_div {
+        overflow: scroll;
+    }
+</style>
+
+<script>
+    jQuery(function($){
+        
+    })
+</script>

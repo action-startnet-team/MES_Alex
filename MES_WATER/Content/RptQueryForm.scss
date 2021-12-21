@@ -1,0 +1,22 @@
+﻿/* 查詢的欄位樣式 */
+    #query_sql_div  {
+        label {
+            font-size: 16px;
+            width: 12%
+        }
+
+        input[name="field_value"] {
+            width: 40%
+        }
+
+        /* 至 的樣式 */
+        span.to_text{
+            font-size: 16px;
+            margin: 0 5px 0 5px
+        }
+    }
+
+    /* chosen select width */
+    #modal-form .chosen-container.chosen-container-single {
+        width: 40% !important; /* or any value that fits your needs */
+    }

@@ -1,0 +1,201 @@
+﻿@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@{
+    Layout = "~/Views/Shared/_EPBLayout.cshtml";
+
+    EPBLoginController CT = new EPBLoginController();
+    Comm comm = new Comm();
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string sAction = ViewContext.RouteData.Values["action"].ToString();
+
+    EPB030BController ECT = new EPB030BController();
+
+    string sEpbTypeArray = ECT.Get_EpbType(User.Identity.Name);
+}
+
+<link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+
+<body class="no-skin">
+    <div class="">
+        @*<h3 class="blue">電子表單</h3>
+        <hr />*@
+
+        <div class="row">
+            <div class="col-xs-12">
+                <!-- PAGE CONTENT BEGINS -->
+                <ul class="nav nav-tabs" id="myTab">
+                    <li class="active">
+                        <a data-toggle="tab" href="#home">
+                            <i class="green ace-icon fa fa-pencil-square-o bigger-120"></i>
+                            電子表單
+                        </a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div id="home" class="tab-pane fade in active">
+                        <form id="validation-form" method="post" action="/@sPrgCode/@sAction" class="form-horizontal" role="form" enctype="multipart/form-data">
+
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label no-padding-right" for="form-field-1">
+                                    表單類別
+                                </label>
+                                <div class="col-sm-3">
+                                    <select class="chosen-select" id="epb_type_code" name="epb_type_code">
+                                        @if (sEpbTypeArray != "")
+                                        {
+                                            for (int i = 0; i < sEpbTypeArray.Split(',').Length; i++)
+                                            {
+                                                string sEpbType = sEpbTypeArray.Split(',')[i];
+                                                <option value="@sEpbType">@comm.Get_Data("EPB01_0000", sEpbType, "epb_type_code", "epb_type_name")</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="col-sm-3 control-label no-padding-right" for="form-field-1">
+                                    表單代號
+                                </label>
+                                <div class="col-sm-3">
+                                    <select class="chosen-select" id="epb_code" name="epb_code"></select>
+                                </div>
+                            </div>
+
+
+                            <div style="clear:both"></div>
+
+                            <div class="col-lg-offset-4">
+                                <a class="btn btn-white btn-info btn-round" id="save">
+                                    確認
+                                </a>
+                                <a href="@Url.Action("SelectProject")" class="btn btn-white btn-pink btn-round">
+                                    <i class="ace-icon fa fa-undo "></i>
+                                    返回
+                                </a>
+                            </div>
+
+                        </form>
+                    </div>
+                </div>
+                <!-- PAGE CONTENT ENDS -->
+            </div><!-- /.col -->
+        </div><!-- /.row -->
+    </div><!-- /.page-content -->
+
+
+
+    <script src="~/Scripts/assets/js/ace-elements.min.js"></script>
+    <script src="~/Scripts/assets/js/ace.min.js"></script>
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script>
+        jQuery.fn.center = function () {
+            this.css("position", "absolute");
+            this.css("top", ($(window).height() - this.height()) / 2 + $(window).scrollTop() + "px");
+            this.css("left", ($(window).width() - this.width()) / 2 + $(window).scrollLeft() + "px");
+            return this;
+        }
+
+        $(document).ready(function () {
+            if ('@Request.Cookies["EpbType"].Value.ToString()' != "") {
+                $('#epb_type_code').val('@Request.Cookies["EpbType"].Value.ToString()')
+                $('#epb_type_code').trigger("chosen:updated");
+            }
+
+            $('#epb_type_code').change()
+
+            if ('@Request.Cookies["EpdCode"].Value.ToString()' != "") {
+                $('#epb_code').val('@Request.Cookies["EpdCode"].Value.ToString()')
+                $('#epb_code').trigger("chosen:updated");
+            }
+
+        })
+
+        $('#save').click(function () {
+            $(this).attr('href', "/@sPrgCode/Report?K=" + $('#epb_code').val())
+        })
+
+
+
+        $(document).on('change', "#epb_type_code", function () {
+            $('#epb_code').empty();
+            Save_Cookie("EpbType", $('#epb_type_code').val())
+            $.ajax({
+                method: "post",
+                async: false,
+                url: '@Url.Action("Get_EpbCode", "EPB030B")',
+                data: {
+                    Key: function () { return $('#epb_type_code').val(); },
+                },
+                success: function (data) {
+                    if (data != "") {
+                        for (let i = 0; i < data.split(',').length; i++) {
+                            dat = data.split(',')[i]
+                            d = dat.split('|')
+                            $('#epb_code').append('<option value = ' + d[0] + '>' + d[0] + " - " + d[1] + '</option>')
+                        }
+                    }
+                }
+            })
+            $('#epb_code').trigger("chosen:updated");
+        })
+
+
+
+        $(document).on('change', "#epb_code", function () {
+            Save_Cookie("EpdCode", $('#epb_code').val())
+        })
+
+        function Save_Cookie(n, v) {
+            $.ajax({
+                method: "post",
+                async: true,
+                url: '@Url.Action("Save_Cookie", sPrgCode)',
+                data: {
+                    pCookieName: function () { return n; },
+                    pValue: function () { return v; },
+                },
+            })
+        }
+
+
+
+
+
+
+
+
+
+        if (!ace.vars['touch']) {
+            $('.chosen-select').chosen({ allow_single_deselect: true });
+            //resize the chosen on window resize
+
+            $(window)
+            .off('resize.chosen')
+            .on('resize.chosen', function () {
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            }).trigger('resize.chosen');
+            //resize chosen on sidebar collapse/expand
+            $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                if (event_name != 'sidebar_collapsed') return;
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            });
+
+            $('#chosen-multiple-style .btn').on('click', function (e) {
+                var target = $(this).find('input[type=radio]');
+                var which = parseInt(target.val());
+                if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                else $('#form-field-select-4').removeClass('tag-input-style');
+            });
+        }
+
+
+    </script>
+</body>
+

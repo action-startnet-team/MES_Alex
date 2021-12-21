@@ -1,0 +1,430 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Web;
+using System.Web.Mvc;
+using MES_WATER.Models;
+using MES_WATER.Repository;
+using System.Data;
+using System.Linq.Dynamic;
+using System.Web.Security;
+using System.Reflection;
+using Newtonsoft.Json;
+
+namespace MES_WATER.Controllers
+{
+    [Authorize] //登入驗證
+    [HandleError(View = "Error")]  //錯誤導向
+
+    public class MED070AController : JsonNetController
+    {
+        //程式代號
+        string sPrgCode = "MED070A";
+        //需要用到的Repo
+        MED07_0000Repository repoMED07_0000 = new MED07_0000Repository();
+        MEP02_0000Repository repoMEP02_0000 = new MEP02_0000Repository();
+        //共用函式庫
+        Comm comm = new Comm();
+        GetModelValidation gmv = new GetModelValidation();
+
+
+        /* 資料處理 向下 */
+        /// <summary>
+        /// (固定區) 主檔 首頁
+        /// </summary>
+        /// <returns></returns>
+        public ActionResult Index()
+        {
+            //要結合權限控制
+            //ViewBag.limit_str = comm.Get_LimitByUsrCode(User.Identity.Name, sPrgCode);
+            ViewBag.prg_code = sPrgCode;
+
+            // 使用者, controllerName, actionName
+            string usr_code = User.Identity.Name;
+            string prg_code = sPrgCode;
+            string view_code = ControllerContext.RouteData.Values["action"].ToString();
+
+            //取得欄位寬度
+            List<BDP30_0000> colWidth_list = comm.Get_BDP30_0000(usr_code, prg_code, view_code);
+            List<BDP30_0000> colWidth_list_D1 = comm.Get_BDP30_0000(usr_code, prg_code, view_code + "_D1");
+            ViewBag.colWidth_list = colWidth_list;
+            ViewBag.colWidth_list_D1 = colWidth_list_D1;
+
+            //取得欄位顯示
+            List<BDP30_0100> is_show_list = comm.Get_BDP30_0100(usr_code, prg_code, view_code);
+            List<BDP30_0100> is_show_D1_list = comm.Get_BDP30_0100(usr_code, prg_code, view_code + "_D1");
+            ViewBag.is_show_list = is_show_list;
+            ViewBag.is_show_D1_list = is_show_D1_list;
+
+            return View();
+        }
+
+        /// <summary>
+        /// (固定區)主檔 首頁 按下查詢按鈕 JqGrid資料來源
+        /// </summary>
+        /// <param name="pWhere">使用者下的查詢條件 Json</param>
+        /// <returns></returns>
+        public ActionResult Get_GridDataByQuery(string pWhere)
+        {
+            string sUsrCode = User.Identity.Name;
+            //string sPrgCode = sPrgCode;
+
+            List<MED07_0000> list = new List<MED07_0000>();
+            list = repoMED07_0000.Get_DataListByQuery(sUsrCode, sPrgCode, pWhere);
+
+            return Json(list, JsonRequestBehavior.AllowGet);
+        }
+
+
+        /// <summary>
+        /// (修改區) 主檔 新增
+        /// 1.新增模式下控項的預設值在這邊設定
+        /// </summary>
+        /// <returns></returns>
+        public ActionResult Insert()
+        {
+            //要結合權限控制
+            //ViewBag.limit_str = comm.Get_LimitByUsrCode(User.Identity.Name, sPrgCode);
+            ViewBag.prg_code = sPrgCode;
+
+            //新增模式的預設值
+            MED07_0000 newData = new MED07_0000();
+
+            return View(newData);
+        }
+
+        /// <summary>
+        /// (修改區) 主檔 修改
+        /// 1.依資料鍵值到DB取回資料呈現在修改模式頁面
+        /// </summary>
+        /// <param name="pTkCode">資料鍵值</param>
+        /// <returns></returns>
+        public ActionResult Update(string pTkCode)
+        {
+            //ViewBag.limit_str = comm.Get_LimitByUsrCode(User.Identity.Name, sPrgCode);
+            ViewBag.prg_code = sPrgCode;
+
+            MED07_0000 newData = repoMED07_0000.GetDTO(pTkCode);
+
+            return View(newData);
+        }
+
+
+        /// <summary>
+        /// (修改區) 主檔的新增頁面將值存進DB
+        /// </summary>
+        /// <param name="form">畫面上輸入的form元件中的控制項集合</param>
+        /// <param name="model">要存檔的model</param>
+        /// <returns></returns>
+        [HttpPost]
+        public ActionResult Insert(FormCollection form, MED07_0000 model)
+        {
+            // MVC model驗證
+            if (ModelState.IsValid)
+            {
+                // 自訂義 資料驗證
+                bool bIsOK = Chk_Ins_Main(form);
+
+                // 資料驗證失敗
+                if (!bIsOK)
+                {
+                    ViewBag.showErrMsg = true;
+                    ViewBag.prg_code = sPrgCode;
+                    return View(model);
+                }
+
+                //執行存檔
+
+                MED07_0000 data = new MED07_0000();
+                comm.Set_ModelValue(data, form);
+
+                //在取完畫面上的值後，如果有一些別名欄位要變更值，可以在這邊2次加工
+                data.ins_date = DateTime.Now.ToString("yyyy/MM/dd");
+                data.ins_time = DateTime.Now.ToString("HH:mm:ss");
+                data.usr_code = User.Identity.Name;
+
+
+                repoMED07_0000.InsertData(data);
+
+                // 新增紀錄資料
+                comm.Ins_BDP20_0000ForMdy(User.Identity.Name, sPrgCode, "insert", "", data);
+                //存完檔回到主頁，如果不跳回主頁要在這裡做修改
+                return RedirectToAction("Index");
+
+
+            }
+            ViewBag.showErrMsg = true;
+            ViewBag.prg_code = sPrgCode;
+            return View(model);
+        }
+
+        /// <summary>
+        /// (修改區) 主檔的修改頁面將值存進DB
+        /// </summary>
+        /// <param name="form">畫面上輸入的form元件中的控制項集合</param>
+        /// <param name="model">要存檔的model</param>
+        /// <returns></returns>
+        [HttpPost]
+        public ActionResult Update(FormCollection form, MED07_0000 model)
+        {
+            var i = form["is_end"];
+            // MVC model驗證 資料格式檢查
+            if (ModelState.IsValid)
+            {
+                // 自定義 資料邏輯檢查
+                bool bIsOK = Chk_Upd_Main(form);
+
+                // 資料驗證失敗
+                if (!bIsOK)
+                {
+                    ViewBag.showErrMsg = true;
+                    ViewBag.prg_code = sPrgCode;
+                    return View(model);
+                }
+
+                //執行存檔
+                MED07_0000 data = new MED07_0000();
+                comm.Set_ModelValue(data, form);
+
+                //二次
+                if (i == "Y")
+                {
+                    data.end_date = DateTime.Now.ToString("yyyy/MM/dd");
+                    data.end_time = DateTime.Now.ToString("HH:mm:ss");
+                    data.end_usr_code = User.Identity.Name;
+                }
+
+                MED07_0000 sBefore = comm.GetData<MED07_0000>(data);
+                repoMED07_0000.UpdateData(data);
+                //更新紀錄資料
+                comm.Ins_BDP20_0000ForMdy(User.Identity.Name, sPrgCode, "update", sBefore, data);
+
+
+                return RedirectToAction("Index");
+
+
+
+            }
+
+            ViewBag.showErrMsg = true;
+            ViewBag.prg_code = sPrgCode;
+            return View(model);
+        }
+
+        /// <summary>
+        /// (修改區) 按下刪除後刪除DB動作
+        /// </summary>
+        /// <param name="pTkCode">要刪除的鍵值</param>
+        /// <returns></returns>
+        [HttpPost]
+        public ActionResult Delete(string pTkCode)
+        {
+            //刪除前的檢查要在JqGrid送出前檢查，所以對應Chk_Del_Main這個函數
+            MED07_0000 sBefore = comm.GetData<MED07_0000>(pTkCode);
+            repoMED07_0000.DeleteData(pTkCode);
+            //刪除紀錄資料
+            comm.Ins_BDP20_0000ForMdy(User.Identity.Name, sPrgCode, "delete", sBefore, "");
+            return RedirectToAction("Index");
+        }
+        /* 資料處理 向上 */
+
+        //資料檢查 向下//
+        //主檔的檢查
+        [HttpPost]
+        public ActionResult Check_Data(FormCollection form, MED07_0000 model)
+        {
+            bool isSuccess = false;
+            //檢查資料代碼是否重覆
+            string key = gmv.GetKey<MED07_0000>(new MED07_0000());
+            string sWhere = "where " + key + "='" + form[key].ToString() + "'";
+            bool hasRow = !comm.Chk_RelData("MED07_0000", sWhere);
+            if (hasRow)
+            {
+                ModelState.AddModelError(key, "代碼已存在!");
+                isSuccess = true;
+            }
+            var returnData = new
+            {
+                // 成功與否
+                IsSuccess = isSuccess,
+                // ModelState錯誤訊息 
+                ModelStateErrors = ModelState.Where(x => x.Value.Errors.Count > 0)
+                    .ToDictionary(k => k.Key, k => k.Value.Errors.Select(e => e.ErrorMessage).ToArray())
+            };
+            return Content(Newtonsoft.Json.JsonConvert.SerializeObject(returnData), "application/json");
+        }
+
+        /* 資料檢查 向下 */
+        /// <summary>
+        /// (修改處) 新增資料前的資料檢查點
+        /// </summary>
+        /// <param name="form">畫面上輸入的值集合</param>
+        /// <returns></returns>
+        private bool Chk_Ins_Main(FormCollection form)
+        {
+            bool bIsOK = true;
+
+            //** 依作業不同有不同的檢查點 向下
+            //檢查有錯時用以下程式碼顯示錯誤訊息
+            //程式參考
+            //if (!comm.Chk_IdNo(form["pro_code"]).isValid)
+            //{
+            //    bDataIsValid = false;
+            //    ModelState.AddModelError("pro_code", comm.Chk_IdNo(form["pro_code"]).message);
+            //}
+
+            //** 依作業不同有不同的檢查點 向上
+
+            //檢查結果回傳
+            return bIsOK;
+        }
+
+        /// <summary>
+        /// (修改處) 修改資料前的資料檢查點
+        /// </summary>
+        /// <param name="form">畫面上輸入的值集合</param>
+        /// <returns></returns>
+        private bool Chk_Upd_Main(FormCollection form)
+        {
+            // 自訂義資料檢查開始
+            bool bIsOK = true;
+
+            //** 依作業不同有不同的檢查點 向下
+
+            //檢查有錯時用以下程式碼顯示錯誤訊息
+            //程式參考
+            //if (!comm.Chk_IdNo(form["pro_code"]).isValid)
+            //{
+            //    bDataIsValid = false;
+            //    ModelState.AddModelError("pro_code", comm.Chk_IdNo(form["pro_code"]).message);
+            //}
+
+            //** 依作業不同有不同的檢查點 向上
+            return bIsOK;
+        }
+
+        /// <summary>
+        /// (修改處) 刪除資料前的資料檢查點
+        /// </summary>
+        /// <param name="form">畫面上輸入的值集合</param>
+        /// <returns></returns>
+        [HttpPost]
+        public JsonResult Chk_Del_Main(FormCollection form)
+        {
+            bool bIsOK = true;
+            string message = "";
+            //檢查資料代碼是否重覆
+
+            //** 依作業不同有不同的檢查點 向下
+
+            //檢查有錯時用以下程式碼顯示錯誤訊息
+            //程式參考
+            //if (true)
+            //{
+            //    bIsOK = false;
+            //    message += "<div class='text-danger'>";
+            //    message += "<li> 測試1 </li>";
+            //    message += "</div>";
+            //}
+
+            //** 依作業不同有不同的檢查點 向上
+
+            var result = new
+            {
+                isValid = bIsOK,
+                message = message
+            };
+
+            return Json(result);
+        }
+
+        /* 資料檢查 向上 */
+
+        [HttpPost]
+        public JsonResult Ins_MEP02(string pRowDatas)
+        {
+            // 自訂義資料檢查開始.
+            string test = "";
+            bool bIsOK = true;
+            DataTable dtTmp = JsonConvert.DeserializeObject<DataTable>(pRowDatas);
+            //檢查是否勾選到異常資料，若是則回傳false
+            if (!Chk_NgData(dtTmp))
+            {
+                bIsOK = false;
+                return Json(bIsOK);
+            }
+
+            for (int i = 0; i < dtTmp.Rows.Count; i++)
+            {
+                //檢查該派工單是否在MEP02_0000
+                string sMED07 = dtTmp.Rows[i]["med07_0000"].ToString();
+                string sProCode = dtTmp.Rows[i]["pro_code"].ToString();
+                string sWrkCode = dtTmp.Rows[i]["wrk_code"].ToString();
+                string sWorkCode = dtTmp.Rows[i]["work_code"].ToString();
+                string sProQty = dtTmp.Rows[i]["pro_qty"].ToString();
+                string sMoCode = dtTmp.Rows[i]["mo_code"].ToString();
+                string sMacCode = dtTmp.Rows[i]["mac_code"].ToString();
+                string sStationCode = dtTmp.Rows[i]["station_code"].ToString();
+                string sLotNo = dtTmp.Rows[i]["lot_no"].ToString();
+                decimal dProQty = 0;
+                decimal.TryParse(sProQty + "", out dProQty);
+                string sWhere = "where pro_code='" + sProCode + "' and wrk_code ='" + sWrkCode + "'";
+                string sEndDate = DateTime.Now.ToString("yyyy/MM/dd");
+                string sEndTime = DateTime.Now.ToString("HH:mm:ss");
+                bool hasRow = comm.Chk_RelData("MEP02_0000", sWhere);
+                if (!hasRow)
+                {
+                    //有資料用Updata
+                    repoMED07_0000.UpdataMEP02(sProCode, sWrkCode, sProQty);
+                    repoMED07_0000.UpdataMED07EndTime(sMED07, sEndDate, sEndTime);
+                }
+                else
+                {
+                    //沒資料用Insert
+                    MEP02_0000 data = new MEP02_0000();
+                    data.mo_code = sMoCode;
+                    data.wrk_code = sWrkCode;
+                    data.work_code = sWorkCode;
+                    data.use_qty = dProQty;
+                    data.station_code = sStationCode;
+                    data.pro_code = sProCode;
+                    data.pro_lot_no = sLotNo;
+                    data.mac_code = sMacCode;
+                    data.usr_code = "";
+                    data.use_unit = "";
+                    data.rtn_unit = "";
+                    data.total_unit = "";
+                    data.total_qty = comm.sGetDecimal("-"+ sProQty);
+                    data.iot_rtn_qty = 0;
+                    data.iot_total_qty = 0;
+                    data.iot_use_qty = 0;
+                    repoMEP02_0000.InsertData(data);
+                    repoMED07_0000.UpdataMED07EndTime(sMED07, sEndDate, sEndTime);
+                }
+            }
+
+            return Json(bIsOK);
+        }
+
+        public Boolean Chk_NgData(DataTable data)
+        {
+            bool bIsOK = true;
+            for (int i = 0; i < data.Rows.Count ; i++)
+            {
+                if (data.Rows[i]["is_ng"].ToString() == "Y")
+                {
+                    bIsOK = false;
+                }
+                if (data.Rows[i]["end_date"].ToString() != "")
+                {
+                    bIsOK = false;
+                }
+                if (data.Rows[i]["end_usr_code"].ToString() != "")
+                {
+                    bIsOK = false;
+                }
+            }
+            return bIsOK;
+        }
+    }
+}

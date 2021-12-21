@@ -1,0 +1,172 @@
+﻿@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@model WMR060AController.WMR060A
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //公用函數庫
+    WMR010AController WMR010A = new WMR010AController();
+    Comm comm = new Comm();
+
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewBag.sPrgCode ?? ViewContext.RouteData.Values["controller"].ToString();
+    WMR060AController WMR060A = new WMR060AController();
+    WMR060AController.WMR060A obj = new WMR060AController.WMR060A();
+    List<DDLList> label_type_list = comm.Get_LabelDDL("WMB09_0000", "label_code", "label_name", "E");
+}
+
+@Html.Partial("pPrgName")
+
+@* 修改點 以下 *@
+@{
+    Func<object, HelperResult> customBtnTemplate =
+        @<text>
+
+            <div class="pull-left" style="margin-left: 10px">
+                <a id="test" class="btn btn-white btn-warning btn-bold" role="button">
+                    <span>列印</span>
+                </a>
+            </div>
+            <div class="modal-dialog info-form-inner" id="Info-alert" role="document" style="display:none;">
+                <div class="modal-content" id="modal-Dialog">
+                    <div class="modal-header">
+                        <h5 class="info__title modal-title">列印設定</h5>
+                        <button type="button" onclick="document.getElementById('Info-alert').style.display = 'none'" class="info-close close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body" id="content-Modal">
+                        @Html.EditorFor(model => model.usr_code, new { htmlAttributes = new { @class = " col-xs-12", @Value = "", @autofocus = "autofocus", @hidden = "hidden" } })
+                        @Html.EditorFor(model => model.json, new { htmlAttributes = new { @class = " col-xs-12", @Value = "", @autofocus = "autofocus", @hidden = "hidden" } })
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @Html.LabelFor(model => model.label_code, htmlAttributes: new { @class = "col-sm-4  col-xs-5 control-label no-padding-right" })
+                                <div class="col-sm-8 col-xs-6">
+                                    <select  name="label_code" id="label_code">
+                                        @CustomHelper.Get_Option(label_type_list, "", false)
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.label_code, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @Html.LabelFor(model => model.print_name, htmlAttributes: new { @class = "col-sm-4  col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.print_name, new { htmlAttributes = new { @class = " col-xs-12", @Value = "TSC TTP-345", @autofocus = "autofocus" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.print_name, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @Html.LabelFor(model => model.prt_cnt, htmlAttributes: new { @class = "col-sm-4  col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.prt_cnt, new { htmlAttributes = new { @class = " col-xs-12", @Value = "1", @autofocus = "autofocus" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.prt_cnt, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                    </div>
+                    <div class="modal-footer">
+                        <input id="sub" type="submit" value="列印" class="btn btn-white btn-info btn-bold" />
+                        <input id="close" type="button" value="關閉" class="btn btn-white btn-danger btn-bold" onclick="document.getElementById('Info-alert').style.display = 'none'" />
+                    </div>
+                </div>
+            </div>
+
+        </text>;
+    string sHeaderBtns = customBtnTemplate.Invoke(null).ToString();
+
+    Func<object, HelperResult> sCustomJs_bottomTemplate =
+        @<text>
+            $('#usr_code').val($.cookie('MAC'));
+            $(document).ready(function(){
+                var Print_name = $.cookie('print_ch');
+                if (Print_name != 'undefined' || Print_name != '') {
+                    $('#print_name').val(Print_name);
+                } else { $.cookie('print_ch', $('#print_name').val()); }
+                $('#print_name').change(function () {
+                    $.cookie('print_ch', $('#print_name').val());
+                })
+            if($('#usr_code').val() === 'undefined'|| $('#usr_code').val() === '')
+            {
+            alert('未配對');
+            document.location.href="/WMR000A";
+            }
+            $("#modal-Dialog").draggable();
+            $("#content-Modal").css("overflow", "hidden");
+            })
+            $('#validation_form').submit(function () {
+            if ($(this).valid()) {
+            $('form input:submit').attr('disabled', 'disabled');
+            } else {
+            $('form input:submit').removeAttr('disabled')
+            }
+            });
+            $('#test').click(function(){
+            $('#Info-alert').css('display' , 'block');
+            let selection = $('#grid-table').jqGrid('getGridParam', 'selarrrow')
+
+            let rowDatas = selection.map(id => $('#grid-table').jqGrid('getRowData', id))
+            console.log(selection);
+            console.log(rowDatas);
+            console.log(JSON.stringify(rowDatas));
+            $('#json').val(JSON.stringify(rowDatas));
+            $.ajax({
+            method: 'post',
+            url: '/MED060A/Ins_MEP02',
+            data: {
+            pRowDatas: JSON.stringify(rowDatas)
+            }
+            }).done(function(json){
+            console.log(json)
+            })
+            })
+        </text>;
+    string sCustomJs_bottom = sCustomJs_bottomTemplate.Invoke(null).ToString();
+    using (Html.BeginForm("Index", sPrgCode, FormMethod.Post, new { @class = "form-horizontal", id = "validation_form", role = "form" }))
+    {
+        if (!string.IsNullOrEmpty(ViewBag.ErrorMessage))
+        {
+            <div class="alert alert-block alert-danger">
+                <p class="h4">
+                    <strong>@Html.Raw(ViewBag.ErrorMessage)</strong>
+                </p>
+            </div>
+        }
+
+        if (!string.IsNullOrEmpty(ViewBag.SucMsg))
+        {
+            <div class="alert alert-block alert-info">
+                <p class="h4">
+                    <strong>@Html.Raw(ViewBag.SucMsg)</strong>
+                </p>
+            </div>
+        }
+        // 改對應的class
+        Html.RenderAction("pJqgrid_A", "jqgrid", new
+        {
+            pModelType = new MEB15_0000().GetType(),
+            pPrgCode = sPrgCode,
+            pIsMultiselect = "Y",
+            pCustomHtml_header = sHeaderBtns,
+            pCustomJs_bottom = sCustomJs_bottom
+        });
+    }
+
+}
+@* 修改點 以上 *@
+
+

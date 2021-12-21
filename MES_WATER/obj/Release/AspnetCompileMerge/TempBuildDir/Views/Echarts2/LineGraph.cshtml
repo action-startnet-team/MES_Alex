@@ -1,0 +1,261 @@
+﻿
+
+
+@*<div class="col-md-6 col-sm-6 col-xs-12">
+</div>*@
+@*<div class="x_panel">
+    <div class="x_title">
+        <h2> 稼動/產能效率/良率 趨勢</h2>
+        <ul class="nav navbar-right panel_toolbox">
+            <li>
+                <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+            </li>
+            <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                <ul class="dropdown-menu" role="menu">
+                    <li>
+                        <a href="#">Settings 1</a>
+                    </li>
+                    <li>
+                        <a href="#">Settings 2</a>
+                    </li>
+                </ul>
+            </li>
+            <li>
+                <a class="close-link"><i class="fa fa-close"></i></a>
+            </li>
+        </ul>
+        <div class="clearfix"></div>
+    </div>
+    <div class="x_content">
+        <div id="@ViewBag.id" style="height:370px;"></div>
+    </div>
+</div>*@
+<div id="line_@ViewBag.mac_code" style="height: 100%;"></div>
+
+@* Note: Sections don't work in partial views and that's by design. *@
+
+@* 讓部分頁面(Partial View)使用類似 @section 的功能 *@
+@Html.Resource(
+    @<script>
+
+        if ($('#line_@ViewBag.mac_code').length) {
+
+            //var echartLine = echarts.init(document.getElementById('@ViewBag.mac_code'), echarts_theme);
+
+            var line_option = {
+                title: {
+                    text: '稼動/產能效率/良率 趨勢',
+                    //textStyle: {
+                    //    color: 'lightgreen'
+                    //},
+                    //subtext: 'Subtitle'
+                },
+                tooltip: {
+                    trigger: 'axis',
+                    //formatter: function(params) {
+                    //    let result = "";
+                    //    reuslt += params[0].name + "<br/>" ;
+                    //    reuslt += params[0].marker + params[0].seriesName + ":" + params[0].value + "<br/>";
+                    //    reuslt += params[1].marker + params[1].seriesName + ":" + params[1].value + "<br/>";
+                    //    return result;
+                    //},
+
+                    //formatter: params => (`${params[0].name}<br/>${params[0].marker} ${params[0].seriesName}:${100*params[0].value}%<br/>${params[1].marker} ${params[1].seriesName}:${params[1].value}`)
+                },
+                legend: {
+                    x: 220,
+                    y: 40,
+                    data: ['稼動率', '產能效率', '良率'],
+                    //textStyle: {
+                    //    //color: '#fff'
+                    //},
+
+                },
+                toolbox: {
+                    show: true,
+
+                    feature: {
+                        magicType: {
+                            show: true,
+                            title: {
+                                line: 'Line',
+                                bar: 'Bar',
+                                stack: 'Stack',
+                                tiled: 'Tiled'
+                            },
+                            type: ['line', 'bar', 'stack', 'tiled']
+                        },
+                        restore: {
+                            show: true,
+                            title: "Restore"
+                        },
+                        saveAsImage: {
+                            show: true,
+                            title: "Save Image"
+                        }
+                    }
+                },
+                calculable: true,
+                xAxis: [{
+                    type: 'category',
+                    boundaryGap: false,
+                    data: [], //['9/18', '9/21', '9/24', '9/27', '9/30', '10/3', '10/6', '10/9', '10/12', '10/15'],
+
+                    axisLabel: {
+                        textStyle: {
+                            //color: '#fff'
+                        }
+                    }
+                }],
+                yAxis: [{
+                    type: 'value',
+                    //data: [0, 0.25, 0.5, 0.75, 1.0],
+                    interval: 25,
+                    axisLabel: {
+                        formatter: function (value) {
+                            return value + "%"
+                        },
+                        textStyle: {
+                            //color: '#fff'
+                        }
+                    }
+                }],
+                series: [
+                {
+                    name: '稼動率',
+                    type: 'line',
+                    //smooth: true,
+                    //itemStyle: {
+                    //    normal: {
+                    //        areaStyle: {
+                    //            type: 'default'
+                    //        }
+                    //    }
+                    //},
+                    data: [], //@Html.Raw(Json.Encode(ViewBag.data_utilization_rate)),
+                    markLine: {
+                        data: [
+                            {
+                                silent: true,  // disable hover event, not work
+                                //name: '',
+                                yAxis: 0, // @ViewBag.u_limit,
+                                lineStyle: {
+                                    normal: {
+                                        color: "red"
+                                    }
+                                },
+                                label: {
+                                    normal: {
+                                        show: true,
+                                        position: 'end',
+                                        formatter: '' //'目標 @ViewBag.u_limit%'
+                                    }
+                                }
+                            },
+                            //{ name: 'target2', yAxis: 1300 }
+                        ],
+                    }
+                },
+                {
+                    name: '產能效率',
+                    type: 'line',
+                    //smooth: true,
+                    //itemStyle: {
+                    //    normal: {
+                    //        areaStyle: {
+                    //            type: 'default'
+                    //        }
+                    //    }
+                    //},
+                    data: [] //@Html.Raw(Json.Encode(ViewBag.data_capacity_efficiency)),
+
+                },
+                {
+                    name: '良率',
+                    type: 'line',
+                    //smooth: true,
+                    //itemStyle: {
+                    //    normal: {
+                    //        areaStyle: {
+                    //            type: 'default'
+                    //        }
+                    //    }
+                    //},
+                    data: [] //@Html.Raw(Json.Encode(ViewBag.data_yield)),
+                },
+
+                ]
+            }
+            // Set line data
+            $.ajax({
+                method: "get",
+                url: "@Url.Action("Get_LineData", "DSB010A")",
+                data: { pTkCode: '@ViewBag.mac_code' },
+                success: function (json) {
+                    refreshLineData(echarts.init(document.getElementById('line_@ViewBag.mac_code'), echarts_theme), json.datas, json.markLines, json.dateList);
+                },
+                error: function (xhr) {
+                    alert("Ajax Error: " + xhr.status + ": " + xhr.statusText);
+                },
+            })
+
+            //echarts.init(document.getElementById('line_@ViewBag.mac_code'), echarts_theme).setOption(line_option);
+
+        }
+
+        // 每n秒更新一次
+        setInterval(function () {
+            $.ajax({
+                method: "get",
+                url: "@Url.Action("Get_LineData", "DSB010A")",
+                data: { pTkCode: '@ViewBag.mac_code' },
+                success: function (json) {
+                    refreshLineData(echarts.init(document.getElementById('line_@ViewBag.mac_code'), echarts_theme), json.datas, json.markLines, json.dateList);
+                },
+                error: function (xhr) {
+                    alert("Ajax Error: " + xhr.status + ": " + xhr.statusText);
+                },
+            })
+
+        }, 1000 * 3);
+
+
+        function refreshLineData(chart, datas, markLines, dateList) {
+            if (!chart) {
+                return;
+            }
+            //更新数据
+            line_option.xAxis[0].data = dateList;
+            //if (dateList.length) {
+            //}
+            if (datas.length) {
+                if (datas.length > 0) {
+                    for (let i = 0; i < datas.length; i++) {
+                        //option.xAxis[0].data = Object.keys(datas[i]);
+                        line_option.series[i].data = datas[i];
+                    }
+                }
+            }
+
+            if (markLines.length) {
+                if (markLines.length > 0) {
+                    for (let i = 0; i < markLines.length; i++) {
+                        line_option.series[0].markLine.data[i].yAxis = parseInt(markLines[0]);
+                        line_option.series[0].markLine.data[i].label.normal.formatter = '目標 ' + parseInt(markLines[0]) + '%';
+                    }
+                }
+            }
+
+            // 旁邊莫名跑出一個綠色直條圖
+            //let tmp = chart.getOption();
+
+            chart.clear();
+            chart.setOption(line_option, true)  // 外層的option
+
+
+
+        }
+
+
+    </script>, "js")

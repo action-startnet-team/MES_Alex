@@ -1,0 +1,355 @@
+﻿@*修改點 向下*@
+@model MES_WATER.Models.BDP00_0000
+@*修改點 向上*@
+@using MES_WATER.Models;
+@{
+    ViewBag.Title = "Title";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    GetModelValidation gmv = new GetModelValidation();
+    @*修改點 向下*@
+List<string> DisplayNames = gmv.Get_DisplayNames<BDP00_0000>(new BDP00_0000());
+List<string> ColNames = gmv.GetColNames<BDP00_0000>(new BDP00_0000());
+string key = gmv.GetKey<BDP00_0000>(new BDP00_0000());
+    @*修改點 向上*@
+}
+@helper ExportCSV()
+{
+if (ViewBag.limit_str.Contains("E"))
+{
+        <text>
+            {
+            "extend": "csv",
+            "text": "<i class='fa fa-database bigger-110 orange'></i> <span class='hidden'>匯出CSV</span>",
+            "className": "btn btn-white btn-primary btn-bold",
+            exportOptions: {
+            columns: "thead th:not(.noExport)"
+            }
+            },
+            {
+            "extend": "excel",
+            "text": "<i class='fa fa-file-excel-o bigger-110 green'></i> <span class='hidden'>匯出Excel</span>",
+            "className": "btn btn-white btn-primary btn-bold",
+            exportOptions: {
+            columns: "thead th:not(.noExport)"
+            }
+            },
+        </text>
+}
+}
+
+@helper PrintData()
+{
+if (ViewBag.limit_str.Contains("P"))
+{
+        <text>
+            {
+            "extend": "print",
+            "text": "<i class='fa fa-print bigger-110 grey'></i> <span class='hidden'>列印</span>",
+            "className": "btn btn-white btn-primary btn-bold",
+
+            autoPrint: false,
+            //message: 'This print was produced using the Print button for DataTables'
+            message: '此列印由此資料表產生',
+            exportOptions: {
+            columns: "thead th:not(.noExport)"
+            }
+            }
+        </text>
+}
+}
+<!-- delete confirm -->
+<script>
+    function Confirm() {
+        if (!confirm("您確定要刪除嗎?")) {
+            return false;
+        }
+    }
+</script>
+<!-- Page Content-->
+<div class="row">
+    <div class="col-xs-12">
+        @Html.Partial("pPrgName")
+        <div class="clearfix">
+            @if (ViewBag.limit_str.Contains("A"))
+            {
+                <div class="pull-left">
+                    <a class="btn btn-white btn-primary btn-bold" href="@Url.Action("Insert", @ViewBag.prg_code)">
+                        <i style="font-weight: 900" class='glyphicon glyphicon-plus bigger-110 blue'></i>
+                        <span class=''>新增</span>
+                    </a>
+                </div>
+            }
+            <div class="pull-right tableTools-container">
+            </div>
+        </div>
+        <!-- table begin -->
+        <div>
+            <table id="dynamic-table" class="table table-striped table-bordered table-hover">
+                <thead>
+                    <tr>
+                        @for (int i = 1; i < DisplayNames.Count(); i++)
+                        {
+                            <th>@DisplayNames[i]</th>
+                        }
+                        <th></th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+        <!-- table end -->
+    </div> <!-- end fo col -->
+</div>  <!-- end of row -->
+@section footer_plugin{
+    <script src="~/Scripts/assets/js/jquery.dataTables.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.dataTables.bootstrap.min.js"></script>
+    <script src="~/Scripts/assets/js/dataTables.buttons.min.js"></script>
+    <script src="~/Scripts/assets/js/buttons.flash.min.js"></script>
+    <script src="~/Scripts/assets/js/dataTables.select.min.js"></script>
+    <script src="~/Scripts/assets/js/buttons.html5.min.js"></script>
+    <script src="~/Scripts/assets/js/buttons.colVis.min.js"></script>
+    <script src="~/Scripts/assets/js/jszip.min.js"></script>
+    <script src="~/Scripts/assets/js/buttons.print.min.js"></script>
+}
+
+@section footer_script{
+    <script type="text/javascript">
+        jQuery(function ($) {
+            //initiate dataTables plugin
+            var myTable =
+            $('#dynamic-table')
+            .DataTable({
+                //"aaSorting": [],
+                @*"serverSide": true,
+                "ajax": {
+                    method: "post",
+                    url: "@Url.Action("GetData_Full", @ViewBag.prg_code)",
+                    data: function (d) {
+                        d.searchText = $("input[type=search]").val();
+                    },
+                },*@
+                bAutoWidth: false,
+                "bStateSave": true,
+                "ajax": "@Url.Action("GetData_DataTable", @ViewBag.prg_code)",
+                "columns": [
+                    @for(int i=0; i< ColNames.Count(); i++)
+                    {
+                        <text>
+                            { data: "@ColNames[i]"  },
+                        </text>
+                    }
+                    {
+                        width: 100,
+                        sortable: false,
+                        "render": function (data, type, full, meta) {
+                            var delete_limit = full.can_delete == "N" ? ' hidden ' : '';
+                            var modify_limit = full.can_update == "N" ? ' hidden ' : '';
+                            return '<div class="hidden-sm hidden-xs action-buttons">' +
+                                       '<a href="@Url.Action("Update", @ViewBag.prg_code)?pTkCode=' + full["@key"] + '"' + ' class=' + modify_limit + '"green" role="button"><i class="ace-icon fa fa-pencil bigger-130"></i></a>' +
+                                       '<a href="@Url.Action("Delete", @ViewBag.prg_code)?pTkCode=' + full["@key"] + '"' + ' class=' + delete_limit + '"red" role="button" onclick="return Confirm()"><i class="ace-icon fa fa-trash-o bigger-130"></i></a>' +
+                                   '</div>';
+                        }
+                    }
+                ],
+
+                // deferLoading: 0, //初始化DataTable時，不發出ajax
+                order: [[0, "asc"]],
+                orderMulti: false,
+                select: {
+                    style: 'multi'
+                },
+                language: {
+                    url: "/Content/assets/Chinese-traditional.json"
+                },
+                initComplete: function () {
+                    // Setup - add a text input to each footer cell
+                    $('#dynamic-table thead tr').clone(false).appendTo('#dynamic-table thead');
+                    let colunm_length = $('#dynamic-table thead tr:eq(0) > th').length;
+                    $('#dynamic-table thead tr:eq(1) th').each(function (i) {
+                        //最後一欄不查詢
+                        if (i == colunm_length - 1) {
+                            return false;
+                        }
+                        // 移除排序箭頭
+                        $(this).removeClass('sorting')
+                        $(this).removeClass('sorting_asc')
+                        $(this).removeClass('sorting_desc')
+
+                        var title = $(this).text();
+                        $(this).html('<input type="text" placeholder="搜尋 ' + title + '" />');
+                        $('input', this).css('width', '90%')
+                        $('input', this).on('keyup change', function () {
+                            if (myTable.column(i).search() !== this.value) {
+                                myTable
+                                    .column(i)
+                                    .search(this.value)
+                                    .draw();
+                            }
+                        });
+                    });
+                    // Restore state
+                    var state = myTable.state.loaded();
+                    if (state) {
+                        myTable.columns().eq(0).each(function (colIdx) {
+                            var colSearch = state.columns[colIdx].search;
+                            if (colSearch.search) {
+                                //$('input', myTable.column(colIdx).footer()).val(colSearch.search);
+                                $('input', $('#dynamic-table thead tr:eq(1) th').eq(colIdx)).val(colSearch.search);
+                            }
+                        });
+                        //myTable.draw();
+                    }
+                },
+                orderCellsTop: true,
+                fixedHeader: true
+
+
+            });
+
+            //$('#dynamic-table').css('display', 'block');
+            ////resize table width
+
+            //var update_size = function () {
+            //    $('#dynamic-table').css({ width: $('#dynamic-table').parent().width() });
+            //}
+
+            //$(window).resize(function () {
+            //    //clearTimeout(window.refresh_size);
+            //    //window.refresh_size = setTimeout(function () { update_size(); }, 250);
+            //    update_size();
+
+            //});
+
+            $.fn.dataTable.Buttons.defaults.dom.container.className = 'dt-buttons btn-overlap btn-group btn-overlap';
+
+            new $.fn.dataTable.Buttons(myTable, {
+                buttons: [
+                  {
+                      "extend": "colvis",
+                      "text": "<i class='fa fa-search bigger-110 blue'></i> <span class='hidden'>展示 / 隱藏欄位</span>",
+                      "className": "btn btn-white btn-primary btn-bold",
+                      columns: ':not():not(:last)'
+                      //columns: ':not(:first):not(:last)'
+                  },
+                  {
+                      "extend": "copy",
+                      "text": "<i class='fa fa-copy bigger-110 pink'></i> <span class='hidden'>複製到剪貼簿</span>",
+                      "className": "btn btn-white btn-primary btn-bold"
+                  },
+                  @ExportCSV()
+                  @PrintData()
+                ]
+            });
+            myTable.buttons().container().appendTo($('.tableTools-container'));
+
+            //style the message box
+            var defaultCopyAction = myTable.button(1).action();
+            myTable.button(1).action(function (e, dt, button, config) {
+                defaultCopyAction(e, dt, button, config);
+                $('.dt-button-info').addClass('gritter-item-wrapper gritter-info gritter-center white');
+            });
+
+
+            var defaultColvisAction = myTable.button(0).action();
+            myTable.button(0).action(function (e, dt, button, config) {
+                defaultColvisAction(e, dt, button, config);
+                if ($('.dt-button-collection > .dropdown-menu').length == 0) {
+                    $('.dt-button-collection')
+                    .wrapInner('<ul class="dropdown-menu dropdown-light dropdown-caret dropdown-caret" />')
+                    .find('a').attr('href', '#').wrap("<li />")
+                }
+                $('.dt-button-collection').appendTo('.tableTools-container .dt-buttons')
+            });
+            ////
+            setTimeout(function () {
+                $($('.tableTools-container')).find('a.dt-button').each(function () {
+                    var div = $(this).find(' > div').first();
+                    if (div.length == 1) div.tooltip({ container: 'body', title: div.parent().text() });
+                    else $(this).tooltip({ container: 'body', title: $(this).text() });
+                });
+            }, 500);
+
+            myTable.on('select', function (e, dt, type, index) {
+                if (type === 'row') {
+                    $(myTable.row(index).node()).find('input:checkbox').prop('checked', true);
+                }
+            });
+            myTable.on('deselect', function (e, dt, type, index) {
+                if (type === 'row') {
+                    $(myTable.row(index).node()).find('input:checkbox').prop('checked', false);
+                }
+            });
+
+            /////////////////////////////////
+            //table checkboxes
+            $('th input[type=checkbox], td input[type=checkbox]').prop('checked', false);
+
+            //select/deselect all rows according to table header checkbox
+            $('#dynamic-table > thead > tr > th input[type=checkbox], #dynamic-table_wrapper input[type=checkbox]').eq(0).on('click', function () {
+                var th_checked = this.checked;//checkbox inside "TH" table header
+
+                $('#dynamic-table').find('tbody > tr').each(function () {
+                    var row = this;
+                    if (th_checked) myTable.row(row).select();
+                    else myTable.row(row).deselect();
+                });
+            });
+
+            //select/deselect a row when the checkbox is checked/unchecked
+            $('#dynamic-table').on('click', 'td input[type=checkbox]', function () {
+                var row = $(this).closest('tr').get(0);
+                if (this.checked) myTable.row(row).deselect();
+                else myTable.row(row).select();
+            });
+
+            $(document).on('click', '#dynamic-table .dropdown-toggle', function (e) {
+                e.stopImmediatePropagation();
+                e.stopPropagation();
+                e.preventDefault();
+            });
+            //And for the first simple table, which doesn't have TableTools or dataTables
+            //select/deselect all rows according to table header checkbox
+            var active_class = 'active';
+            $('#simple-table > thead > tr > th input[type=checkbox]').eq(0).on('click', function () {
+                var th_checked = this.checked;//checkbox inside "TH" table header
+
+                $(this).closest('table').find('tbody > tr').each(function () {
+                    var row = this;
+                    if (th_checked) $(row).addClass(active_class).find('input[type=checkbox]').eq(0).prop('checked', true);
+                    else $(row).removeClass(active_class).find('input[type=checkbox]').eq(0).prop('checked', false);
+                });
+            });
+
+            //select/deselect a row when the checkbox is checked/unchecked
+            $('#simple-table').on('click', 'td input[type=checkbox]', function () {
+                var $row = $(this).closest('tr');
+                if ($row.is('.detail-row ')) return;
+                if (this.checked) $row.addClass(active_class);
+                else $row.removeClass(active_class);
+            });
+            /********************************/
+            //add tooltip for small view action buttons in dropdown menu
+            $('[data-rel="tooltip"]').tooltip({ placement: tooltip_placement });
+
+            //tooltip placement on right or left
+            function tooltip_placement(context, source) {
+                var $source = $(source);
+                var $parent = $source.closest('table')
+                var off1 = $parent.offset();
+                var w1 = $parent.width();
+
+                var off2 = $source.offset();
+                //var w2 = $source.width();
+
+                if (parseInt(off2.left) < parseInt(off1.left) + parseInt(w1 / 2)) return 'right';
+                return 'left';
+            }
+            /***************/
+            $('.show-details-btn').on('click', function (e) {
+                e.preventDefault();
+                $(this).closest('tr').next().toggleClass('open');
+                $(this).find(ace.vars['.icon']).toggleClass('fa-angle-double-down').toggleClass('fa-angle-double-up');
+            });
+            /***************/
+        })
+    </script>
+}

@@ -1,0 +1,1346 @@
+﻿@*修改點 向下*@
+@model MES_WATER.Models.QMT05_0000
+@*修改點 向上*@
+@using MES_WATER.Models;
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Update";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //公用函數庫
+    Comm comm = new Comm();
+    GetModelValidation gmv = new GetModelValidation();
+
+    Html.RenderAction("AjaxFunction", "AjaxFunction");
+
+    //公用變數
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string limit_str = comm.Get_LimitByUsrCode(User.Identity.Name, sPrgCode);
+
+    @* 修改點 向下 *@
+    // 主檔的Model名稱
+    string key = gmv.GetKey(new QMT05_0000());
+
+    // 明細的Model名稱
+    QMT05_0100 obj_D1 = new QMT05_0100();
+    List<string> DisplayNameList_D1 = gmv.Get_DisplayNames(obj_D1);
+    List<ColumnInfo> ColumnInfoList = gmv.Get_ColumnInfoList(obj_D1);
+    string key_D1 = gmv.GetKey(obj_D1);
+
+    //下拉選項的來源
+    List<DDLList> is_rec_list = comm.Get_DDLOption("is_rec");
+    List<DDLList> is_ok_list = comm.Get_DDLOption("is_ok");
+    List<DDLList> qtest_item_type_list = comm.Get_DDLOption("qtest_item_type");
+    List<DDLList> spur_code_list = comm.Get_DDLOption("QMB15_0000", "spur_code", "spur_name");
+    List<DDLList> ins_level_code_list = comm.Get_DDLOption("QMB10_0000", "ins_level_code", "ins_level_name");
+    List<DDLList> qtest_item_code = comm.Get_DDLOption("QMB02_0000", "qtest_item_code", "qtest_item_name");
+    List<DDLList> pro_code_list = comm.Get_DDLOptionBySql("  select MEB20_0000.pro_code as field_code,  MEB20_0000.pro_name as field_name " +
+                                             " from MEB20_0000 " +
+                                             " group by MEB20_0000.pro_code ,  MEB20_0000.pro_name ", "A");
+    @* 修改點 向上*@
+}
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-multiselect.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/jquery-ui.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/ui.jqgrid.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+    @*<link rel="stylesheet" href="~/Content/assets/css/jquery-ui.custom.min.css" />*@
+}
+
+@Html.Partial("pPrgName")
+<!-- 表單 -->
+<div class="row">
+    <ul class="nav nav-tabs" id="myTab">
+        <li class="active">
+            <a data-toggle="tab" href="#home">
+                <i class="green ace-icon fa fa-home bigger-120"></i>
+                主檔
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content">
+        <div id="home" class="tab-pane fade in active">
+            @using (Html.BeginForm("Update", sPrgCode, FormMethod.Post, new { @class = "form-horizontal", id = "validation_form", role = "form" }))
+            {
+
+                <div id="errMsgSummary" class="alert alert-danger @( (ViewBag.showErrMsg ?? false ) ? "" : "hidden" )">
+                    <button type="button" class="close" data-dismiss="alert">
+                        <i class="ace-icon fa fa-times"></i>
+                    </button>
+                    <strong>
+                        <i class="ace-icon fa fa-times"></i>
+                        系統訊息!
+                    </strong>
+                    @Html.ValidationSummary("", new { @class = "text-danger" })
+                    <br />
+                </div>
+                @*修改點 向下 主檔輸入畫面編排*@
+                <div class="row">
+                    <div class="col-md-5">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "ipqm_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.ipqm_code, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.ipqm_code, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "med09_0000", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.med09_0000, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.med09_0000, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "mo_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.mo_code, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.mo_code, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "pro_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.pro_code, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.pro_code, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "pro_name", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.pro_name, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.pro_name, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "lot_no", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.lot_no, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.lot_no, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "version", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.version, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.version, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                    </div>
+                    <div class="col-md-5">
+                        <div class="squr">
+                            <br />
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "ins_date", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.ins_date, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.ins_date, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "ins_time", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.ins_time, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.ins_time, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "usr_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.usr_code, new { htmlAttributes = new { @class = " col-xs-12", @readonly = "readonly" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.usr_code, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @*修改點 向上 主檔輸入畫面編排*@
+                <br />
+                <div class="clearfix">
+                    <div class="col-md-offset-5 col-md-7">
+                        <input type="submit" value="儲存" class="btn btn-white btn-info btn-bold" />
+                        &nbsp;
+                        <a class="btn btn-white btn-pink btn-round" href=@Url.Action("Index", sPrgCode)>
+                            <i class="ace-icon fa fa-undo "></i>
+                            返回
+                        </a>
+                        <input type="button" value="檢視E-Sip" class="btn btn-white btn-info btn-bold" onclick="Exists('../Upload/E-sip/IPQC-'+'@Model.pro_code'+'.pdf')" />
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<br />
+<br />
+
+
+
+
+<!-- jqGrid begin -->
+<table id="grid-table"></table>
+<div id="grid-pager"></div>
+<!-- jqGrid end -->
+<!-- Chk_Upd_D1 Message -->
+<div id="dialog" class="alert alert-danger hidden" style="">
+</div>
+<style>
+    .FormGrid .EditTable tr:first-child {
+        display: table-row;
+    }
+</style>
+
+@section footer_plugin {
+    @* validate? *@
+    <script src="~/Scripts/assets/js/jquery-ui.min.js"></script>
+    <script src="~/Scripts/assets/js/wizard.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery-additional-methods.min.js"></script>
+    <script src="~/Scripts/assets/js/bootbox.js"></script>
+    <script src="~/Scripts/assets/js/jquery.maskedinput.min.js"></script>
+    <script src="~/Scripts/assets/js/select2.min.js"></script>
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="~/Scripts/assets/js/autosize.min.js"></script>
+    @* validate? *@
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.jqGrid.min.js"></script>
+    <script src="~/Scripts/assets/js/grid.locale-cn.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+}
+@section footer_script{
+}
+
+<script type="text/javascript">
+    jQuery(function ($) {
+
+        $('#is_rec').change(function(){
+            var is_rec = $(this).val()
+            if(is_rec=="S")
+            {
+                $('.squr').show()
+            }
+            else
+                $('.squr').hide()
+        })
+
+        $(document).on('click','.ipqm_code',function(){
+            var val = $(this).attr('id')
+            Open_Jqgrid(val)
+        })
+
+        function Open_Jqgrid(qmt04_0100) {
+            wo = window.open("@Url.Action("SetQMTValue")" + "?K=" + qmt04_0100, "", "width=1200,height=700 ")
+            wo.resizeTo((screen.availWidth) -300, (screen.availHeight)-300);
+            wo.moveTo(150, 150);
+        }
+
+
+
+        @*修改點 向下 控制項輸入控制參考*@
+
+        //$("input[name=pur_date]").datepicker( { language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true } ).attr('autocomplete','off');
+        //$("input[name=end_date]").datepicker( { language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true } ).attr('autocomplete','off');
+
+        @*修改點 向上 控制項輸入控制參考*@
+
+
+        // checkbox value ( Y/N )
+        $('form').find($('input[type="checkbox"]')).each(function(){
+            // default
+            if ($(this).prop('checked')){
+                // set checked value
+                $(this).val('Y')
+            } else {
+                // set unchecked value
+                $(this).before($('<input type="hidden" value="N" name="' + $(this).attr('name') + '" />'))
+            }
+            // change state
+            $(this).change(function(){
+                if (this.checked){
+                    // set checked value and remove hidden input for unchecked value
+                    $(this).val('Y')
+                    $(this).prev('input[type="hidden"]').remove()
+                }else{
+                    // set unchecked value
+                    $(this).before($('<input type="hidden" value="N" name="' + $(this).attr('name') + '" />'))
+                }
+            })
+        })
+
+        // form validate, show error msg
+        $("#validation_form").bind("invalid-form.validate", function () {
+            $("#errMsgSummary").removeClass('hidden');
+        });
+        // prevent twice submit
+        $('#validation_form').submit(function () {
+
+            //自動判斷是否允收 開始---------------------------------------------------------------
+            var IsOk = true
+            var ErrMsg = ""
+            $.ajax({
+                async: false,
+                method: 'post',
+                url: '@Url.Action("Chk_QMTIsRec")',
+                data: {
+                    pQmtCode:function(){ return '@Model.ipqm_code' },
+                },
+                datatype: 'json',
+                success: function (data) {
+                    data = JSON.parse(data)
+                    if(!data.IsOk){
+                        IsOk = false
+                        ErrMsg += "自動檢驗結果為: 拒收\n"
+
+                        if(data.NgQty != ""){
+                            ErrMsg += data.NgQty
+                        }
+                        if(data.SampleQty != ""){
+                            ErrMsg += data.SampleQty
+                        }
+                    }
+                },
+            })
+            //檢查如果結果為拒收，且目前允收狀態不為N 或 P，則通知使用者
+            if(!IsOk){
+                var IsRec = $('#is_rec').val()
+                if(IsRec != 'S') {
+                    if(IsRec != 'N'){ 
+                        ErrMsg += "\n請問是否要將允收標記改為N，並繼續儲存?"
+                    }else{
+                        ErrMsg += "\n是否確定要儲存?"
+                    }                    
+                    if(!confirm(ErrMsg)){
+                        return false
+                    }
+                    //確定儲存時將允收改為N
+                    $('#is_rec').val('N')
+                    $('#is_rec').trigger("chosen:updated");
+                }
+            }else{
+                $('#is_rec').val('Y')
+                $('#is_rec').trigger("chosen:updated");
+            }
+            //自動判斷是否允收 結束--------------------------------------------------------------
+
+
+            if ($(this).valid()) {
+                $('form input:submit').attr('disabled', 'disabled');
+            } else {
+                $('form input:submit').removeAttr('disabled')
+            }
+        });
+
+        // chosen select
+        if (!ace.vars['touch']) {
+            $('.chosen-select').chosen({ allow_single_deselect: true });
+            //resize the chosen on window resize
+
+            $(window)
+            .off('resize.chosen')
+            .on('resize.chosen', function () {
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            }).trigger('resize.chosen');
+            //resize chosen on sidebar collapse/expand
+            $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                if (event_name != 'sidebar_collapsed') return;
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            });
+
+            $('#chosen-multiple-style .btn').on('click', function (e) {
+                var target = $(this).find('input[type=radio]');
+                var which = parseInt(target.val());
+                if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                else $('#form-field-select-4').removeClass('tag-input-style');
+            });
+
+        }
+
+        autosize($('textarea[class*=autosize]'));
+        $(document).one('ajaxloadstart.page', function(e) {
+            autosize.destroy('textarea[class*=autosize]')
+
+            $('.limiterBox,.autosizejs').remove();
+            $('.daterangepicker.dropdown-menu,.colorpicker.dropdown-menu,.bootstrap-datetimepicker-widget.dropdown-menu').remove();
+        });
+
+    })
+</script>
+
+@* JqGrid script *@
+<script type="text/javascript">
+
+    jQuery(function ($) {
+        var grid_selector = "#grid-table";
+        var pager_selector = "#grid-pager";
+
+
+        var parent_column = $(grid_selector).closest('[class*="col-"]');
+        //resize to fit page size
+        $(window).on('resize.jqGrid', function () {
+            $(grid_selector).jqGrid('setGridWidth', parent_column.width());
+        })
+
+        //resize on sidebar collapse/expand
+        $(document).on('settings.ace.jqGrid', function (ev, event_name, collapsed) {
+            if (event_name === 'sidebar_collapsed' || event_name === 'main_container_fixed') {
+                //setTimeout is for webkit only to give time for DOM changes and then redraw!!!
+                setTimeout(function () {
+                    $(grid_selector).jqGrid('setGridWidth', parent_column.width());
+                }, 20);
+            }
+        })
+
+        var Get_selectObject = function (list) {
+            //let arr = JSON.parse(list);
+            let arr = list
+            let selectObject = {};
+            selectObject[""]=[""];
+            for (let i = 0; i < arr.length; i++) {
+                selectObject[arr[i]['field_code']] = [arr[i]['field_code']] + " - " + [arr[i]['field_name']]
+            }
+            return selectObject;
+        }
+
+        @* 修改點 向下 明細檔的新增資料檢查*@
+        // beforeSubmit: function 存檔時檢查的函數
+        function Check_Data_D1(postdata, formid) {
+            // check data
+            let result = [true, ""];
+            $.ajax({
+                async: false,
+                method: 'post',
+                url: '@Url.Action("Check_Data_D1", sPrgCode)',
+                data: postdata,
+                datatype: 'json',
+                success: function (data) {
+                    if (!data.result){
+                        result = [data.result, data.message];
+                    }
+                },
+                error: function () {
+                    alert("ajax連線失敗!");
+                }
+            })
+
+            // prevent twice submit
+            if (result[0])
+                $('#sData, #cData').attr('disabled', 'disabled');
+
+            return result;
+        }
+        @* 修改點 向上 *@
+
+        //JqGrid本體主要設定
+        jQuery(grid_selector).jqGrid({
+            url: "@Url.Action("Get_GridData_D1", sPrgCode)",
+            mtype: "Post",
+            datatype: "json",
+            postData: { pTkCode: "@Model.GetType().GetProperty(key).GetValue(Model)" },  //foreign key default value
+            height: 'auto',
+            colNames: JSON.parse('@Html.Raw(Json.Encode(DisplayNameList_D1))'),
+            colModel: [
+                {
+                    name: 'myac', index: '', width: 80, fixed: true, sortable: false, resize: false, search: false,
+                    formatter: 'actions',
+                    formatoptions: {
+                        keys: true,
+                        onSuccess: function () {
+                            $(this).setGridParam({ datatype: 'json'}).trigger('reloadGrid');
+                        },
+                        onError:function(rowid, jqXHR, textStatus) {
+                            /* Chk_Upd_D1 秀出錯誤訊息 */
+                            let jsonData = jqXHR.responseJSON
+                            if (!jsonData.bIsOK){
+                                $( "#dialog" ).removeClass('hidden')
+                                $( "#dialog" ).dialog({
+                                    modal: true,
+                                })
+                                $( "#dialog" ).html(jsonData.message)
+                                /* dialog 樣式*/
+                                // body
+                                $( "#dialog" ).css({
+                                    'background-color': '#f2dede',
+                                    'border-color': '#ebccd1',
+                                    'color': '#a94442'
+                                })
+                                // head
+                                $( "#dialog" ).prev(".ui-dialog-titlebar").css({
+
+                                }).find('span').html('<strong<i class="ace-icon fa fa-times"> </i> 系統訊息! </strong>')
+
+                                // foot
+                                $( "#dialog" ).parent().css({
+
+                                })
+
+                                // click outside close
+                                $(".ui-widget-overlay").on("click", function() {  $( "#dialog" ).dialog("close"); } );
+                            }else {
+                                $('#dialog').addClass('hidden')
+                            }
+                        },
+                        @if(limit_str.Contains("D"))
+                        {
+                            <text>delbutton: true,</text>
+                        }else
+                        {
+                            <text>delbutton: false,</text>
+                        }
+                        @if (limit_str.Contains("M"))
+                        {
+                            <text>editbutton: true,</text>
+                        }else
+                        {
+                            <text>editbutton: false,</text>
+                        }
+                        delOptions: {
+                            recreateForm: true,
+                            beforeShowForm: beforeDeleteCallback,
+                            beforeSubmit: function(postdata, formid) {  //明細刪除資料檢查
+                                // parameter postdata has problem
+                                //Get data from selected row
+                                let id = jQuery(grid_selector).jqGrid('getGridParam', 'selrow');
+                                let data = jQuery(grid_selector).jqGrid('getRowData', id);
+
+                                // check data
+                                let result = [true, ""];
+                                $.ajax({
+                                    async: false,
+                                    method: 'post',
+                                    url: '@Url.Action("Chk_Del_D1", sPrgCode)',
+                                    data: data,
+                                    datatype: 'json',
+                                    success: function (data) {
+                                        if (!data.bIsOK){
+                                            result = [data.bIsOK, data.message];
+                                        }
+                                    },
+                                    error: function () {
+                                        alert("ajax連線失敗!");
+                                    }
+                                })
+
+                                return result;
+                            },
+                            url: "@Url.Action("Delete_D1", sPrgCode)",
+                            mtype: 'post',
+                            delData: {
+                                "pTkCode": function () {
+                                    //Get data from selected row
+                                    let id = jQuery(grid_selector).jqGrid('getGridParam', 'selrow');
+                                    let data = jQuery(grid_selector).jqGrid('getRowData', id);
+                                    return data["@key_D1"];
+                                }
+                            }
+                        },
+                    }
+                },
+                @foreach(var item in ColumnInfoList)
+                {
+                    switch(item.name)
+                    {
+                        case "can_delete":
+                            <text>
+                                { name: 'can_delete', index: 'can_delete', width: 60, sorttype: "string", hidden: true },
+                            </text>
+                            break;
+                        case "can_update":
+                            <text>
+                                { name: 'can_update', index: 'can_upate', width: 60, sorttype: "string", hidden: true },
+                            </text>
+                            break;
+                        case "qmt04_0100":
+                            <text>
+                                {
+                                    name: 'qmt04_0100', index: 'qmt04_0100', width: 40, sorttype: 'string',
+                                    hidden: true,
+                                    editable: true,
+                                    editrules: {
+                                        edithidden: true
+                                    }
+                                },
+                            </text>
+                            break;
+                        case "ipqm_code":
+                            <text>
+                                {
+                                    name: 'ipqm_code', index: 'ipqm_code', width: 40, sorttype: 'string',
+                                    hidden: true,
+                                    editable: true,
+                                    editrules: {
+                                        edithidden: true
+                                    }
+                                },
+                            </text>
+                            break;
+                        case "qmt_value":
+                            <text>
+                                {
+                                    name: 'qmt_value', index: 'qmt_value', width: 40, sorttype: 'string',
+                                    editable: false,
+                                },
+                            </text>
+                            break;
+                        case "qtest_item_code":
+                            <text>
+                                {
+                                    name: 'qtest_item_code', index: 'qtest_item_code', width: 40, editable: true,
+                                    edittype: "select",
+                                    editoptions: {
+                                        value: Get_selectObject(@Html.Raw(Json.Encode(qtest_item_code))),
+                                    }
+                                },
+                            </text>
+                            break;
+                        case "qtest_item_type":
+                            <text>
+                                {
+                                    name: 'qtest_item_type', index: 'qtest_item_type', width: 40, editable: true,
+                                    edittype: "select",
+                                    editoptions: {
+                                        value: Get_selectObject(@Html.Raw(Json.Encode(qtest_item_type_list))),
+                                    }
+                                },
+                            </text>
+                            break;
+                        @*case "is_ok":
+                            <text>
+                                {
+                                    name: 'is_ok', index: 'is_ok', width: 40, editable: true,
+                                    edittype: "select",
+                                    editoptions: {
+                                        value: Get_selectObject(@Html.Raw(Json.Encode(is_rec_list))),
+                                    }
+                                },
+                            </text>
+                            break;*@
+                        @*case "pur_code":
+                            <text>
+                                { name: 'pur_code', index: 'pur_code', width: 60, sorttype: "string", hidden: true },
+                            </text>
+                            break;*@
+                        @*case "is_use":
+                            <text>
+                                { name: 'is_use', index: 'is_use', width: 20, editable: true, edittype: "checkbox", sortable: false, editoptions: { value: "Y:N" }, unformat: aceSwitch },
+                            </text>
+                            break;
+                        case "pro_code":
+                            <text>
+                                {
+                                    name: 'pro_code', index: 'pro_code', width: 40, editable: true,
+                                    edittype: "select",
+                                    editoptions: {
+                                        //dataInit: function (elem) {
+                                        //    $(elem).addClass('chosen-select');
+                                        //},
+
+                                        value: Get_selectObject(@Html.Raw(Json.Encode(pro_code_list))),
+                                        //dataInit: function(element) {
+                                        //    $(element).chosen({
+                                        //        placeholder_text_single: "----請選擇----",
+                                        //        search_contains: true  //模糊查詢
+                                        //    })
+                                        //},
+                                    }
+                                },
+                            </text>*@
+                        @*case "sto_name":
+                            <text>
+                                { name: 'sto_name', index: 'sto_name', width: 60, sorttype: "string", hidden: true },
+                            </text>
+                            break;
+                        case "sto_code":
+                            <text>
+                                {
+                                    name: 'sto_code', index: 'sto_code', width: 40, sorttype: 'string',
+                                    hidden: true,
+                                    editable: true,
+                                    editrules: {
+                                        edithidden: true
+                                    }
+                                },
+                            </text>
+                            break;*@
+                default:
+                            <text>
+                                {
+                                    @*// 隱藏識別碼
+                                    @if (item.displayName == "識別碼"){
+                                        <text>hidden: true,</text>
+                                    }*@
+                                    // 數字靠右
+                                    @{
+                                        string[] arrNum = new string[] { "int", "decimal", "double", "float"};
+                                        for (int k = 0; k < arrNum.Length; k++) {
+                                            if (item.propertyType.ToLower().Contains(arrNum[k])) {
+                                                <text>align: "right",</text>
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    // 金額千分位顯示
+                                    @if (item.dataType.ToLower() == "currency") {
+                                        <text>
+                                    //align: "right",
+                                    formatter: 'integer',
+                                    formatoptions: { thousandsSeparator: "," },
+                                    </text>
+                                    }
+                                    name: '@item.name', index: '@item.name', width: 40, sorttype: '@item.propertyType',
+                                    editable: @item.editable.ToString().ToLower(),
+                                    editrules: {
+                                        @if (item.required)
+                                            {
+                                                <text>required: true,</text>
+                                            }
+                                        @switch (item.propertyType)
+                                        {
+                                            case "int":
+                                                <text>integer: true,</text>
+                                                break;
+                                            case "decimal":
+                                                <text>number: true,</text>
+                                                break;
+                                            default:
+                                                break;
+                                        }
+                                    },
+                                    editoptions: {
+                                        @if (item.propertyType == "decimal")
+                                            {
+                                                <text>defaultValue: "0",</text>
+                                            }
+                                        @if (item.name == key_D1) {
+                                                <text>readonly: true,</text>
+                                        }
+                                        else if (item.name == key)
+                                        {
+                                            <text>readonly: true,</text>
+                                            <text>defaultValue: "@Model.GetType().GetProperty(key).GetValue(Model)",</text>
+                                        }
+                                        else
+                                        {
+                                            <text>readonly: @item.readonlyattr.ToString().ToLower(),</text>
+                                        }
+                                        @if (item.maxlength > 0)
+                                        {
+                                            <text>maxlength: @item.maxlength,</text>
+                                        }
+                                    }
+                                },
+                            </text>
+                            break;
+                    }
+                }
+            ],
+            viewrecords: true,
+            rowNum: DisplayRowNum(), //10,
+            rowList: [10, 20, 30, 50, 100],
+            pager: pager_selector,
+            altRows: true,
+            //toppager: true,
+            multiselect: true,
+            //multikey: "ctrlKey",
+            multiboxonly: true,
+            multiselectWidth: -6,  // hide checkbox column
+                        @*分類修改點 向下*@
+            grouping: true,
+            groupingView : {
+                plusicon: "fa fa-plus",  // "ui-icon-circlesmall-plus"
+                minusicon: "fa fa-minus", // "ui-icon-circlesmall-minus"
+                groupField : ['qtest_item_code'],
+                groupSummary : [false],
+                //groupCollapse : true,
+                //groupColumnShow : [true],
+                @*分類修改點 顯示名稱 在上面的colModel設定*@
+                groupText : ['<b> 檢驗代碼: {0} - {qtest_item_code}  &emsp; ( {1} 筆資料 ) </b>'],
+                //groupOrder: ['asc']
+            },
+            @*分類修改點 向上*@
+            // sort
+            loadonce: true,
+            // not works
+            //navOptions: { reloadGridOptions: { fromServer: true } },
+            loadComplete: function () {
+
+                // 計算主檔的金額 (明細 小計總和)
+                let sum_subtotal = $(this).jqGrid("getGridParam", "data").map(x => x.subtotal).reduce( (a,b) => a+b, 0 )
+                let pur_amt = parseInt($('input[name="pur_amt"]').val(sum_subtotal).val())
+                //// 計算稅額 ( 5% * 金額 )
+                let tax_amt = parseInt($('input[name="tax_amt"]').val(Math.round(sum_subtotal * 0.05)).val())
+                //// 金額合計
+                $('input[name="sum_amt"]').val(pur_amt + tax_amt);
+
+                // 儲存jqgrid狀態
+                loadGridParameters($(grid_selector));
+
+                var table = this;
+                setTimeout(function () {
+                    styleCheckbox(table);
+                    updateActionIcons(table);
+                    updatePagerIcons(table);
+                    enableTooltips(table);
+                }, 0);
+
+
+            },
+            editurl: "@Url.Action("Update_D1", sPrgCode)",
+            onSelectRow: function (rowid) {
+                localStorage.setItem("selrowId", rowid)
+            }
+        });
+
+
+
+        //toolbar
+        jQuery(grid_selector).jqGrid('filterToolbar', {
+            stringResult: true,
+            searchOnEnter: false,
+        });
+
+        $(window).triggerHandler('resize.jqGrid');//trigger window resize to make the grid get the correct size
+
+        //enable search/filter toolbar
+
+        //switch element when editing inline
+        function aceSwitch(cellvalue, options, cell) {
+            setTimeout(function () {
+                $(cell).find('input[type=checkbox]')
+                    .addClass('ace ace-switch ace-switch-5')
+                    .after('<span class="lbl"></span>');
+            }, 0);
+        }
+        //enable datepicker
+        function pickDate(cellvalue, options, cell) {
+            setTimeout(function () {
+                $(cell).find('input[type=text]')
+                    .datepicker({ language: 'zh-TW', format: 'yyyy/mm/dd', autoclose: true });
+            }, 0);
+        }
+
+
+        //navButtons
+        jQuery(grid_selector).jqGrid('navGrid', pager_selector,
+            { 	//navbar options
+                edit: false,
+                editicon: 'ace-icon fa fa-pencil blue',
+                add: true,
+                addicon: 'ace-icon fa fa-plus-circle purple',
+                del: false,
+                delicon: 'ace-icon fa fa-trash-o red',
+                search: true,
+                searchicon: 'ace-icon fa fa-search orange',
+                refresh: true,
+                refreshicon: 'ace-icon fa fa-refresh green',
+                view: true,
+                viewicon: 'ace-icon fa fa-search-plus grey'
+            },
+            {
+                //edit record form
+                //width: 700,
+                closeAfterEdit: true,
+                recreateForm: true,
+                beforeShowForm: function (e) {
+                    var form = $(e[0]);
+                    form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+                    style_edit_form(form);
+                },
+                afterSubmit: function () { $(this).jqGrid('setGridParam', { datatype: 'json' }); return [true, ""] }
+            },
+            {
+                //new record form 明細新增記錄的form
+                //width: 700,
+                closeAfterAdd: true,
+                recreateForm: true,
+                refresh: true,
+                viewPagerButtons: false,
+                beforeShowForm: function (e) {
+                    var form = $(e[0]);
+                    form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar')
+                    .wrapInner('<div class="widget-header" />')
+                    style_edit_form(form)
+                    $('input[name="is_use"]').attr('checked', 'checked') //預設是否使用為Y
+
+
+                    // 取得序號
+                    @*$('#sData, #cData').attr('disabled', 'disabled');
+                    $.ajax({
+                        url: '@Url.Action("Get_NextScrNo", sPrgCode)',
+                        method: 'get',
+                        data: { pur_code: '@Model.pur_code' },
+                        success: function(data) {
+                            form.find('input[name=scr_no]').val(data)//.attr('readonly', 'readonly');
+                            $('#sData, #cData').removeAttr('disabled');
+                        },
+                        error: function(xhr) {
+                            alert('ajax error ' + xhr.status + ': ' + xhr.statusText )
+                        }
+                    })*@
+
+                },
+                beforeSubmit: function(postdata, formid) { //明細新增資料檢查
+                    // check data
+                    let result = [true, ""];
+                    $.ajax({
+                        async: false,
+                        method: 'post',
+                        url: '@Url.Action("Chk_Ins_D1", sPrgCode)',
+                        data: postdata,
+                        datatype: 'json',
+                        success: function (data) {
+                            if (!data.bIsOK){
+                                result = [data.bIsOK, data.message];
+                            }
+                        },
+                        error: function () {
+                            alert("ajax連線失敗!");
+                        }
+                    })
+
+                    // prevent twice submit
+                    if (result[0]){
+                        $('#sData, #cData').attr('disabled', 'disabled');
+                    }
+
+                    return result;
+                },
+                afterShowForm: function(form) {
+                    form.closest('div.ui-jqdialog').center();
+                },
+                reloadAfterSubmit: true,
+                // .trigger('reloadGrid')
+                afterSubmit: function () { $(this).jqGrid('setGridParam', { datatype: 'json' }); return [true, ""] },
+                url: "@Url.Action("Insert_D1", sPrgCode)"
+            },
+            {
+                //del
+            },
+            {
+                //search form
+                recreateForm: true,
+                afterShowSearch: function (e) {
+                    var form = $(e[0]);
+                    form.closest('.ui-jqdialog').find('.ui-jqdialog-title').wrap('<div class="widget-header" />')
+                    style_search_form(form);
+                },
+                afterRedraw: function () {
+                    style_search_filters($(this));
+                }
+                ,
+                multipleSearch: true,
+                /**
+                multipleGroup:true,
+                showQuery: true
+                */
+            },
+            {
+                //view record form
+                recreateForm: true,
+                beforeShowForm: function (e) {
+                    var form = $(e[0]);
+                    form.closest('.ui-jqdialog').find('.ui-jqdialog-title').wrap('<div class="widget-header" />')
+                    form.closest('.ui-jqdialog').center()
+                },
+                afterSubmit: function () { $(this).jqGrid('setGridParam', { datatype: 'json' }); return [true, ""] }
+            }
+        )
+
+        // toolbar initial
+        jQuery(grid_selector).jqGrid('filterToolbar', {
+            stringResult: true,
+            searchOnEnter: false
+        });
+        // for toolbar style
+        setTimeout(function () {
+            let search_toolbar = $('#gbox_' + grid_selector.substring(1)).find('.ui-search-toolbar').eq(0)
+            // set height
+            search_toolbar.css('height', '4em')
+
+            // set input placeholder and autocomplete off
+            let labels = $('#gbox_' + grid_selector.substring(1)).find('.ui-jqgrid-labels').eq(0);
+            let colName = "";
+            search_toolbar.find('th').find('input').attr('autocomplete', 'off')
+            search_toolbar.find('th').each(function (i) {
+                colName = labels.find('th').eq(i).text();
+                $(this).find('input').attr('placeholder', '搜尋 ' + colName)
+            })
+            // restore jqgrid toolbar values
+            if (localStorage.getItem($(grid_selector).jqGrid('getGridParam', 'url'))){
+                let gridInfo = JSON.parse(localStorage.getItem($(grid_selector).jqGrid('getGridParam', 'url')));
+                //let gridInfo = JSON.parse(localStorage.getItem("gridParams"));
+                if (gridInfo.postData.filters != null && gridInfo.postData.filters != "") {
+                    let filters = JSON.parse(gridInfo.postData.filters);
+                    let rules = filters.rules;
+                    for (let i = 0; i < rules.length; i++) {
+                        $('.ui-search-toolbar').find("input[name=" + rules[i].field + "]").val(rules[i].data)
+                    }
+                }
+            }
+        },
+        50)
+
+        // *** JqGrid Persist State *** //
+        // jqgrid save state function
+        function saveGridParameters(grid) {
+            // Load GridParam
+            let gridInfo = new Object();
+
+            gridInfo.url = grid.jqGrid('getGridParam', 'url');
+            gridInfo.sortname = grid.jqGrid('getGridParam', 'sortname');
+            gridInfo.sortorder = grid.jqGrid('getGridParam', 'sortorder');
+            //gridInfo.selrow = grid.jqGrid('getGridParam', 'selrow');
+            gridInfo.page = grid.jqGrid('getGridParam', 'page');
+            gridInfo.rowNum = grid.jqGrid('getGridParam', 'rowNum');
+            gridInfo.postData = grid.jqGrid('getGridParam', 'postData');
+            gridInfo.search = grid.jqGrid('getGridParam', 'search');
+
+            let ids = [];
+            grid.find("tr:has(.sgexpanded)").each(function () {
+                ids.push($(this).attr('id'));
+            });
+            gridInfo.subgridIds = ids;
+
+            // Serialize it to as JSON-String
+            let gridParams = JSON.stringify(gridInfo);
+
+            // Save the serialized Griddata in the localStorage
+            //localStorage.setItem("gridParams", gridParams);
+            localStorage.setItem(grid.jqGrid('getGridParam', 'url'), gridParams);
+        };
+
+        // jqgrid load state function
+        function loadGridParameters(grid) {
+
+            let url = grid.jqGrid('getGridParam', 'url')
+            // jqgrid state save
+            if (localStorage.getItem(url) != "" && localStorage.getItem(url) != null) {
+                let gridInfo = JSON.parse(localStorage.getItem(url));
+
+                //var $this = $(this);
+                let $this = grid;
+
+                // selrow
+                $this.jqGrid('setSelection', localStorage.getItem("selrowId"), false);
+
+                if ($this.jqGrid("getGridParam", "datatype") === "json") {
+                    setTimeout(function () {
+                        //$this.trigger("reloadGrid", [{
+                        //    current: true,
+                        //    page: gridInfo.page,
+                        //    postData: gridInfo.postData,
+                        //}]);
+                        $this.jqGrid("setGridParam", {
+                            datatype: "local",
+                            page: gridInfo.page,
+                            //postData: gridInfo.postData,
+                            sortname: gridInfo.sortname,
+                            sortorder: gridInfo.sortorder,
+                            rowNum: gridInfo.rowNum,
+                            search: gridInfo.search
+                        });
+                        if (gridInfo.postData.filters != "" && gridInfo.postData.filters != null) {
+                            let rules = JSON.parse(gridInfo.postData.filters).rules;
+                            if (rules != [] && rules != "") {
+                                $this.jqGrid("setGridParam", {
+                                    postData: gridInfo.postData,
+
+                                });
+                            }
+                        }
+                        $this.trigger("reloadGrid");
+                    }, 50);
+
+                }
+                // retain subgrid expand
+                if (gridInfo.subgridIds != null && gridInfo.subgridIds != []) {
+                    for (var j = 0; j < gridInfo.subgridIds.length; j = j + 1) {
+                        $this.jqGrid('expandSubGridRow', gridInfo.subgridIds[j]);
+                    }
+                }
+                // end
+            }
+        }
+        function DisplayRowNum() {
+            if (localStorage.getItem("gridParams") != "" && localStorage.getItem("gridParams") != null) {
+                let gridInfo = JSON.parse(localStorage.getItem("gridParams"));
+                return gridInfo.rowNum;
+            } else {
+                return 10;
+            }
+        }
+
+        window.addEventListener("beforeunload", function (event) {
+            saveGridParameters(jQuery(grid_selector))
+        });
+
+        // *** JqGrid Persist State End *** //
+
+        // reset jqgrid params
+        $('#refresh_grid-table').click(function () {
+            localStorage.setItem("gridParams", "");
+            localStorage.setItem("selrowId", "");
+            localStorage.setItem($(grid_selector).jqGrid('getGridParam', 'url'), "");
+            $(grid_selector).jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+        })
+
+        function style_edit_form(form) {
+            //enable datepicker on "sdate" field and switches for "stock" field
+            form.find('input[name=sdate]').datepicker({ format: 'yyyy-mm-dd', autoclose: true })
+            form.find('input[name=hop_date]').datepicker({ language: 'zh-TW', format: 'yyyy/mm/dd', "setDate": new Date(), autoclose: true })
+                                             .datepicker("setDate",'now');
+
+            form.find('input[name=stock]').addClass('ace ace-switch ace-switch-5').after('<span class="lbl"></span>');
+            //don't wrap inside a label element, the checkbox value won't be submitted (POST'ed)
+            //.addClass('ace ace-switch ace-switch-5').wrap('<label class="inline" />').after('<span class="lbl"></span>');
+            form.find('input[name=is_use]').addClass('ace ace-switch ace-switch-5').after('<span class="lbl"></span>');
+            form.find('input[name=is_end]').addClass('ace ace-switch ace-switch-5').after('<span class="lbl"></span>');
+
+            //chosen select
+            form.find('select[name=qtest_item_code]')
+                .chosen({
+                    placeholder_text_single: "----請選擇----",
+                    search_contains: true  //模糊查詢
+                })
+            form.find('select[name=qtest_item_type]')
+                .chosen({
+                    placeholder_text_single: "----請選擇----",
+                    search_contains: true  //模糊查詢
+                })
+            form.find('.chosen-container').width('60%');
+
+            // 隱藏 產品名稱 欄位
+            //$('#tr_pro_name').css('display', 'none')
+            //$('#tr_sto_name').css('display', 'none')
+            //$('#tr_loc_type_name').css('display', 'none')
+            $('#tr_qtest_type_code').css('display', 'none')
+            $('#tr_qtest_type_name').css('display', 'none')
+            $('#tr_qmt04_0100').css('display', 'none')
+            $('#tr_qtest_item_name').css('display', 'none')
+            $('#tr_qtest_type_name').css('display', 'none')
+            $('#tr_qmt04_0100').css('display', 'none')
+            $('#tr_qtest_item_type_name').css('display', 'none')
+            $('#tr_ins_date').css('display', 'none')
+            $('#tr_ins_time').css('display', 'none')
+            $('#tr_usr_code').css('display', 'none')
+            $('#tr_usr_name').css('display', 'none')
+
+
+            // sto_code
+            form.find('input[name="ipqm_code"]').val('@Model.ipqm_code')
+            $('#tr_ipqm_code').css('display', 'none')
+
+            @*form.find('input[name="sto_name"]').val('@Model.sto_name')*@
+
+            form.find('input[name=loc_code]').removeAttr('readonly')
+
+            //update buttons classes
+            var buttons = form.next().find('.EditButton .fm-button');
+            buttons.addClass('btn btn-sm').find('[class*="-icon"]').hide();//ui-icon, s-icon
+            buttons.eq(0).addClass('btn-primary').prepend('<i class="ace-icon fa fa-check"></i>');
+            buttons.eq(1).prepend('<i class="ace-icon fa fa-times"></i>')
+
+            buttons = form.next().find('.navButton a');
+            buttons.find('.ui-icon').hide();
+            buttons.eq(0).append('<i class="ace-icon fa fa-chevron-left"></i>');
+            buttons.eq(1).append('<i class="ace-icon fa fa-chevron-right"></i>');
+        }
+
+        function style_delete_form(form) {
+            var buttons = form.next().find('.EditButton .fm-button');
+            buttons.addClass('btn btn-sm btn-white btn-round').find('[class*="-icon"]').hide();//ui-icon, s-icon
+            buttons.eq(0).addClass('btn-danger').prepend('<i class="ace-icon fa fa-trash-o"></i>');
+            buttons.eq(1).addClass('btn-default').prepend('<i class="ace-icon fa fa-times"></i>')
+        }
+
+        function style_search_filters(form) {
+            form.find('.delete-rule').val('X');
+            form.find('.add-rule').addClass('btn btn-xs btn-primary');
+            form.find('.add-group').addClass('btn btn-xs btn-success');
+            form.find('.delete-group').addClass('btn btn-xs btn-danger');
+        }
+        function style_search_form(form) {
+            var dialog = form.closest('.ui-jqdialog');
+            var buttons = dialog.find('.EditTable')
+            buttons.find('.EditButton a[id*="_reset"]').addClass('btn btn-sm btn-info').find('.ui-icon').attr('class', 'ace-icon fa fa-retweet');
+            buttons.find('.EditButton a[id*="_query"]').addClass('btn btn-sm btn-inverse').find('.ui-icon').attr('class', 'ace-icon fa fa-comment-o');
+            buttons.find('.EditButton a[id*="_search"]').addClass('btn btn-sm btn-purple').find('.ui-icon').attr('class', 'ace-icon fa fa-search');
+        }
+
+        function beforeDeleteCallback(e) {
+            var form = $(e[0]);
+            if (form.data('styled')) return false;
+
+            form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+            style_delete_form(form);
+
+            form.data('styled', true);
+
+        }
+
+        function beforeEditCallback(e) {
+            var form = $(e[0]);
+            form.closest('.ui-jqdialog').find('.ui-jqdialog-titlebar').wrapInner('<div class="widget-header" />')
+            style_edit_form(form);
+        }
+
+
+
+        //it causes some flicker when reloading or navigating grid
+        //it may be possible to have some custom formatter to do this as the grid is being created to prevent this
+        //or go back to default browser checkbox styles for the grid
+        function styleCheckbox(table) {
+            /**
+                $(table).find('input:checkbox').addClass('ace')
+                .wrap('<label />')
+                .after('<span class="lbl align-top" />')
+
+
+                $('.ui-jqgrid-labels th[id*="_cb"]:first-child')
+                .find('input.cbox[type=checkbox]').addClass('ace')
+                .wrap('<label />').after('<span class="lbl align-top" />');
+            */
+        }
+
+
+        //unlike navButtons icons, action icons in rows seem to be hard-coded
+        //you can change them like this in here if you want
+        function updateActionIcons(table) {
+            /**
+            var replacement =
+            {
+                'ui-ace-icon fa fa-pencil' : 'ace-icon fa fa-pencil blue',
+                'ui-ace-icon fa fa-trash-o' : 'ace-icon fa fa-trash-o red',
+                'ui-icon-disk' : 'ace-icon fa fa-check green',
+                'ui-icon-cancel' : 'ace-icon fa fa-times red'
+            };
+            $(table).find('.ui-pg-div span.ui-icon').each(function(){
+                var icon = $(this);
+                var $class = $.trim(icon.attr('class').replace('ui-icon', ''));
+                if($class in replacement) icon.attr('class', 'ui-icon '+replacement[$class]);
+            })
+            */
+        }
+
+        //replace icons with FontAwesome icons like above
+        function updatePagerIcons(table) {
+            var replacement =
+            {
+                'ui-icon-seek-first': 'ace-icon fa fa-angle-double-left bigger-140',
+                'ui-icon-seek-prev': 'ace-icon fa fa-angle-left bigger-140',
+                'ui-icon-seek-next': 'ace-icon fa fa-angle-right bigger-140',
+                'ui-icon-seek-end': 'ace-icon fa fa-angle-double-right bigger-140'
+            };
+            $('.ui-pg-table:not(.navtable) > tbody > tr > .ui-pg-button > .ui-icon').each(function () {
+                var icon = $(this);
+                var $class = $.trim(icon.attr('class').replace('ui-icon', ''));
+
+                if ($class in replacement) icon.attr('class', 'ui-icon ' + replacement[$class]);
+            })
+        }
+
+        function enableTooltips(table) {
+            $('.navtable .ui-pg-button').tooltip({ container: 'body' });
+            $(table).find('.ui-pg-div').tooltip({ container: 'body' });
+        }
+
+        //var selr = jQuery(grid_selector).jqGrid('getGridParam','selrow');
+
+        $(document).one('ajaxloadstart.page', function (e) {
+            $.jgrid.gridDestroy(grid_selector);
+            $('.ui-jqdialog').remove();
+        });
+    });
+
+    $(document).on('change', 'select[name=qtest_item_type]', function(){
+        var code = $(this).val()
+        var idt = $(this).attr('id').split("")[0]
+        var name_id = "#" +idt + "_qtest_item_type_name"
+        $.ajax({
+            method: 'post',
+            url: '@Url.Action("GetTypeName", sPrgCode)',
+            data:{
+                code: code,
+            },
+            success: function(data){
+                $(name_id).val(data)
+            },
+            error: function(){
+                alert("ajax-error");
+            }
+        })
+    })
+
+</script>
+
+

@@ -1,0 +1,675 @@
+﻿
+@using System.Data;
+@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string mac_code = ViewBag.mac_code;
+    string mac_name = ViewBag.mac_name;
+    string controllerName = ViewContext.RouteData.Values["controller"].ToString();
+
+    Comm comm = new Comm();
+    DSH010AController Control = new DSH010AController();
+}
+
+@section head_plugin {
+    <link href="~/Content/assets/css/custom.min.css" rel="stylesheet">
+}
+
+<style>
+    .alarm {
+        border-radius: 10px;
+        height: 50px;
+        background-color: #eee;
+        line-height: 50px;
+        text-align: center;
+        color: #eee;
+        font-size: 16px;
+    }
+
+    .alarm-header {
+        background-color: #428BCA;
+    }
+
+    .alarm-cell {
+        background-color: #6f42c1;
+    }
+
+    .alarm-error {
+        background-color: #FF3333;
+        color: aliceblue;
+        border-radius: 10px;
+        line-height: 50px;
+        height: 50px;
+    }
+
+    .alarm-caption {
+        font-size: 20px;
+        background-color: #09134d;
+    }
+
+    .alarm-active {
+        /*background-color: #51A351;*/
+        /*background-color: #22C32E;*/
+        background-color: #69AA46;
+    }
+
+    .alarm-notActive {
+        background-color: #A0A0A0;
+    }
+
+    .block {
+        border-radius: 10px;
+        height: 100px;
+        color: #eee;
+        /*background-color: #eee;*/
+        background-color: #428BCA;
+        text-align: center;
+        line-height: 100px;
+    }
+
+    .mac_img {
+        width: 84%;
+        height: auto;
+        border-radius: 10px;
+    }
+
+
+    .block-text {
+        /*color: #5599FF;*/
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .block-state-completed {
+        background-color: #28a745;
+    }
+
+    .block-state-working {
+        background-color: #dc3545;
+    }
+
+    .work-order [class*="col-"] {
+        padding-right: 0px;
+    }
+
+        .work-order [class*="col-"]:not(:first-child) {
+            padding-left: 5px;
+        }
+
+
+    .message-board {
+        text-align: center;
+        line-height: 60px;
+        /*display: flex;
+        justify-content: center;
+        align-items: center;*/
+        background-color: grey;
+        background-clip: content-box;
+        color: #eee;
+        height: 60px;
+        font-size: 21px;
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .pause-hover:hover {
+        animation-play-state: paused;
+        -webkit-animation-play-state: paused;
+    }
+
+    .marguee-Yaxis {
+        width: 100%;
+        position: absolute;
+        /*-moz-animation: marquee 15s linear infinite;
+        -webkit-animation: marquee 15s linear infinite;*/
+        /*animation: marquee-Yaxis 3s linear infinite;*/
+        animation-delay: 2s;
+    }
+
+    .marguee-Xaxis {
+        position: absolute;
+        display: flex;
+        width: 100%;
+    }
+
+        .marguee-Xaxis div {
+            flex-shrink: 0;
+            width: 100%;
+        }
+
+    .marguee-Xaxis {
+        /*-moz-animation: marquee 15s linear infinite;
+        -webkit-animation: marquee 15s linear infinite;*/
+        animation: marquee-Xaxis 15s linear infinite;
+        animation-delay: 2s;
+    }
+
+    /* Move it (define the animation) */
+    /*@@-moz-keyframes marquee {
+        0%   { left: 100%; }
+        100% { left: 0%; -moz-transform: translateX(-100%); }
+    }
+    @@-webkit-keyframes marquee {
+        0%   { left: 100%; }
+        100% { left: 0%; -webkit-transform: translateX(-100%); }
+    }*/
+    @@keyframes marquee-Yaxis {
+        0% {
+            /*bottom: 100%;*/
+            /* Firefox bug fix */
+            /*-moz-transform: translateY(0%);
+            -webkit-transform: translateY(0%);*/
+            transform: translateY(0%);
+        }
+
+        100% {
+            /*bottom: 0%;*/
+            transform: translateY(-50%); /* 實際整個元素的長度是畫面的兩倍 */
+        }
+    }
+
+    @@keyframes marquee-Xaxis {
+        0% {
+            /*bottom: 100%;*/
+            /* Firefox bug fix */
+            /*-moz-transform: translateY(0%);
+            -webkit-transform: translateY(0%);*/
+            transform: translateX(0%);
+        }
+
+        100% {
+            /*bottom: 0%;*/
+            transform: translateX(-100%); /* 畫面的元素寬度 */
+        }
+    }
+</style>
+
+<header>
+    @Html.Partial("pPrgName")
+</header>
+
+<main>
+    <div class="space-6"></div>
+    <!-- 工單資料 -->
+    <div class="row">
+        <!-- Table -->
+        <div class="col-lg-7">
+            <div class="work-order row" style="height: 250px">
+                <div class="col-sm-12" id="mo_list">
+                    @*<h4>
+                            <i class="ace-icon fa fa-star orange"></i>
+                            後續工單
+                        </h4>*@
+                    <!-- thead -->
+                    <section>
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            製令號碼
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="alarm alarm-header">
+                                            產品名稱
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            預計產量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            目前產量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            不良品量
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="col-lg-12">
+                                    <div class="alarm alarm-header">
+                                        製程進度
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                    </section>
+                    <br />
+
+                    <!-- tbody -->
+                    <!-- -->
+                    <section class="">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            MO0001
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="alarm alarm-cell">
+                                            多喝水-450ML
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            16000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            4281
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            20
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="col-sm-3">
+                                    <div class="alarm alarm-cell alarm-active">
+                                        投料
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="alarm alarm-cell alarm-active">
+                                        貼標
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="alarm alarm-cell alarm-notActive">
+                                        套標
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="alarm alarm-cell alarm-notActive">
+                                        裝箱
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </section>
+
+                    <br />
+                    <!-- -->
+                    <section class="">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            MO0002
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="alarm alarm-cell">
+                                            多喝水-600ML
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            32000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            0
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            0
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="col-sm-3">
+                                    <div class="alarm alarm-cell alarm-notActive">
+                                        投料
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="alarm alarm-cell alarm-notActive">
+                                        貼標
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="alarm alarm-cell alarm-notActive">
+                                        套標
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="alarm alarm-cell alarm-notActive">
+                                        裝箱
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </section>
+                    <br />
+
+                    <!-- -->
+                    <section class="">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="alarm alarm-cell">
+
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            0
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            0
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            0
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="col-sm-3">
+                                    <div class="alarm alarm-cell alarm-notActive">
+                                        投料
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="alarm alarm-cell alarm-notActive">
+                                        貼標
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="alarm alarm-cell alarm-notActive">
+                                        套標
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="alarm alarm-cell alarm-notActive">
+                                        裝箱
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </section>
+                    <br />
+
+                    <!-- -->
+                    <section class="">
+                        <div class="row">
+                            <div class="col-lg-8">
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-4">
+                                        <div class="alarm alarm-cell">
+
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            0
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            0
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            0
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="col-sm-3">
+                                    <div class="alarm alarm-cell alarm-notActive">
+                                        投料
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="alarm alarm-cell alarm-notActive">
+                                        貼標
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="alarm alarm-cell alarm-notActive">
+                                        套標
+                                    </div>
+                                </div>
+                                <div class="col-sm-3">
+                                    <div class="alarm alarm-cell alarm-notActive">
+                                        裝箱
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </section>
+                    <br />
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="col-lg-5" style="padding-left: 24px">
+            <div class="row">
+                <div class="col-xs-12">
+                    <div class="alarm alarm-header">
+                        今日生產狀況
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="row" style="height: 250px">
+
+                <div class="col-sm-12" style="height: 100%">
+                    @{
+                        Html.RenderAction("PieGraph", "Echarts2", new { pTkCode = "current" });
+                    }
+                </div>
+            </div>
+        </div>
+
+        <br />
+    </div>
+
+    <!-- 機台 -->
+    <div id="mac_code_list">
+        <div class="row">
+            <div class="col-lg-7">
+                <div class="row">
+                    <div class="col-xs-3">
+                        @{
+                            Html.RenderAction("block_02", "OEE", new { pMacCode = "A1L02013" });
+                        }
+                    </div>
+                    <div class="col-xs-3">
+                        @{
+                            Html.RenderAction("block_02", "OEE", new { pMacCode = "A1L02019" });
+                        }
+                    </div>
+                    <div class="col-xs-3">
+                        @{
+                            Html.RenderAction("block_02", "OEE", new { pMacCode = "A1L02007" });
+                        }
+                    </div>
+                    <div class="col-xs-3">
+                        @{
+                            Html.RenderAction("block_02", "OEE", new { pMacCode = "A1L02018" });
+                        }
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-5" style="height: 400px">
+                @{
+                    Html.RenderAction("BarGraph", "Echarts2", new { pTkCode = "current" });
+                }
+            </div>
+        </div>
+    </div>
+
+
+    <br />
+    <div id="DSB040-footer">
+        <div class="row">
+            <div class="col-sm-12 message-board message-board">
+                <div class="marguee-Xaxis pause-hover">
+                    <div>公告訊息跑馬燈</div>
+                    <div>公告訊息跑馬燈</div>
+                </div>
+            </div>
+        </div>
+        <div class="space-6"></div>
+        <div class="row">
+            <div class="col-sm-12 message-board">
+                <div class="marguee-Yaxis pause-hover">
+                    <div>工單備註</div>
+                    <div>工單備註</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+
+@section footer_script{
+    <script type="text/javascript">
+        jQuery(function ($) {
+
+            @if (ViewBag.IsCarousel ?? false){
+                <text>
+                    // 輪播 3樓1線和2線生產看板
+                    setTimeout(function () {
+                        let urls = ['DSB040A', 'DSB050A']
+                        let current_prg_code = window.location.pathname.replace('/', '')
+                        let current_index = urls.indexOf(current_prg_code)
+                        if (current_index !== -1){
+                            let next_index = (current_index + 1) % (urls.length)
+                            let next_prg_code = urls[next_index]
+                            location = `/${next_prg_code}?IsCarousel=true&&interval=@ViewBag.interval`
+                        }
+                    }, @ViewBag.interval * 1000)
+                </text>
+            }
+
+
+
+
+            $.ajax({
+                method: 'get',
+                url: '@Url.Action("Get_DSB040A_Data", "MES")',
+                data: {
+                    pLineCode: '1'
+                }
+            }).done(function (data) {
+                data.forEach(function (item, index) {
+                    //$('#mo_list').append(NewRow(item))
+                })
+            })
+
+            function NewRow(data) {
+                return $(`
+                    <section class ="">
+                        <div class ="row">
+                            <div class ="col-lg-8">
+                                <div class ="row">
+                                    <div class ="col-sm-2">
+                                        <div class ="alarm alarm-cell">
+                                            ${data.mo_code}
+                                        </div>
+                                    </div>
+                                    <div class ="col-sm-4">
+                                        <div class ="alarm alarm-cell">
+                                            ${data.pro_name}
+                                        </div>
+                                    </div>
+                                    <div class ="col-sm-2">
+                                        <div class ="alarm alarm-cell">
+                                            ${data.plan_qty}
+                                        </div>
+                                    </div>
+                                    <div class ="col-sm-2">
+                                        <div class ="alarm alarm-cell">
+                                            ${data.current_qty}
+                                        </div>
+                                    </div>
+                                    <div class ="col-sm-2">
+                                        <div class ="alarm alarm-cell">
+                                            ${data.ng_qty}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class ="col-lg-4 process_progress">
+                                <div class ="col-sm-3">
+                                    <div class ="alarm alarm-cell alarm-notActive">
+                                        投料
+                                    </div>
+                                </div>
+                                <div class ="col-sm-3">
+                                    <div class ="alarm alarm-cell alarm-notActive">
+                                        貼標
+                                    </div>
+                                </div>
+                                <div class ="col-sm-3">
+                                    <div class ="alarm alarm-cell alarm-notActive">
+                                        套標
+                                    </div>
+                                </div>
+                                <div class ="col-sm-3">
+                                    <div class ="alarm alarm-cell alarm-notActive">
+                                        裝箱
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </section>
+                    <br />
+                    `)
+            }
+
+        })
+    </script>
+
+}
+

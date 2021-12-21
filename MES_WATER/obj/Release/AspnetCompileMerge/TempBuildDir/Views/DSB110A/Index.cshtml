@@ -1,0 +1,476 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+}
+
+<style>
+    /*#oee > div span {
+        margin-top:5px;
+        display:inline-block;
+    }*/
+
+    .mac-container {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .mac-item {
+        width: 400px;
+        margin: 5px;
+        border-radius: 10px;
+        font-size: 20px;
+        padding-top: 10px;
+        padding-bottom: 15px;
+        /**/
+        background: #4C4C4C;
+        color: #fff;
+    }
+
+    .mac-item-head {
+        width: 90%;
+        margin: 0 auto;
+        overflow:hidden;
+    }
+
+        .mac-item-head .mo-div {
+            float: right;
+        }
+
+
+    .status-div {
+        margin-top: 5px;
+        text-align: center;
+        /* 不知道為什麼子元素在inline-block下，沒有文字的高度會多一點*/
+        height: 46px;
+    }
+ 
+
+        .status-div .status {
+            display: inline-block;
+            width: 90%;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            height: 46px;
+            line-height: 46px;
+            /**/
+            background: #ffd800;
+            color: #000;
+        }
+    
+    .oee-container {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 auto;
+        margin-top: 5px;
+    }
+       .oee-container .oee-item {
+            flex-basis: 44%;
+            margin: 0 auto;
+            margin-top: 5px;
+            background: #000;
+        }
+
+            .oee-item:nth-child(2n+1){
+                margin-right: 5px;
+
+            }
+            .oee-item:nth-child(2n){
+                margin-left: 5px;
+
+            }
+            .oee-item:last-child {
+            margin-left: 20px;
+             flex-basis: 90%;
+            }
+
+            .oee-container .item-value{
+                float: right;
+            }
+
+        .oee-container .oee-item {
+            padding: 5px 10px;
+        }
+
+
+
+    /* 狀態 顏色 */
+    .status-color-default {
+        background-color: #808080 !important;
+    }
+
+    .status-color-run {
+        background-color: #33FF00 !important;
+    }
+
+    .status-color-idle {
+        background-color: #FFC107 !important;
+    }
+
+    .status-color-stop {
+        background-color: #DC3545 !important;
+    }
+</style>
+
+
+@Html.Partial("pPrgName")
+
+<div id="custom_btns">
+    <div class="clearfix">
+        <div class="pull-left" style="margin-left: 10px">
+            <a id="refresh" class="btn btn-white btn-success btn-bold" role="button">
+                <span class="ui-icon ace-icon fa fa-refresh green"></span>
+                <span class=''>更新</span>
+            </a>
+            <select name="lineList" id="lineList">
+                <option value="">線別</option>
+            </select>
+            <select name="sortList" id="sortList">
+                <option value="mac_code">排序: 機台代碼</option>
+                <option value="mac_name">排序: 機台名稱</option>
+            </select>
+        </div>
+        @*<div class="pull-left" style="margin-left: 10px">
+                <h5>更新倒數: <span id="update_count"></span> 秒</h5>
+            </div>*@
+    </div>
+</div>
+
+<br>
+
+<div id="oee">
+    <div class="mac-container">
+        <!--  -->
+    </div>
+</div>
+
+<script>
+    jQuery(function ($) {
+        $(document).ready(function () {
+            $('select').on('change', function () { immediateUpdate(); });
+            setTimerUpdate();
+        });
+
+        let $container = $('.mac-container')
+
+        // 初始下拉
+        Set_DropDownList();
+
+        // 初始
+        Set_MacHtml()
+
+
+        // 初始 - 定時更新
+        let currentTimer = setTimerUpdate()
+
+        // 點擊更新按鈕
+        $('#refresh').click(function () {
+            immediateUpdate()
+
+        })
+
+        // 立刻更新並重新設置定時
+        function immediateUpdate() {
+            // 更新機台資料
+            Set_MacHtml()
+
+            // 清除timer
+            clearTimeout(currentTimer)
+
+            // 重設timer
+            currentTimer = setTimerUpdate()
+        }
+
+        // 定時更新
+        function setTimerUpdate() {
+            let timer = Timer({
+                initSeconds: 15,
+                tick: 1000,
+                launch: {
+                    callback: function () {
+                        //Set_MacHtml()
+                        let arr = Get_Current_MacElements()
+                        update(arr)
+                    }
+                }
+            })
+
+            return timer
+        }
+
+        // 定時器
+        function Timer(options) {
+            let initSeconds = options.initSeconds // seconds // 初始總時間
+            let interval = options.interval || 1  // seconds // 發動一次的間隔
+            let tick = options.tick || 1000  // ms  // 每單位時間發動一次
+            let launch = options.launch  // callback函數和發動時間
+
+            launch.restTime = launch.restTime || 0  // 預設0秒callback
+
+            let count = initSeconds
+            $('#update_count').text(count)
+
+            let timer = setInterval(function () {
+                count -= interval
+                if (count <= launch.restTime) {
+                    if (typeof launch.callback === 'function') {
+                        launch.callback()
+                    }
+                    count = initSeconds
+                }
+                $('#update_count').text(count)
+            }, tick)
+
+            return timer
+        }
+
+
+        // 清空畫面 + ajax抓資料 + 設置資料到畫面
+        function Set_MacHtml() {
+            // 清空畫面
+            if ($container.length > 0) {
+                $container.empty()
+            }
+
+            let order = $('#sortList').val();// 排序
+            let line_code = $('#lineList').val();// 線別
+
+            // ajax 開始，抓資料庫的機台清單
+            $.ajax({
+                method: 'get',
+                url: '/DSB110A/Init_Get_MacCodeList',
+                data: {
+                    order: order,
+                    line_code: line_code
+                }
+            }).done(function (json) {
+                // 建立機台元素清單
+                //console.log(json)
+                let elements = []
+                json.forEach(function (item, index) {                    
+                    let $macItem = _getNewMacElement(item)
+
+                    elements.push($macItem)                   
+                })
+
+                // ajax抓OEE資料 (by mac_code)
+                // 資料抓完設置到傳入的元素
+                update(elements, function (el) {
+                    // 把元素設置到畫面上
+                    $container.append(el)
+                })
+
+            }).fail(function () {
+                alert('抓取機台清單失敗! ')
+            })
+        }
+
+        // 初始線別下拉選單
+        function Set_DropDownList() {
+            
+            $('#lineList').empty();
+
+            $('#lineList').append(
+                $('<option></option>').val('').html('線別')
+            );
+
+            $.ajax({
+                method: 'get',
+                url: '/DSB110A/Get_LineCodeList',
+            }).done(function (json) {                
+                json.forEach(function (item, index) {
+                    $('#lineList').append(
+                        $('<option></option>').val(item).html(item)
+                    );
+                })
+
+            }).fail(function () {
+                alert('抓取機台清單失敗! ')
+            })
+        }
+
+        // 創建一個新的方格，傳入機台基本資料(mac_code, mac_name)
+        function _getNewMacElement(oMacData) {
+            let htmlString = `@Html.Raw(Html.Action("MacItem", "DSB110A"))`
+            let $newDiv = $(htmlString)
+
+            let mac_code = oMacData.mac_code
+            let mac_name = oMacData.mac_name
+
+            $newDiv.attr('data-mac_code', mac_code)
+            $newDiv.find('.mac_name').text(mac_code + ' ' + mac_name)
+
+            return $newDiv
+        }
+
+        // 取得畫面上的機台清單
+        function Get_Current_MacElements() {
+            let $mac_list = $('#oee').find('[data-mac_code]')
+            let arr = Array.prototype.slice.call($mac_list)
+
+            return arr
+        }
+
+
+        // 傳入element清單
+        function update(aMacElements, afterEachUpdate) {
+
+            let mac_code_list = aMacElements.map(function (item, index) {
+                let mac_code = $(item).attr('data-mac_code')
+
+                return mac_code
+            })
+
+            
+
+            $.ajax({
+                method: 'post',
+                url: '/DSB110A/Get_OeeData',
+                data: {
+                    pJson: JSON.stringify(mac_code_list)
+                }
+            }).done(function (json) {
+
+                aMacElements.forEach(function (item, index) {
+                    // 加入資料到element
+                    let mac_code = $(item).attr('data-mac_code')
+
+                    let oeeData = json[mac_code]
+                   
+                    if (oeeData) {
+                        _setMacElementText(item, oeeData)
+                    }
+
+
+
+                    if (typeof afterEachUpdate === 'function') {
+                        afterEachUpdate(item, index, aMacElements)
+                    }
+                    // 設置到html上
+                    //$container.append($(item))  // 不加判斷也不會重複增加元素，不知道為什麼
+                    //if ($container.find(item).length == 0) {
+                    //    $container.append(item)
+                    //}
+                })
+
+            }).fail(function () {
+                alert('抓取資料失敗! ')
+            })
+
+            $.ajax({
+                method: 'post',
+                url: '/DSB110A/Get_ProName',
+                data: {
+                    pJson: JSON.stringify(mac_code_list)
+                }
+            }).done(function (json) {
+
+                json.forEach(function (item, index) {
+                    console.log(index);
+                    //console.log(item.ProName + ' - ' + item.WrkCode);
+                    $('#oee > div > div:nth-child(' + (index + 1) + ') .pro_name').text(item.ProName);
+                    $('#oee > div > div:nth-child(' + (index + 1) + ') .wrk_code').text(item.WrkCode);
+                    //$('.pro_name').text(item.ProName);
+                    //$('.wrk_code').text(item.WrkCode);
+                })
+            });
+        }
+
+        //
+        function _setMacElementText(el, data) {
+            let $el = $(el)
+            //
+            let $mac_name = $el.find('.mac_name')
+            let $mo_code = $el.find('.mo_code')
+            let $scr_no = $el.find('.scr_no')
+
+            let $status = $el.find('.status')
+
+            let $yield = $el.find('.yield-value')
+            let $utilization = $el.find('.utilization-value')
+            let $stop_time = $el.find('.stop_time-value')
+            let $work_time = $el.find('.work_time-value')
+
+            
+
+            // 設值
+            if (data.mac_name) {
+                $mac_name.val(data.mac_name) // 機台名稱
+            }
+            $mo_code.text(data.mo_code)  // 製令
+            $scr_no.text(data.scr_no)  // 順序
+
+            // 狀態(中文 + 背景顏色)
+            $status.attr('data-status_code', data.status)
+            switch (data.status.toUpperCase()) {
+                case 'R':
+                    $status.text('生產')
+                    $status.attr('class', 'status status-color-run')
+                    break;
+                case 'D':
+                    $status.text('關機')
+                    $status.attr('class', 'status status-color-default')
+                    break;
+                case 'I':
+                    $status.text('閒置')
+                    $status.attr('class', 'status status-color-idle')
+                    break;
+                case 'E':
+                    $status.text('停機')
+                    $status.attr('class', 'status status-color-stop')
+                    break;
+                default:
+                    $status.text('關機')
+                    $status.attr('class', 'status status-color-default')
+                    break;
+            }
+
+            // 
+            let itemDatas = data.items
+            if (itemDatas) {
+                 $el.find('.oee-item').each(function (i) {
+                    let itemData = itemDatas[i]
+                    if (itemData && typeof itemData === 'object') {
+                        $label = $(this).find('.item-label')
+                        $value = $(this).find('.item-value')
+
+                        $(this).attr('data-name', itemData.name || '')
+                        $label.text(itemData.label || '')
+                        $value.text(itemData.value || '')
+                    }
+
+                })
+            }
+
+
+            //$yield.text(data.yield)  // 產量
+            //$utilization.text(data.utilization + '%')  // 稼動
+
+            ////// 稼動 換成百分比
+            ////let num = parseFloat(data.utilization)
+            ////if (num) {
+            ////    num = (num * 100).toString()
+            ////    // 取小數點後兩位
+            ////    num = num.substring(0, num.indexOf('.') + 3)
+            ////    $utilization.text(num + '%')
+
+            ////} else {
+            ////    if (num == 0)
+            ////    {
+            ////        $utilization.text('0%')
+            ////    } else {
+            ////        $utilization.text('')
+            ////    }
+            ////}
+
+            //$stop_time.text(data.stop_time )  // 停機
+            //$work_time.text(data.work_time )  // 工時
+        }
+
+
+    })
+</script>
+
+

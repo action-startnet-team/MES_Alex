@@ -1,0 +1,674 @@
+﻿@using System.Data
+@using MES_WATER.Models
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    Comm comm = new Comm();
+    string sSql = "SELECT mac_code ,mac_name FROM MEB15_0000 ";
+    DataTable dtTmp = comm.Get_DataTable(sSql);
+}
+<style>
+    /*#oee > div span {
+margin-top:5px;
+display:inline-block;
+}*/
+
+    .mac-container {
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .mac-container--rows {
+        display: flex;
+        flex-wrap:inherit;
+        min-width :450%;
+    }
+    .mac-item {
+        width: 500px; 
+        margin: 5px;
+        border-radius: 10px;
+        font-size: 20px;
+        padding-top: 10px;
+        padding-bottom: 15px;
+        /**/
+        background: #4C4C4C;
+        color: #fff;
+    }
+
+    .mac-item-head {
+        width: 90%;
+        margin: 0 auto;
+        overflow: hidden;
+    }
+
+        .mac-item-head .mo-div {
+            float: right;
+        }
+
+
+    .status-div {
+        margin-top: 5px;
+        text-align: center;
+        /* 不知道為什麼子元素在inline-block下，沒有文字的高度會多一點*/
+        height: 46px;
+    }
+
+
+        .status-div .status {
+            display: inline-block;
+            width: 90%;
+            border-radius: 10px;
+            font-size: 24px;
+            font-weight: bold;
+            height: 46px;
+            line-height: 46px;
+            /**/
+            background: #ffd800;
+            color: #000;
+        }
+
+    .oee-container {
+        display: flex;
+        flex-wrap: wrap;
+        margin: 0 auto;
+        margin-top: 5px;
+    }
+
+    .oee-container .oee-item {
+        flex-basis: 44%;
+        margin: 0 auto;
+        margin-top: 5px;
+        background: #000;
+    }
+    .oee-container .oee-item.left-label {
+        margin-left: 5px;
+    }
+
+    .oee-container .oee-item.right-label {
+        margin-right: 5px;
+    }
+
+    .oee-container .oee-item.full-label {
+        margin-left: 5%;
+        flex-basis: 90%;
+    }
+
+    .oee-container .item-value {
+        float: right;
+    }
+
+    .oee-container .oee-item {
+        padding: 5px 10px;
+    }
+
+
+
+    /* 狀態 顏色 */
+    .status-color-default {
+        background-color: #808080 !important;
+    }
+
+    .status-color-run {
+        background-color: #33FF00 !important;
+    }
+
+    .status-color-idle {
+        background-color: #FFC107 !important;
+    }
+
+    .status-color-stop {
+        background-color: #DC3545 !important;
+    }
+
+
+
+    .wait_type {
+    }
+
+    .done_type {
+        text-align: center;
+        color: #fff;
+        background: #00b1f5;
+    }
+
+    .in_type {
+        text-align: center;
+        color: #fff;
+        background: #76cf17;
+    }
+
+    .stop_type {
+        text-align: center;
+        color: #fff;
+        background: #DC3545;
+    }
+    .cust_block {
+        width: 125px;
+    }
+    .skin-1 .cust_block {
+        margin-left: 10px;
+        color: #fff;
+    }
+    .cust_item{
+        width:125px;
+    }
+    .cust_block input {
+        margin-left: 5px;
+        border-radius: 5px;
+        width: 35%;
+    }
+    #cust_tools {
+        width:500px;
+    }
+    .cust_item input, .cust_item {
+        display: inline-block;
+    }
+    .cust_block input[type="checkbox"] {
+        margin: 0;
+    }
+</style>
+
+
+@Html.Partial("pPrgName")
+
+<div id="custom_btns">
+    <div class="clearfix">
+        <div class="pull-left" style="margin-left: 10px">
+            <a id="refresh" class="btn btn-white btn-success btn-bold" role="button">
+                <span class="ui-icon ace-icon fa fa-refresh green"></span>
+                <span class=''>更新</span>
+            </a>
+            @*<select name="lineList" id="lineList">
+                <option value="">線別</option>
+            </select>*@
+
+            @*<select name="sortList" id="sortList" class="">
+                <option value="mac_code">排序: 機台代碼</option>
+                <option value="mac_name">排序: 機台名稱</option>
+            </select>*@
+            <select name="MacCodeList" id="MacCodeList" class="multiselect" multiple>
+                @{
+                    foreach (DataRow dr in dtTmp.Rows)
+                    {
+                        <option value="@dr["mac_code"]">@dr["mac_code"] - @dr["mac_name"]</option>
+                    }
+                }
+            </select>
+            <select name="board_type" id="board_type" style="display :none">
+                <option value="A">一般</option>
+                <option value="B" selected>詳細</option>
+            </select>
+            @*<select name="date_type" id="date_type" style="display :none">
+                <option value="0">當天</option>
+                <option value="3">三天</option>
+                <option value="7">一周</option>
+                <option value="14">兩周</option>
+                <option value="21">三周</option>
+				<option value="30">一個月</option>
+				<option value="60">二個月</option>
+				<option value="90">三個月</option>
+            </select>*@
+            @*<div class="cust_block"  style="display:inline-block">
+                <span class="">顯示筆數</span>
+                <input type="text" name="view_count" id="view_count" placeholder="請輸入顯示筆數" value="10" />
+            </div>*@
+            <div id="cust_tools" class="cust_block" style="display:inline-block">
+                <div class="cust_item">
+                    <span class="">橫向展開</span>
+                    <input type="checkbox" name="view_wrap" id="view_wrap" value="開工時間" />
+                </div>
+                @*<div class="cust_item">
+                    <span class="">顯示派工單</span>
+                    <input type="checkbox" name="view_wrk_code" id="view_wrk_code" value="派工單號" />
+                </div>
+                <div class="cust_item">
+                    <span class="">顯示開工時間</span>
+                    <input type="checkbox" name="view_sch_times" id="view_sch_times" value="開工時間" />
+                </div>*@
+            </div>
+        </div>
+        @*<div class="pull-left" style="margin-left: 10px">
+                <h5>更新倒數: <span id="update_count"></span> 秒</h5>
+            </div>*@
+    </div>
+</div>
+
+<br>
+
+<div id="oee">
+    <div class="mac-container">
+        <!--  -->
+    </div>
+</div>
+@section footer_plugin{
+    <script src="/Scripts/assets/js/bootstrap-multiselect.min.js"></script>
+}
+<script>
+    jQuery(function ($) {
+        let $container = $('.mac-container')
+        // 初始 - 定時更新
+        let currentTimer = setTimerUpdate()
+        $(document).ready(function () {
+            $('.multiselect').multiselect({
+                enableFiltering: true,
+                enableHTML: true,
+                allSelectedText: "全選",
+                numberDisplayed: 10,
+                includeSelectAllOption: true,
+                selectAllText: '全選',
+                nonSelectedText: '---請選擇---',
+                maxHeight: 450,
+                buttonWidth: 150,
+                buttonClass: 'btn btn-white btn-primary',
+                templates: {
+                    button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"><span class="multiselect-selected-text"></span> &nbsp;<b class="fa fa-caret-down"></b></button>',
+                    ul: '<ul class="multiselect-container dropdown-menu"></ul>',
+                    filter: '<li class="multiselect-item filter"><div class="input-group"><span class="input-group-addon"><i class="fa fa-search"></i></span><input class="form-control multiselect-search" type="text"></div></li>',
+                    filterClearBtn: '<span class="input-group-btn"><button class="btn btn-default btn-white btn-grey multiselect-clear-filter" type="button"><i class="fa fa-times-circle red2"></i></button></span>',
+                    li: '<li><a tabindex="0"><label style="color:black"></label></a></li>',
+                    divider: '<li class="multiselect-item divider"></li>',
+                    liGroup: '<li class="multiselect-item multiselect-group"><label></label></li>'
+                },
+
+            });
+            //預設全選
+            $('#MacCodeList').multiselect('selectAll', false);
+            $('#MacCodeList').multiselect('updateButtonText');
+
+            //下拉式改變更新內容
+            $('select').on('change', function () { immediateUpdate(); });
+            // 點擊更新按鈕
+            $('#refresh').click(function () { immediateUpdate(); });
+            // 修改INPUT 筆數
+            $('#view_count').change(function () { immediateUpdate(); });
+
+            $('#view_wrap').change(function () {
+                if ($("#view_wrap").is(":checked")) {
+                    $('.mac-container').addClass("mac-container--rows");
+                }
+                else {
+                    $('.mac-container').removeClass("mac-container--rows");
+                }
+                immediateUpdate();
+            });
+            // 初始下拉
+            Set_DropDownList();
+            // 初始
+            Set_MacHtml();
+            //刷新
+            setTimerUpdate();
+        });
+
+        // 立刻更新並重新設置定時
+        function immediateUpdate() {
+           
+            // 更新機台資料
+            Set_MacHtml();
+            // 清除timer
+            clearTimeout(currentTimer)
+
+            // 重設timer
+            currentTimer = setTimerUpdate()
+        }
+
+        // 定時更新
+        function setTimerUpdate() {
+            let timer = Timer({
+                initSeconds: 15,
+                tick: 15000,
+                launch: {
+                    callback: function () {
+                        //Set_MacHtml()
+                        let arr = Get_Current_MacElements()
+                        update(arr)
+                    }
+                }
+            })
+            return timer
+        }
+
+        // 定時器
+        function Timer(options) {
+            let initSeconds = options.initSeconds // seconds // 初始總時間
+            let interval = options.interval || 1  // seconds // 發動一次的間隔
+            let tick = options.tick || 15000  // ms  // 每單位時間發動一次
+            let launch = options.launch  // callback函數和發動時間
+
+            launch.restTime = launch.restTime || 0  // 預設0秒callback
+
+            let count = initSeconds
+            $('#update_count').text(count)
+
+            let timer = setInterval(function () {
+                count -= interval
+                if (count <= launch.restTime) {
+                    if (typeof launch.callback === 'function') {
+                        launch.callback()
+                    }
+                    count = initSeconds
+                }
+                $('#update_count').text(count)
+            }, tick)
+
+            return timer
+        }
+
+        //取得JSON 資料後，轉TABLE
+        function json2table(jsonString, $table) {
+            var json = jsonString;
+            if (json.length > 0) {
+                var cols = Object.keys(json[0]);
+                var headerRow = '';
+                var bodyRows = '';
+                function capitalizeFirstLetter(string) {
+                    return string.charAt(0).toUpperCase() + string.slice(1);
+                }
+                $table.html('<thead class="thead-dark"><tr></tr></thead><tbody></tbody>');
+                var wrkCode = "";
+                var sch_times = "";
+                if (!$("#view_wrk_code").is(":checked")) {
+                    wrkCode = $("#view_wrk_code").val();
+                }
+                if (!$("#view_sch_times").is(":checked")) {
+                    sch_times = $("#view_sch_times").val();
+                }
+
+                cols.map(function (col) {
+                    if (wrkCode !== capitalizeFirstLetter(col) && sch_times !== capitalizeFirstLetter(col)) {
+                        headerRow += '<th>' + capitalizeFirstLetter(col) + '</th>';
+                    };
+
+                });
+                json.map(function (row) {
+                    bodyRows += '<tr>';
+
+                    cols.map(function (colName) {
+                        if (wrkCode !== colName && sch_times !== colName) {
+                            if (row[colName] == "_") { bodyRows += '<td class="wait_type">' + row[colName] + '</td>'; }
+                            else if (row[colName] == "待排程") { bodyRows += '<td class="done_type">' + row[colName] + '</td>'; }
+                            else if (row[colName] == "生產中") { bodyRows += '<td class="in_type">' + row[colName] + '</td>'; }
+                            else if (row[colName] == "待生產") { bodyRows += '<td class="stop_type">' + row[colName] + '</td>'; }
+                            else bodyRows += '<td>' + row[colName] + '</td>';
+                        }
+                    })
+                    bodyRows += '</tr>';
+                });
+
+                $table.find('thead tr').append(headerRow);
+                $table.find('tbody').append(bodyRows);
+            }
+        }
+
+        // 清空畫面 + ajax抓資料 + 設置資料到畫面
+        function Set_MacHtml() {
+            // 清空畫面
+            if ($container.length > 0) {
+                $container.empty()
+            }
+
+            let order = $('#sortList').val();// 排序
+            let line_code = $('#lineList').val();// 線別
+
+            let macCodeItem = $('#MacCodeList').val();
+            if (macCodeItem) {
+                macCodeItem = macCodeItem.filter(x => x);  // 過濾空字串
+                macCodeItem = macCodeItem.join(',');
+            }
+            // ajax 開始，抓資料庫的機台清單
+            $.ajax({
+                method: 'get',
+                url: '/DSB110B/Init_Get_MacCodeList',
+                data: {
+                    order: order,
+                    line_code: "",
+                    Item: macCodeItem
+                }
+            }).done(function (json) {
+                // 建立機台元素清單
+                let elements = []
+                json.forEach(function (item, index) {
+                    var boardType = $("#board_type").val();
+                    let $macItem = _getNewMacElement(item, boardType);
+                    elements.push($macItem);
+                })
+                // ajax抓OEE資料 (by mac_code)
+                // 資料抓完設置到傳入的元素
+                update(elements, function (el) {
+                    // 把元素設置到畫面上
+                    $container.append(el);
+                })
+            }).fail(function () {
+                console.log('ERROR 5005: 抓取機台清單失敗(Init_Get_MacCodeList)');
+            })
+        }
+
+        function MoreItemPage(el, mac_code, item) {
+            let date_values = $('#date_type').val();
+            let count = $('#view_count').val();
+            $.ajax({
+                url: "/DSB110B/Init_Get_MoreItemList",
+                data: {
+                    //order: order,
+                    //line_code: line_code
+                    mac_code: mac_code,
+                    dates: date_values,
+                    count: count,
+                },
+                async: false,
+                dataType: "json",
+                contentType: "application/json;charset=utf-8",
+                type: "get",
+                success: function (result) {
+                    json2table(result, el);
+                },
+                error: function (result) {
+                    console.log("ERROR 501: 資料表取得失敗(Init_Get_MoreItemList)")
+                }
+            });
+        }
+
+        // 初始線別下拉選單
+        function Set_DropDownList() {
+
+            $('#lineList').empty();
+
+            $('#lineList').append(
+                $('<option></option>').val('').html('線別')
+            );
+
+            $.ajax({
+                method: 'get',
+                url: '/DSB110B/Get_LineCodeList',
+            }).done(function (json) {
+                json.forEach(function (item, index) {
+                    $('#lineList').append(
+                        $('<option></option>').val(item).html(item)
+                    );
+                })
+
+            }).fail(function () {
+                console.log("ERROR 502: 線別取得資料錯誤(Get_LineCodeList)")
+
+            })
+        }
+
+        // 創建一個新的方格，傳入機台基本資料(mac_code, mac_name)
+        function _getNewMacElement(oMacData, oType) {
+            let htmlString;
+            $("#date_type").css("display", "inline-block");
+            htmlString = `@Html.Raw(Html.Action("MoreItem", "DSB110B"))`;
+            @*if (oType == "B") {
+                $("#date_type").css("display", "inline-block");
+                htmlString = `@Html.Raw(Html.Action("MoreItem", "DSB110B"))`
+            } else {
+                $("#date_type").css("display", "none");
+                htmlString = `@Html.Raw(Html.Action("MacItem", "DSB110B"))`
+            }*@
+            let $newDiv = $(htmlString)
+
+            let mac_code = oMacData.mac_code
+            let mac_name = oMacData.mac_name
+
+            $newDiv.attr('data-mac_code', mac_code)
+            $newDiv.find('.mac_name').text(mac_code + ' ' + mac_name)
+
+            return $newDiv
+        }
+
+        // 取得畫面上的機台清單
+        function Get_Current_MacElements() {
+            let $mac_list = $('#oee').find('[data-mac_code]')
+            let arr = Array.prototype.slice.call($mac_list)
+
+            return arr
+        }
+
+        // 傳入element清單
+        function update(aMacElements, afterEachUpdate) {
+
+            let mac_code_list = aMacElements.map(function (item, index) {
+                let mac_code = $(item).attr('data-mac_code')
+                return mac_code
+            })
+
+            $.ajax({
+                method: 'post',
+                url: '/DSB110B/Get_OeeData',
+                data: {
+                    pJson: JSON.stringify(mac_code_list)
+                }
+            }).done(function (json) {
+
+                aMacElements.forEach(function (item, index) {
+                    // 加入資料到element
+                    if (!$("#view_wrk_code").is(":checked")) {
+                        wrkCode = $("#view_wrk_code").val();
+                    }
+                    if (!$("#view_sch_times").is(":checked")) {
+                        sch_times = $("#view_sch_times").val();
+                    }
+                    let mac_code = $(item).attr('data-mac_code')
+                    let work_code = $('#work_code').val()
+                    let oeeData = json[mac_code]
+                    if (oeeData) {
+                        _setMacElementText(item, oeeData);
+                        if ($(item).find('#oee_Table').length) {
+                            MoreItemPage($(item).find('#oee_Table'), mac_code);
+                            //MoreItemPage($(item).find('#oee_Table_2'));
+
+                            $(".mac-item").css("width", "490px");
+                            if ($("#view_wrk_code").is(":checked") || $("#view_sch_times").is(":checked")) {
+                                $(".mac-item").css("width", "550px");
+                            }
+                            if ($("#view_wrk_code").is(":checked") && $("#view_sch_times").is(":checked")) {
+                                $(".mac-item").css("width", "600px");
+                            }
+                        }
+                    }
+
+                    if (typeof afterEachUpdate === 'function') {
+                        afterEachUpdate(item, index, aMacElements)
+                    }
+                    // 設置到html上
+                    //$container.append($(item))  // 不加判斷也不會重複增加元素，不知道為什麼
+                    //if ($container.find(item).length == 0) {
+                    //    $container.append(item)
+                    //}
+                })
+
+            }).fail(function () {
+                console.log("ERROR 503: 取得資料錯誤(Get_OeeData)")
+            })
+
+            $.ajax({
+                method: 'post',
+                url: '/DSB110B/Get_ProName',
+                data: {
+                    pJson: JSON.stringify(mac_code_list)
+                }
+            }).done(function (json) {
+
+                json.forEach(function (item, index) {
+                    $('#oee > div > div:nth-child(' + (index + 1) + ') .pro_name').text(item.ProName);
+                    //$('#oee > div > div:nth-child(' + (index + 1) + ') .wrk_code').text(item.WrkCode);
+                    //$('.pro_name').text(item.ProName);
+                    //$('.wrk_code').text(item.WrkCode);
+                })
+
+            });
+
+        }
+
+        //
+        function _setMacElementText(el, data) {
+            let $el = $(el)
+            //
+            let $mac_name = $el.find('.mac_name')
+            let $mo_code = $el.find('.mo_code')
+            let $scr_no = $el.find('.scr_no')
+
+            let $status = $el.find('.status')
+
+            let $yield = $el.find('.yield-value')
+            let $utilization = $el.find('.utilization-value')
+            let $stop_time = $el.find('.stop_time-value')
+            let $work_time = $el.find('.work_time-value')
+
+
+
+            // 設值
+            if (data.mac_name) {
+                $mac_name.val(data.mac_name) // 機台名稱
+            }
+            //$mo_code.text(data.mo_code)  // 製令
+            $scr_no.text(data.scr_no)  // 順序
+
+            // 狀態(中文 + 背景顏色)
+            $status.attr('data-status_code', data.status)
+            switch (data.status.toUpperCase()) {
+                case 'R':
+                    $status.text('生產')
+                    $status.attr('class', 'status status-color-run')
+                    break;
+                case 'D':
+                    $status.text('關機')
+                    $status.attr('class', 'status status-color-default')
+                    break;
+                case 'I':
+                    $status.text('閒置')
+                    $status.attr('class', 'status status-color-idle')
+                    break;
+                case 'E':
+                    $status.text('停機 (' + data.message + ')')
+                    $status.attr('class', 'status status-color-stop')
+                    break;
+                default:
+                    $status.text('關機')
+                    $status.attr('class', 'status status-color-default')
+                    break;
+            }
+
+            //
+            let itemDatas = data.items
+            if (itemDatas) {
+                $el.find('.oee-item').each(function (i) {
+                    let itemData = itemDatas[i]
+
+                    if (itemData && typeof itemData === 'object') {
+                        $label = $(this).find('.item-label')
+                        $value = $(this).find('.item-value')
+
+                        $(this).attr('data-name', itemData.name || '')
+                        $label.text(itemData.label || '')
+                        $value.text(itemData.value || '')
+                    }
+
+                })
+            }
+
+        }
+
+
+    });
+</script>
+
+

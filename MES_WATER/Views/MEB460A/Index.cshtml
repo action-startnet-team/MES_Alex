@@ -1,0 +1,28 @@
+﻿@using MES_WATER.Models;
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewBag.sPrgCode ?? ViewContext.RouteData.Values["controller"].ToString();
+}
+
+
+@Html.Partial("pPrgName")
+
+
+@* 修改點 以下 *@
+@{
+    // 改對應的class
+    Html.RenderAction("pJqgrid_A", "jqgrid", new
+    {
+        pModelType = new MEB46_0000().GetType(),
+        pPrgCode = sPrgCode,
+    });
+
+}
+@* 修改點 以上 *@
+
+

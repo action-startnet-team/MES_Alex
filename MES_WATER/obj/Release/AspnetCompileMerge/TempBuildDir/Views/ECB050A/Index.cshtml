@@ -1,0 +1,39 @@
+﻿@using MES_WATER.Models;
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewBag.sPrgCode ?? ViewContext.RouteData.Values["controller"].ToString();
+}
+
+
+@Html.Partial("pPrgName")
+
+
+@* 修改點 以下 *@
+@{
+    Func<object, HelperResult> customBtnTemplate = @<text></text>; 
+
+    customBtnTemplate =
+        @<text>
+            <div class="pull-left" style="margin-left: 10px">
+                <a href="/ECB050A/Upload" class="btn btn-white btn-warning btn-bold" role="button">
+                    <span>匯入</span>
+                </a>
+            </div>
+        </text>;
+    // 改對應的class
+    Html.RenderAction("pJqgrid_A", "jqgrid", new
+    {
+        pModelType = new ECB05_0000().GetType(),
+        pPrgCode = sPrgCode,
+        pCustomHtml_header = customBtnTemplate.Invoke(null).ToString()
+    });
+
+}
+@* 修改點 以上 *@
+
+

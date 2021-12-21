@@ -1,0 +1,571 @@
+﻿@using MES_WATER.Models
+
+@{
+    Comm comm = new Comm();
+    List<DDLList> bull_kind_DDL = comm.Get_DDLOption("bull_kind");
+
+    // 原公告資料鍵值
+    //string bdp23_0000 = ViewBag.bdp23_0000;
+}
+
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+}
+<style>
+    .discloseAll:hover, .closeAll:hover {
+        cursor: pointer;
+        color: #FFA830;
+    }
+</style>
+<div id="Bulletin-Board">
+    <div class="Bulletin-Board-List">
+        <div class="row">
+            <div class="col-sm-12 no-padding-left no-padding-right">
+                <div class="widget-box widget-color-blue2">
+                    <div class="widget-header">
+                        <h4 class="widget-title lighter smaller">
+                            公告清單
+                        </h4>
+                        <div class="pull-right">
+                            <div style="display: flex">
+                                <h5 class="discloseAll">展開</h5>
+                                &nbsp; &nbsp;
+                                <h5 class="closeAll">摺疊</h5>
+                                &nbsp; &nbsp;
+                            </div>
+                        </div>
+                    </div>
+                    <div class="widget-body">
+                        <div class="widget-main padding-8">
+                            <ul id="tree1"></ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="space-6"></div>
+
+    <!--  -->
+    @using (Html.BeginForm("", "", FormMethod.Post, new { @class = "form-horizontal", id = "bulletin-content", role = "form" }))
+    {
+        <div class="row">
+            <div class="tabbable">
+                <ul class="nav nav-tabs" id="myTab">
+                    <li class="active">
+                        <a data-toggle="tab" href="#nav-tabs-content" aria-expanded="true">
+                            公告內容
+                        </a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <!-- 公告內容 -->
+                    <div id="nav-tabs-content" class="tab-pane fade active in">
+
+                        <!-- hidden input for pTkCode -->
+                        <input type="hidden" name="bdb23_0100" />
+
+                        <div class="form-group" style="width:70%; float:left">
+                            <!-- -->
+                            <label class="col-sm-1 control-label no-padding-right" for="">公告起日</label>
+                            <div class="col-md-2">
+                                <div class="clearfix">
+                                    <input readonly class="col-xs-12 text-box single-line" name="bull_date" type="text">
+                                </div>
+                                <span class="field-validation-valid text-danger"></span>
+                            </div>
+                            <!-- -->
+                            <label class="col-sm-1 control-label no-padding-right" for="">有效日期</label>
+                            <div class="col-md-2">
+                                <div class="clearfix">
+                                    <input readonly class="col-xs-12 text-box single-line" style="color: red" name="eff_date" type="text">
+                                </div>
+                            </div>
+                            <!-- -->
+                            <label class="col-sm-1 control-label no-padding-right" for="">公告性質</label>
+                            <div class="col-md-2">
+                                <div class="clearfix">
+                                    @*<input class="col-xs-12 text-box single-line" id="" name="" type="text">*@
+                                    <select name="bull_kind">
+                                        @CustomHelper.Get_Option(bull_kind_DDL, "", false, ". ")
+                                    </select>
+                                </div>
+                            </div>
+                            <!-- -->
+                            <label class="col-sm-1 control-label no-padding-right" for="">相關連結</label>
+                            <div class="col-md-2">
+                                <div class="clearfix">
+                                    <input class="col-xs-12 text-box single-line" name="" type="text">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="width:70%; float:left">
+                            <label class="col-sm-1 control-label no-padding-right" for="">主旨</label>
+                            <div class="col-md-11">
+                                <div class="clearfix">
+                                    <input readonly class="col-xs-12 text-box single-line" name="theme" type="text">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group" style="width:70%; float:left">
+                            <label class="col-sm-1 control-label no-padding-right" for="pro_spc">內容</label>
+                            <div class="col-md-11">
+                                <div class="clearfix">
+                                    <textarea readonly class="autosize-transition form-control" cols="20" data-val="true" data-val-length="長度最多600個字!" data-val-length-max="600" name="bull_con" rows="7" style="overflow: hidden; overflow-wrap: break-word; resize: horizontal; "></textarea>
+                                </div>
+                                <span class="field-validation-valid text-danger" data-valmsg-for="pro_spc" data-valmsg-replace="true"></span>
+                            </div>
+                        </div>
+                        <div style="clear:both"></div>
+
+                        <div class="form-group" style="width:35%; float:left; margin-right:12px">
+                            <label class="col-sm-2 control-label no-padding-right" for="">公告人</label>
+                            <div class="col-md-10">
+                                <div class="clearfix">
+                                    <input readonly class="col-xs-5 text-box single-line" name="usr_code" type="text">
+                                    <input readonly class="col-xs-7 text-box single-line" name="usr_name" type="text">
+                                </div>
+                            </div>
+                            <div class="space-24"></div>
+                            <label class="col-sm-3 control-label no-padding-right" for=""></label>
+                            <div class="col-md-9">
+                                <div class="clearfix hiddenForBullType1">
+                                    <div class="checkbox col-xs-4 no-padding-right no-padding-left">
+                                        <label>
+                                            <input name="is_ok" type="checkbox" class="ace input-lg">
+                                            <span class="lbl"> 結案</span>
+                                        </label>
+                                    </div>
+                                    <label class="col-sm-4 control-label " for="">結案日期</label>
+                                    <input readonly class="col-xs-4 text-box single-line" name="ok_date" type="text">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group hiddenForBullType1" style="width:35%; float:left">
+                            <label class="col-sm-1 control-label no-padding-right" for="">備註</label>
+                            <div class="col-md-11">
+                                <div class="clearfix">
+                                    <textarea class="autosize-transition form-control" cols="20" data-val="true" data-val-length="長度最多250個字!" data-val-length-max="250" name="usr_memo" rows="3" style="overflow: hidden; overflow-wrap: break-word; resize: horizontal; "></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="clear:both"></div>
+
+                    </div>
+
+                    <div class="form-group" style="width:70%; float:left">
+                        <!-- -->
+                        @*<label class="col-sm-1 control-label no-padding-right" for=""></label>
+                            <div class="col-md-2"></div>*@
+                        <div class="checkbox col-xs-6">
+                            <label class="pull-right">
+                                <input name="showOkData" type="checkbox" class="ace input-lg">
+                                <span class="lbl "> 顯示已結案資料</span>
+                            </label>
+                        </div>
+                        <!-- -->
+                        @*<label class="col-sm-1 control-label no-padding-right" for=""></label>
+                            <div class="col-md-2"></div>*@
+                        <!-- -->
+                        <label class="col-sm-1 control-label no-padding-right" for=""></label>
+                        <div class="col-md-2">
+
+                        </div>
+                        <!-- -->
+                        <label class="col-sm-1 control-label no-padding-right" for="">基準日期</label>
+                        <div class="col-md-2">
+                            <div class="clearfix">
+                                <input class="col-xs-12 text-box single-line" name="sor_date" type="text" value="">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- -->
+
+                    <div style="clear:both"></div>
+                    <hr>
+                    <div class="clearfix">
+                        <div class="col-md-offset-3 col-md-9">
+                            @*<input type="submit" value="儲存" class="btn btn-white btn-info btn-bold hiddenForBullType1">*@
+                            <a id="saveBulletinBoard" class="btn btn-white btn-info btn-bold hiddenForBullType1">
+                                儲存
+                            </a>
+                            &nbsp;
+                            <a class="btn btn-white btn-round reload-bulletin">
+                                <span class="ui-icon ace-icon fa fa-refresh green"></span>
+                                重新整理
+                            </a>
+                            &nbsp;
+                            <a id="exitBulletinBoard" class="btn btn-white  btn-pink btn-round">
+                                <i class="ace-icon fa fa-times "></i>
+                                關閉
+                            </a>
+
+                        </div>
+                    </div>
+
+                </div><!--end of table-content -->
+
+            </div>
+        </div>
+
+    }
+
+    <div style="clear:both"></div>
+</div>
+
+
+
+@section footer_plugin {
+
+    <script src="~/Scripts/assets/js/tree.min.js"></script>
+
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+}
+@section footer_script {
+    <script type="text/javascript">
+        jQuery(function ($) {
+
+            // 關閉當前分頁
+            $('#exitBulletinBoard').click(function (e) {
+                self.opener = null;
+                self.close();
+
+            })
+
+            // 儲存結案和備註
+            $('#saveBulletinBoard').click(function (e) {
+
+                let is_ok = $('[name="is_ok"]').prop('checked') ? 'Y' : 'N'
+                let ok_date = $('[name="ok_date"]').val()
+                let usr_memo = $('[name="usr_memo"]').val()
+                let bdb23_0100 = $('[name="bdb23_0100"]').val()
+
+                $.ajax({
+                    method: 'post',
+                    url: '/BDP230B/Save_BoardData',
+                    data: {
+                        pTkCode: bdb23_0100,
+                        pIsOk: is_ok,
+                        pOkDate: ok_date,
+                        pUsrMemo: usr_memo
+                    }
+                }).done(function (data) {
+                    alert('儲存成功! ')
+                })
+            })
+
+            // 點擊結案，預設結案日期為當天
+            $('[name="is_ok"]').click(function () {
+                if ($(this).prop('checked') === false) {
+                    $('[name="ok_date"]').val('')
+                } else {
+                    $('[name="ok_date"]').val(GetDate())
+                }
+            })
+
+            // 基準日期
+            $('#bulletin-content').find('[name="sor_date"]')
+                                  //.val('2020/02/17')
+                                  .val(GetDate())
+                                  .datepicker({ language: 'zh-TW', format: 'yyyy/mm/dd', autoclose: true }).attr('autocomplete', 'off')
+
+            // 函數 取得當天日期 (yyyy/MM/dd)
+            function GetDate() {
+                let today = new Date();
+                let y = today.getFullYear()
+                let m = (today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : '0' + (today.getMonth() + 1)
+                let d = today.getDate() > 9 ? today.getDate() : '0' + today.getDate()
+                let date = y + '/' + m + '/' + d;
+                return date
+            }
+
+        })
+    </script>
+
+    <script type="text/javascript">
+    jQuery(function ($) {
+        //see below
+        var sampleData = initiateDemoData();
+
+        // tree Options
+        let tree1 = $('#tree1').ace_tree({
+            dataSource: sampleData['dataSource1'],
+            multiSelect: false,
+            cacheItems: true,
+            'open-icon': 'ace-icon tree-minus',
+            'close-icon': 'ace-icon tree-plus',
+            'itemSelect': true,
+            'folderSelect': false,
+            'selected-icon': '', //'ace-icon fa fa-check',
+            'unselected-icon': '', //'ace-icon fa fa-times',
+            loadingHTML: '<div class="tree-loading"><i class="ace-icon fa fa-refresh fa-spin blue"></i></div>'
+        });
+
+        // click 展開全部
+	    $('.Bulletin-Board-List').find('.discloseAll').click(function () {
+	        $('#tree1').tree('discloseAll');
+	    })
+
+        // click 摺疊全部
+	    $('.Bulletin-Board-List').find('.closeAll').click(function () {
+	        $('#tree1').tree('closeAll');
+	    })
+
+        // 預設 展開全部
+	    $('#tree1').tree('discloseAll');
+
+	    /**
+	    //Use something like this to reload data
+	    $('#tree1').find("li:not([data-template])").remove();
+	    $('#tree1').tree('render');
+	    */
+
+        // 重新整理按鈕
+	    $('#bulletin-content').on('click', '.reload-bulletin', function (e) {
+	        reloadBulletin()
+	    })
+
+        // 顯示已結案資料(checkbox)
+	    $('#bulletin-content').find('[name="showOkData"]').click(function (e) {
+	        reloadBulletin()
+	    })
+
+        //
+	    function reloadBulletin() {
+	        $('#tree1').find("li:not([data-template])").remove();
+	        $('#tree1').tree('render');
+
+	        clearBulletinContent()
+
+	        // 展開全部後 選擇第一筆資料
+	        selectFirstItem = true
+            //selectDefault = false
+	        $('#tree1').tree('discloseAll');
+	    }
+
+        // 清空公告內容 (基準日期除外)
+	    function clearBulletinContent() {
+	        $('#bulletin-content').find('input:text:not([name="sor_date"])').val('')
+	        $('#bulletin-content').find('textarea').val('')
+	    }
+
+        // 函數 計算日期間隔天數 (含當天)
+	    function daysBetween(date1, date2) {
+	        let d1 = new Date(date1)
+	        let d2 = new Date(date2)
+	        let diffTime = Math.abs(d2 - d1)
+	        let diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1
+	        return diffDays;
+	    }
+
+        /**
+        // Tree Event Reference
+	    //please refer to docs for more info
+	    $('#tree1')
+	    .on('loaded.fu.tree', function(e) {
+	    })
+	    .on('updated.fu.tree', function(e, result) {
+	    })
+	    .on('selected.fu.tree', function(e) {
+	    })
+	    .on('deselected.fu.tree', function(e) {
+	    })
+	    .on('opened.fu.tree', function(e) {
+	    })
+	    .on('closed.fu.tree', function(e) {
+	    });
+	    */
+
+        // tree deselected event
+	    $('#tree1').on('deselected.fu.tree', function (event, data) {
+	        clearBulletinContent()
+	    })
+
+        // tree selected event
+	    $('#tree1').on('selected.fu.tree', function (event, data) {
+	        if (typeof data.target.attr !== 'undefined') {
+                //
+	            let key = data.target.attr.id
+
+	            // 取得儲存的公告內容資料清單
+	            let bulletin_list = $('#Bulletin-Board').data('bulletin-list')
+
+	            // 單一公告內容資料
+	            let bulletin_data = {}
+	            for (let i = 0; i < bulletin_list.length; i++) {
+	                if (bulletin_list[i].bdp23_0000 === key) {
+	                    bulletin_data = bulletin_list[i]
+	                    break
+	                }
+	            }
+
+	            // 設置公告內容
+	            let $content = $('#bulletin-content')
+
+	            $content.find('[name="bdb23_0100"]').val(bulletin_data.bdb23_0100)
+
+	            $content.find('[name="bull_date"]').val(bulletin_data.bull_date)
+	            $content.find('[name="eff_date"]').val(bulletin_data.eff_date)
+	            $content.find('[name="bull_kind"]').val(bulletin_data.bull_kind)
+	            $content.find('[name="theme"]').val(bulletin_data.theme)
+	            $content.find('[name="bull_con"]').val(bulletin_data.bull_con)
+	            $content.find('[name="usr_code"]').val(bulletin_data.usr_code)
+	            $content.find('[name="usr_name"]').val(bulletin_data.usr_name)
+	            $content.find('[name="usr_memo"]').val(bulletin_data.usr_memo)
+
+	            if (bulletin_data.is_ok === 'Y') {
+	                $content.find('[name="is_ok"]').prop('checked', true)
+	            } else {
+	                $content.find('[name="is_ok"]').prop('checked', false)
+	            }
+
+	            $content.find('[name="ok_date"]').val(bulletin_data.ok_date)
+
+	            // hiddenForBullType1
+	            if (bulletin_data.bull_type == 1) {
+	                $content.find('.hiddenForBullType1').hide()
+	            } else {
+	                $content.find('.hiddenForBullType1').show()
+	            }
+	        }
+
+	    })
+
+        // tree 展開全部 event
+	    let selectFirstItem = true // 控制展開後 是否選擇第一項
+	    @*let defaultSelectItemId = "@bdp23_0000" // 預設資料id*@
+        let selectDefault = true // 控制展開後不選擇預設
+	    $('#tree1').on('disclosedAll.fu.tree', function (event, data) {
+	        //if (selectDefault) {
+            //    // 預設 選擇資料
+	        //    $(this).tree('selectItem', $('#' + defaultSelectItemId))
+	        //}
+	        if (selectFirstItem) {
+	            // 選擇第一筆資料
+	            // $('.tree-item')[0] is a hide item
+	            $(this).tree('selectItem', $(this).find('.tree-item')[1])
+	            selectFirstItem = false
+            }
+	    })
+
+        // ajax
+	    function Ajax_BulletinData(pSorDate, pShowOKData) {
+	        return $.ajax({
+                async: false,
+	            method: 'get',
+	            url: '@Url.Action("Get_BoardData", "BDP230B")',
+	            data: {
+	                pSorDate: pSorDate,
+	                pShowOKData: pShowOKData
+	            },
+	        })
+	    }
+
+        // get tree data by using ajax call
+	    function GetTreeData() {
+	        // 參考 static data
+	        //var tree_data = {
+	        //    'for-sale': { text: 'For Sale', type: 'folder' },
+	        //    'vehicles' : {text: 'Vehicles', type: 'folder'}	,
+	        //    'rentals' : {text: 'Rentals', type: 'folder'}	,
+	        //}
+	        //tree_data['for-sale']['additionalParameters'] = {
+	        //    'children' : {
+	        //	    'appliances' : {text: 'Appliances', type: 'item'},
+	        //	    'arts-crafts' : {text: 'Arts & Crafts', type: 'item'},
+	        //	    'clothing' : {text: 'Clothing', type: 'item'},
+	        //    }
+	        //}
+
+	        let tree_data = {}
+
+	        let $content = $('#bulletin-content')
+
+            // 查詢條件
+	        let sor_date = $content.find('[name="sor_date"]').val()
+	        let showOkData = $content.find('[name="showOkData"]').prop('checked') ? 'Y' : 'N'
+
+	        Ajax_BulletinData(sor_date, showOkData).done(function (data) {
+	            // Store data
+	            $('#Bulletin-Board').data('bulletin-list', data)
+
+	            if (data.length <= 0) {
+	                tree_data['NoData'] = { text: '沒有資料! ' , type: 'item' }
+	            }
+	            else
+	            {
+	                // (swallow) copy data (data is array)
+	                let list = data.slice()
+
+	                // Set tree data, grouping
+	                while (list.length > 0) {
+
+	                    let groupField = 'bull_date'
+	                    let groupValue = list[0][groupField]
+
+	                    // 第一層
+	                    tree_data[groupValue] = { text: '<span style="color: red">' + groupValue + ' &nbsp; (NEW)' + '</span>', type: 'folder' }
+
+	                    // 設置子節點 初始
+	                    tree_data[groupValue]['additionalParameters'] = { children: {} }
+
+	                    // 設置子節點 內容
+	                    for (let i = 0; i < list.length; i++) {
+	                        if (list[i].bull_date === groupValue) {
+	                            tree_data[groupValue]['additionalParameters']['children'][list[i].bdp23_0000] = {
+	                                text: '(' + list[i].bull_time + ') ' + list[i].theme + '&nbsp; (' + daysBetween(sor_date, list[i].eff_date) + 'd)',
+	                                type: 'item',
+	                                attr: {
+	                                    id: list[i].bdp23_0000
+	                                },
+	                            }
+	                            list.splice(i, 1)
+	                            i--
+	                        }
+	                    }
+	                }
+	                // end while
+	            }
+	        })
+
+	        return tree_data
+	    }
+
+        //
+	    function initiateDemoData() {
+		    var dataSource1 = function(options, callback){
+			    var $data = null
+			    if(!("text" in options) && !("type" in options)){
+			        $data = GetTreeData();//the root tree
+				    callback({ data: $data });
+				    return;
+			    }
+			    else if("type" in options && options.type == "folder") {
+				    if("additionalParameters" in options && "children" in options.additionalParameters)
+					    $data = options.additionalParameters.children || {};
+				    else $data = {}//no data
+			    }
+
+			    if($data != null)//this setTimeout is only for mimicking some random delay
+				    setTimeout(function(){callback({ data: $data });} , parseInt(Math.random() * 500) + 200);
+
+			    //we have used static data here
+			    //but you can retrieve your data dynamically from a server using ajax call
+			    //checkout examples/treeview.html and examples/treeview.js for more info
+		    }
+
+		    return {'dataSource1': dataSource1 }
+	    }
+
+    });
+    </script>
+
+}

@@ -1,0 +1,688 @@
+﻿
+@{
+    string mac_code = ViewBag.mac_code;
+    string mac_name = ViewBag.mac_name;
+    string img_url = ViewBag.img_url;
+}
+
+<style>
+    .OEE {
+        border-radius: 10px;
+        height: 50px;
+        text-align: center;
+    }
+
+
+    .blue {
+        color: #5599FF;
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    p {
+        margin: 0 0 1px;
+    }
+    /*.profile_viewRED{
+        content:"\f071";
+    }*/
+</style>
+
+
+
+<div data-mac_code="@mac_code" class="profile_details">
+    <div class="well profile_view inputError">
+        <div class="col-sm-12">
+            <div class="left col-xs-8 ">
+                <span class="h3 mac-label">@mac_code</span>
+                <h2 class="mac-label" style="font-size:18px; ">@mac_name</h2>
+            </div>
+            <div class="col-xs-4 text-right">
+                <img src="/@img_url" class="img-circle img-responsive">
+            </div>
+
+        </div>
+        <div class="col-xs-12 bottom text-center">
+            @switch (mac_code)
+            {
+                case "A1L01001":
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para1">
+                            <strong class="para1-label OEE">生產狀態</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para2">
+                            <strong class="para2-label OEE">瓶胚計數</strong>
+                            <br />
+                            <span class="para2-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para3">
+                            <strong class="para3-label OEE">瓶子計數</strong>
+                            <br />
+                            <span class="para3-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L01004":
+                    <div class="row">
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para1">
+                                <strong class="para1-label OEE">機台狀態</strong>
+                                <br />
+                                <span class="para1-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para2">
+                                <strong class="para2-label OEE">進瓶數量</strong>
+                                <br />
+                                <span class="para2-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para3">
+                                <strong class="para3-label OEE">出瓶數量</strong>
+                                <br />
+                                <span class="para3-value blue">0</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 col-xs-6">
+                            <p class="para4">
+                                <strong class="para4-label OEE">A軸使用中</strong>
+                                <br />
+                                <span class="para4-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6 col-xs-6">
+                            <p class="para5">
+                                <strong class="para5-label OEE">B軸使用中</strong>
+                                <br />
+                                <span class="para5-value blue">0</span>
+                            </p>
+                        </div>
+                    </div>
+                    break;
+                case "A1L01005":
+                    <div class="row">
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para1">
+                                <strong class="para1-label OEE">總產量</strong>
+                                <br />
+                                <span class="para1-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para2">
+                                <strong class="para2-label OEE">A頭產量</strong>
+                                <br />
+                                <span class="para2-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para3">
+                                <strong class="para3-label OEE">B頭產量</strong>
+                                <br />
+                                <span class="para3-value blue">0</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 col-xs-6">
+                            <p class="para4">
+                                <strong class="para4-label OEE">A軸使用中</strong>
+                                <br />
+                                <span class="para4-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6 col-xs-6">
+                            <p class="para5">
+                                <strong class="para5-label OEE">B軸使用中</strong>
+                                <br />
+                                <span class="para5-value blue">0</span>
+                            </p>
+                        </div>
+                    </div>
+                    break;
+                case "A1L01010":
+                    <div class="row">
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para1">
+                                <strong class="para1-label OEE">機台狀態</strong>
+                                <br />
+                                <span class="para1-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para2">
+                                <strong class="para2-label OEE">貼標A量</strong>
+                                <br />
+                                <span class="para2-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para3">
+                                <strong class="para3-label OEE">貼標B量</strong>
+                                <br />
+                                <span class="para3-value blue">0</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para4">
+                                <strong class="para4-label OEE">貼標總數</strong>
+                                <br />
+                                <span class="para4-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para5">
+                                <strong class="para5-label OEE">A軸使用中</strong>
+                                <br />
+                                <span class="para5-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para6">
+                                <strong class="para6-label OEE">B軸使用中</strong>
+                                <br />
+                                <span class="para6-value blue">0</span>
+                            </p>
+                        </div>
+                    </div>
+                    break;
+                case "A1L01011":
+                    <div class="col-md-6 col-xs-6">
+                        <p class="para1">
+                            <strong class="para1-label OEE">機台狀態</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6 col-xs-6">
+                        <p class="para2">
+                            <strong class="para2-label OEE">產品計數</strong>
+                            <br />
+                            <span class="para2-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L01012":
+                    <div class="col-md-12 col-xs-12">
+                        <p class="para1">
+                            <strong class="para1-label OEE">本日生產量</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L01013":
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para1">
+                            <strong class="para1-label OEE">本日計數量</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para2">
+                            <strong class="para2-label OEE">正常品數量</strong>
+                            <br />
+                            <span class="para2-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para3">
+                            <strong class="para3-label OEE">異常品數量</strong>
+                            <br />
+                            <span class="para3-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L01014":
+                    <div class="col-md-3 col-xs-3">
+                        <p class="para1">
+                            <strong class="para1-label OEE">機台狀態</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-3 col-xs-3">
+                        <p class="para2">
+                            <strong class="para2-label OEE">總數</strong>
+                            <br />
+                            <span class="para2-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-3 col-xs-3">
+                        <p class="para3">
+                            <strong class="para3-label OEE">成功數</strong>
+                            <br />
+                            <span class="para3-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-3 col-xs-3">
+                        <p class="para4">
+                            <strong class="para4-label OEE">失敗數</strong>
+                            <br />
+                            <span class="para4-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L01015":
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para1">
+                            <strong class="para1-label OEE">機台狀態</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para2">
+                            <strong class="para2-label OEE">成品箱數</strong>
+                            <br />
+                            <span class="para2-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para3">
+                            <strong class="para3-label OEE">成品板數</strong>
+                            <br />
+                            <span class="para3-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L01016":
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para1">
+                            <strong class="para1-label OEE">機台狀態</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para2">
+                            <strong class="para2-label OEE">入料棧板數量</strong>
+                            <br />
+                            <span class="para2-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para3">
+                            <strong class="para3-label OEE">裹膜完成數量</strong>
+                            <br />
+                            <span class="para3-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L01017":
+                    <div class="col-md-12 col-xs-12">
+                        <p class="para1">
+                            <strong class="para1-label OEE">機台狀態</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L02001":
+                    <div class="col-md-6 col-xs-6">
+                        <p class="para1">
+                            <strong class="para1-label OEE">總生產數量</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6 col-xs-6">
+                        <p class="para2">
+                            <strong class="para2-label OEE">破瓶數量</strong>
+                            <br />
+                            <span class="para2-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L02002":
+                    <div class="col-md-6 col-xs-6">
+                        <p class="para1">
+                            <strong class="para1-label OEE">總生產數量</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-6 col-xs-6">
+                        <p class="para2">
+                            <strong class="para2-label OEE">破瓶數量</strong>
+                            <br />
+                            <span class="para2-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L02003":
+                    <div class="col-md-12 col-xs-12">
+                        <p class="para1">
+                            <strong class="para1-label OEE">生產數量</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L02007":
+                    <div class="row">
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para1">
+                                <strong class="para1-label OEE">機台狀態</strong>
+                                <br />
+                                <span class="para1-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para2">
+                                <strong class="para2-label OEE">進瓶數量</strong>
+                                <br />
+                                <span class="para2-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para3">
+                                <strong class="para3-label OEE">出瓶數量</strong>
+                                <br />
+                                <span class="para3-value blue">0</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 col-xs-6">
+                            <p class="para4">
+                                <strong class="para4-label OEE">A軸使用中</strong>
+                                <br />
+                                <span class="para4-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6 col-xs-6">
+                            <p class="para5">
+                                <strong class="para5-label OEE">B軸使用中</strong>
+                                <br />
+                                <span class="para5-value blue">0</span>
+                            </p>
+                        </div>
+                    </div>
+                    break;
+                case "A1L02008":
+                    <div class="row">
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para1">
+                                <strong class="para1-label OEE">總產量</strong>
+                                <br />
+                                <span class="para1-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para2">
+                                <strong class="para2-label OEE">A頭產量</strong>
+                                <br />
+                                <span class="para2-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para3">
+                                <strong class="para3-label OEE">B頭產量</strong>
+                                <br />
+                                <span class="para3-value blue">0</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 col-xs-6">
+                            <p class="para4">
+                                <strong class="para4-label OEE">A軸使用中</strong>
+                                <br />
+                                <span class="para4-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-6 col-xs-6">
+                            <p class="para5">
+                                <strong class="para5-label OEE">B軸使用中</strong>
+                                <br />
+                                <span class="para5-value blue">0</span>
+                            </p>
+                        </div>
+                    </div>
+                    break;
+                case "A1L02013":
+                    <div class="row">
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para1">
+                                <strong class="para1-label OEE">機台狀態</strong>
+                                <br />
+                                <span class="para1-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para2">
+                                <strong class="para2-label OEE">貼標A量</strong>
+                                <br />
+                                <span class="para2-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para3">
+                                <strong class="para3-label OEE">貼標B量</strong>
+                                <br />
+                                <span class="para3-value blue">0</span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para4">
+                                <strong class="para4-label OEE">貼標總數</strong>
+                                <br />
+                                <span class="para4-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para5">
+                                <strong class="para5-label OEE">A軸使用中</strong>
+                                <br />
+                                <span class="para5-value blue">0</span>
+                            </p>
+                        </div>
+                        <div class="col-md-4 col-xs-4">
+                            <p class="para6">
+                                <strong class="para6-label OEE">B軸使用中</strong>
+                                <br />
+                                <span class="para6-value blue">0</span>
+                            </p>
+                        </div>
+                    </div>
+                    break;
+                case "A1L02014":
+                    <div class="col-md-12 col-xs-12">
+                        <p class="para1">
+                            <strong class="para1-label OEE">本日生產量</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L02015":
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para1">
+                            <strong class="para1-label OEE">本日計數量</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para2">
+                            <strong class="para2-label OEE">正常品數量</strong>
+                            <br />
+                            <span class="para2-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para3">
+                            <strong class="para3-label OEE">異常品數量</strong>
+                            <br />
+                            <span class="para3-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L02016":
+                    <div class="col-md-3 col-xs-3">
+                        <p class="para1">
+                            <strong class="para1-label OEE">機台狀態</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-3 col-xs-3">
+                        <p class="para2">
+                            <strong class="para2-label OEE">總數</strong>
+                            <br />
+                            <span class="para2-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-3 col-xs-3">
+                        <p class="para3">
+                            <strong class="para3-label OEE">成功數</strong>
+                            <br />
+                            <span class="para3-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-3 col-xs-3">
+                        <p class="para4">
+                            <strong class="para4-label OEE">失敗數</strong>
+                            <br />
+                            <span class="para4-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L02017":
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para1">
+                            <strong class="para1-label OEE">機台狀態</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para2">
+                            <strong class="para2-label OEE">成品箱數</strong>
+                            <br />
+                            <span class="para2-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para3">
+                            <strong class="para3-label OEE">成品板數</strong>
+                            <br />
+                            <span class="para3-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L02018":
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para1">
+                            <strong class="para1-label OEE">機台狀態</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para2">
+                            <strong class="para2-label OEE">入料棧板數量</strong>
+                            <br />
+                            <span class="para2-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para3">
+                            <strong class="para3-label OEE">裹膜完成數量</strong>
+                            <br />
+                            <span class="para3-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L02019":
+                    <div class="col-md-12 col-xs-12">
+                        <p class="para1">
+                            <strong class="para1-label OEE">機台狀態</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L02020":
+                    <div class="col-md-12 col-xs-12">
+                        <p class="para1">
+                            <strong class="para1-label OEE">計瓶數量</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L02021":
+                    <div class="col-md-12 col-xs-12">
+                        <p class="para1">
+                            <strong class="para1-label OEE">生產總量</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L02022":
+                    <div class="col-md-12 col-xs-12">
+                        <p class="para1">
+                            <strong class="para1-label OEE">是否異常</strong>
+                            <br />
+                            <span class="para1-value blue"> </span>
+                        </p>
+                    </div>
+                    break;
+                case "A1L00001":
+                    <div class="col-md-12 col-xs-12">
+                        <p class="para1">
+                            <strong class="para1-label OEE">是否異常</strong>
+                            <br />
+                            <span class="para1-value blue"> </span>
+                        </p>
+                    </div>
+                    break;
+
+
+
+
+                default:
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para1">
+                            <strong class="para1-label OEE">稼動率</strong>
+                            <br />
+                            <span class="para1-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para2">
+                            <strong class="para2-label OEE">產能效率</strong>
+                            <br />
+                            <span class="para2-value blue">0</span>
+                        </p>
+                    </div>
+                    <div class="col-md-4 col-xs-4">
+                        <p class="para3">
+                            <strong class="para3-label OEE">良率</strong>
+                            <br />
+                            <span class="para3-value blue">0</span>
+                        </p>
+                    </div>
+                    break;
+            }
+        </div>
+    </div>
+
+</div>

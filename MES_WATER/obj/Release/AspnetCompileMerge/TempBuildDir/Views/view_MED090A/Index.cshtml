@@ -1,0 +1,80 @@
+﻿@using MES_WATER.Controllers;
+<style>
+    .main-content-inner {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index:2000;
+    }
+    #gbox_grid-table {
+        height:100vh;
+        overflow-y:auto;
+    }
+</style>
+<script>
+    $('#sidebar').css("display", "none");
+</script>
+@{
+    ////主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewBag.sPrgCode ?? ViewContext.RouteData.Values["controller"].ToString();
+}
+
+@Html.Partial("pPrgName")
+
+
+@* 修改點 以下 *@
+
+@{
+    //設定按鈕
+    Func<object, HelperResult> customBtnTemplate =
+        @<text>
+            <div class="pull-left" style="margin-left: 10px">
+                <a id="bt_cheak" class="btn btn-white btn-warning btn-bold" role="button">
+                    <span>取回</span>
+                </a>
+            </div>
+        </text>;
+    //設定按鈕動作
+    Func<object, HelperResult> sCustomJs_bottomTemplate =
+        @<text>
+            $('#confirm_update_all').css("display","none");
+            $('#validation_form > div.clearfix > div:nth-child(3)').css({'display':'none'});
+            $(document).ready(function(){
+                $("#modal-Dialog").draggable();
+                $("#content-Modal").css("overflow", "hidden");
+                })
+                $('#validation_form').submit(function () {
+                if ($(this).valid()) {
+                $('form input:submit').attr('disabled', 'disabled');
+                } else {
+                $('form input:submit').removeAttr('disabled')
+                }
+
+            });
+
+            $('#bt_cheak').click(function(){
+                var indexall =$('tbody>tr.ui-state-highlight');
+                 window.close();
+                opener.focus();
+                opener.location.reload(true);
+                opener.location.href="@Url.Action("Insert", ViewBag.PrgCode)"+"?pRptCode="+indexall.children("td:eq(1)").text()
+            })
+
+        </text>;
+
+
+    // 改對應的class
+    Html.RenderAction("pJqgrid_A", "jqgrid", new
+    {
+        pModelType = ViewBag.oModelType,
+        pPrgCode = sPrgCode,
+        pCustomHtml_header = customBtnTemplate.Invoke(null).ToString(),
+        pIsMultiselect = "N",
+        pCustomJs_bottom = sCustomJs_bottomTemplate.Invoke(null).ToString()
+    });
+
+}

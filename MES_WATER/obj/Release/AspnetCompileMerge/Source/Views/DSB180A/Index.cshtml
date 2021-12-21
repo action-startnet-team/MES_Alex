@@ -1,0 +1,357 @@
+﻿@using MES_WATER.Models;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    Comm comm = new Comm();
+
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string sAction = ViewContext.RouteData.Values["action"].ToString();
+
+    //檢驗項目
+    List<DDLList> spc_code_list = comm.Get_DDLOption("QMB14_0000", "spc_code", "spc_name");
+
+
+
+    ViewBag.abc = "sdfref";
+
+}
+
+<link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+<link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+
+
+@Html.Partial("pPrgName")
+
+
+<p></p>
+
+<div id="main" style="width: 1000px;height:600px;"></div>
+
+<div style="clear:both"></div>
+<p></p>
+
+<div class="line_chart" style="height: 85vh"></div>
+
+@section footer_plugin{
+    <script src="~/Scripts/assets/POMES_DASHBOARD/assets/lib/echarts-4.8.0/dist/echarts.min.js"></script>
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+    <script src="~/Scripts/echarts/echarts.min.js"></script>
+}
+@section footer_script {
+    <script>
+
+    var myChart = echarts.init(document.getElementById('main'));
+
+    var paperDataURI = 'data:image/png;base64,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';
+
+    var option = {
+        backgroundColor: '#0f375f',
+        tooltip: {},
+        legend: {
+            data: ['all'],
+            textStyle: { color: '#ddd' }
+        },
+        xAxis: [{
+            data: ["@ViewBag.name1", '', "@ViewBag.name2", "@ViewBag.name3"],
+            axisTick: { show: false },
+            axisLine: { show: false },
+            axisLabel: {
+                margin: 20,
+                textStyle: {
+                    color: '#ddd',
+                    fontSize: 14
+                }
+            }
+        }],
+        yAxis: {
+            splitLine: { show: false },
+            axisTick: { show: false },
+            axisLine: { show: false },
+            axisLabel: { show: false }
+        },
+        markLine: {
+            z: -1
+        },
+        animationEasing: 'elasticOut',
+        series: [{
+            type: 'pictorialBar',
+            name: 'all',
+            hoverAnimation: true,
+            label: {
+                show: true,
+                position: 'top',
+                formatter: '{c} m',
+                fontSize: 16,
+                color: '#e54035'
+            },
+            data: [{
+                value: @ViewBag.test1,
+                symbol: 'image://' + paperDataURI,
+                symbolRepeat: true,
+                symbolSize: ['130%', '20%'],
+                symbolOffset: [0, 10],
+                symbolMargin: '-30%',
+                animationDelay: function (dataIndex, params) {
+                    return params.index * 30;
+                }
+            }, {
+                value: '-',
+                symbol: 'none',
+            }, {
+                value: @ViewBag.test2,
+                symbol: 'image://' + 'images/hill-Qomolangma.png',
+                symbolSize: ['200%', '105%'],
+                symbolPosition: 'end',
+                z: 10
+            }, {
+                value: @ViewBag.test3,
+                symbol: 'image://' + 'images/hill-Kilimanjaro.png',
+                symbolSize: ['200%', '105%'],
+                symbolPosition: 'end'
+            }],
+            markLine: {
+                symbol: ['none', 'none'],
+                label: {
+                    show: false
+                },
+                lineStyle: {
+                    color: '#e54035',
+                    width: 2
+                },
+                data: [{
+                    yAxis: 8844
+                }]
+            }
+        }, {
+            name: 'all',
+            type: 'pictorialBar',
+            barGap: '-100%',
+            symbol: 'circle',
+            itemStyle: {
+                color: '#185491'
+            },
+            silent: true,
+            symbolOffset: [0, '50%'],
+            z: -10,
+            data: [{
+                value: 1,
+                symbolSize: ['150%', 50]
+            }, {
+                value: '-'
+            }, {
+                value: 1,
+                symbolSize: ['200%', 50]
+            }, {
+                value: 1,
+                symbolSize: ['200%', 50]
+            }]
+        }]
+    };
+
+    myChart.setOption(option);
+
+
+
+    jQuery(function ($) {
+        $(document).ready(function () {
+            if (localStorage.getItem('@sPrgCode' + "_spc_code") != null) {
+                $('[name=spc_code]').val(localStorage.getItem('@sPrgCode' + "_spc_code")).trigger("chosen:updated")
+            }
+            if (localStorage.getItem('@sPrgCode' + "_ins_date") != null) {
+                $('[name=ins_date]').val(localStorage.getItem('@sPrgCode' + "_ins_date")).trigger("chosen:updated")
+                localStorage.removeItem('@sPrgCode' + "_ins_date")
+            }
+
+            update()
+        })
+
+        $('[name=spc_code]').change(function () {
+            localStorage.setItem('@sPrgCode' + "_spc_code", $(this).val())
+            update()
+        })
+        $('[name=ins_date]').change(function () {
+            if (localStorage.getItem('@sPrgCode' + "_ins_date") == null) {
+                localStorage.setItem('@sPrgCode' + "_ins_date", $(this).val())
+            }
+            update()
+        })
+
+        $(".datepicker").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr('autocomplete', 'off');
+
+
+        var dom = document.getElementsByClassName("line_chart")[0];
+        var myChart = echarts.init(dom);
+
+        //var option = {
+        //    title: {
+        //        text: '管制圖'
+        //    },
+        //    tooltip: {
+        //        trigger: 'axis'
+        //    },
+        //    legend: {
+        //        show: false,
+        //        data: ['上限', '下限', '檢驗結果']
+        //    },
+        //    grid: {
+        //        left: '3%',
+        //        right: '4%',
+        //        bottom: '3%',
+        //        containLabel: true
+        //    },
+        //    toolbox: {
+        //        feature: {
+        //            saveAsImage: {
+        //                title: '下載圖片'
+        //            }
+        //        }
+        //    },
+        //    xAxis: {
+        //        type: 'category',
+        //        boundaryGap: false,
+        //        splitLine: {
+        //            show: false
+        //        },
+        //        data: [],
+        //    },
+        //    yAxis: {
+        //        type: 'value',
+        //        max: 0,
+        //        min: 0,
+        //        splitLine: {
+        //            show: false,
+        //        },
+        //        axisLabel: {}
+        //    },
+        //    series: [
+        //        {
+        //            name: '上限',
+        //            type: 'line',
+        //            data: [],
+        //            lineStyle: {
+        //                color: 'red',
+        //                type: 'dashed'
+        //            },
+        //            markLine: {
+        //                data: [
+        //                    {type: 'average', name: '平均值'}
+        //                ]
+        //            },
+        //            symbol: 'none'
+        //        },
+        //        {
+        //            name: '下限',
+        //            type: 'line',
+        //            data: [],
+        //            lineStyle: {
+        //                color: 'red',
+        //                type: 'dashed'
+        //            },
+        //            markLine: {
+        //                data: [
+        //                    { type: 'average', name: '平均值' }
+        //                ]
+        //            },
+        //            symbol: 'none'
+        //        },
+        //        {
+        //            name: '平均',
+        //            type: 'line',
+        //            data: [],
+        //            lineStyle: {
+        //                color: 'grey',
+        //            },
+        //            symbol: 'none'
+        //        },
+        //        {
+        //            name: '檢驗結果',
+        //            type: 'line',
+        //            data: [],
+        //            lineStyle: {
+        //                color: 'blue',
+        //                //type: 'dashed'
+        //            },
+        //            symbolSize: 15,
+        //            symbol: 'diamond',
+        //            itemStyle: {
+        //                color: 'blue'
+        //            }
+        //        }
+        //    ]
+        //};
+
+        //function update(interval_ms) {
+        //    $.ajax({
+        //        method: 'post',
+        //        url: '/DSB150A/Get_LineChartData',
+        //        data: {
+        //            pTkCode: function () { return $('[name=spc_code]').val() },
+        //            pInsDate: function () { return $('[name=ins_date]').val() },
+        //        }
+        //    }).done(function (json) {
+        //        // 設置chart option
+        //        option.yAxis.max = json.yAxis_max
+        //        option.yAxis.min = json.yAxis_min
+        //        option.yAxis.axisLabel.formatter = function (value, index) {
+        //            let showLabels = [json.upperLmt, json.lowerLmt, json.average]
+        //            return value
+        //        }
+
+        //        option.xAxis.data = json.xAxis_data
+        //        option.series[0].data = json.upperLmt_data  // 上限
+        //        option.series[1].data = json.lowerLmt_data  // 下限
+        //        //option.series[2].data = json.average_data  // 平均
+        //        option.series[3].data = json.coordinate_data  // 座標
+
+        //        // 實際畫圖
+        //        if (option && typeof option === "object") {
+        //            myChart.clear()
+        //            myChart.setOption(option, true);
+        //        }
+        //    }).fail(function () {
+        //        alert('抓取資料失敗! ')
+        //    }).always(function () {
+        //        //setTimeout(function () {
+        //        //    update(interval_ms)
+        //        //}, interval_ms)
+        //    })
+        //}
+
+        //// 開始ajax抓資料畫圖並定時更新
+        ////update(5000)  // ms
+
+        //setInterval(function () {
+        //    update()
+        //}, 5000)
+
+
+
+        //if (!ace.vars['touch']) {
+        //    $('.chosen-select').chosen({ allow_single_deselect: true });
+        //    //resize the chosen on window resize
+
+        //    $(window)
+        //    .off('resize.chosen')
+        //    .on('resize.chosen', function () {
+        //        $('.chosen-select').each(function () {
+        //            var $this = $(this);
+        //            $this.next().css({ 'width': $this.parent().width() });
+        //        })
+        //    }).trigger('resize.chosen');
+        //    //resize chosen on sidebar collapse/expand
+        //    $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+        //        if (event_name != 'sidebar_collapsed') return;
+        //        $('.chosen-select').each(function () {
+        //            var $this = $(this);
+        //            $this.next().css({ 'width': $this.parent().width() });
+        //        })
+        //    });
+        //}
+
+
+    })
+    </script>
+}

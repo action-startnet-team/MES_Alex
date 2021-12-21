@@ -1,0 +1,11 @@
+﻿@using MES_WATER.Models
+@{
+    Comm comm = new Comm();
+
+    // Controller名稱
+    var prg_code = ViewContext.RouteData.Values["controller"].ToString();
+    //var prg_name = comm.Get_QueryData("BDP04_0000", prg_code, "prg_code", "prg_name");
+    var prg_name = comm.Get_QueryData("BDP03_0000", prg_code, "prg_code", "menu_name");
+}
+
+<h3 id="title-prg_name" class="header smaller lighter blue">@prg_code @prg_name</h3>

@@ -1,0 +1,64 @@
+﻿@using MES_WATER.Models;
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewBag.sPrgCode ?? ViewContext.RouteData.Values["controller"].ToString();
+}
+
+
+@Html.Partial("pPrgName")
+
+@*<a class="btn btn-white btn-pink btn-round" id="AllReSet" href="#">期初資料修正</a>*@
+<p/>
+
+
+
+@* 修改點 以下 *@
+@{
+
+    // 改對應的class
+    Html.RenderAction("pJqgrid_A", "jqgrid", new
+    {
+        pModelType = new QMB02_0000().GetType(),
+        pPrgCode = sPrgCode,
+    });
+
+}
+@* 修改點 以上 *@
+<script src="~/Scripts/assets/jQuery-BlockUI/jquery.blockUI.js"></script>
+<script>
+    $('#AllReSet').click(function () {
+        var chk = confirm("重置後無法復原，確定要重置嗎?")
+        if (chk) {
+            // block page
+            $.blockUI({
+                message: '<h1>重置中......</h1>',
+                css: {
+                    border: 'none',
+                    padding: '15px',
+                    backgroundColor: '#000',
+                    '-webkit-border-radius': '10px',
+                    '-moz-border-radius': '10px',
+                    opacity: .5,
+                    color: '#fff'
+                }
+            });
+            $.ajax({
+                method: "post",
+                url: '@Url.Action("AllReSet", sPrgCode)',
+            }).done(function () {
+            }).fail(function () {
+                alert('重置失敗! ')
+            }).always(function () {
+                $.unblockUI()
+            })
+        }
+        else
+            alert("已取消，沒有進行任何修改!")
+    })
+</script>
+

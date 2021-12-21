@@ -1,0 +1,159 @@
+﻿@using MES_WATER.Models;
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // 公用函數
+    Comm comm = new Comm();
+
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewBag.sPrgCode ?? ViewContext.RouteData.Values["controller"].ToString();
+}
+
+
+@Html.Partial("pPrgName")
+
+
+@* 修改點 以下 *@
+@{
+
+    // 上面的按鈕列的 html
+    Func<object, HelperResult>  customBtnTemplate =
+        @<text>
+        <div class="pull-left" style="margin-left: 10px">
+            <a href="/BDP080A/Upload" class="btn btn-white btn-warning btn-bold" role="button">
+                <span>匯入</span>
+            </a>
+        </div>
+        </text>;
+    string customBtnHtml = customBtnTemplate.Invoke(null).ToString();
+
+    /*  額外查詢條件 範例   */
+    // 在上方按鈕列 增加按鈕
+    @*List<DDLList> usr_code_list = comm.Get_DDLOption("BDP08_0000", "usr_code", "usr_name", "A");
+    Func<object, HelperResult> customBtnTemplate2 =
+        @<text>
+            <div class="pull-left" style="margin-left: 10px; width: 200px">
+               <select id="usr_code_custom" class="chosen-select">
+                   @CustomHelper.Get_Option(usr_code_list, "", true, "-----請選擇使用者-----");
+               </select>
+            </div>
+        </text>;
+
+    string head_btn = customBtnTemplate2.Invoke(null).ToString();
+
+    customBtnTemplate2 =
+        @<text>
+            <div class="pull-left" style="margin-left: 10px; ">
+                <input type="text" id="grp_code_beginwith" placeholder="請輸入角色代碼"/>
+            </div>
+        </text>;
+
+    customBtnHtml += head_btn;
+
+    customBtnHtml += customBtnTemplate2.Invoke(null).ToString();*@
+
+    // 觸發事件
+    //string bottomJs = @"
+    //$('#usr_code_custom').change(function () {
+    //        refreshGrid()
+    //    })
+    //";
+
+    //bottomJs += @"
+    //$('#grp_code_beginwith').on('keyup paste', function () {
+    //setTimeout(function(){
+    //refreshGrid()
+    //})
+
+    //    })
+    //";
+    // 在抓資料時另外傳參數
+    string addPostData = ",pUsrCode: () => $('#usr_code_custom').val() ";
+    addPostData += ",pGrpCode: function(){ return $('#grp_code_beginwith').val() }";
+
+    //-------
+
+    /* 在功能欄位 增加按鈕 (其實也在loadComplete裡面)  */
+    List<JqgridButton> addBtnsInActionCol = new List<JqgridButton>();
+
+    //var actionBtn1 = new JqgridButton()
+    //{
+    //    icon_class = "ui-icon ace-icon fa fa-bookmark red",
+    //    title = "跳轉到BDP210頁面",
+    //    clickJs = " window.location.href = '/BDP210A' ",
+    //    showCondJs = " rowData.usr_code == 'admin' "
+    //};
+
+    //var actionBtn2 = new JqgridButton()
+    //{
+    //    icon_class = "ui-icon fa fa-search green",
+    //    title = "點擊後到console查看row data",
+    //    clickJs = " console.log(rowData) ",
+    //    showCondJs = " rowData.grp_code == 'M001' "
+    //};
+
+    //var actionBtn3 = new JqgridButton()
+    //{
+    //    icon_class = "ui-icon fa fa-pencil orange",
+    //    title = "測試3",
+    //};
+
+    //addBtnsInActionCol.Add(actionBtn1);
+    //addBtnsInActionCol.Add(actionBtn2);
+    //addBtnsInActionCol.Add(actionBtn3);
+
+    /* 欄位格子 字體變色 */
+    //string onEachRowJs = @"
+    //if (!(rowData.can_alarm && rowData.can_alarm.toUpperCase() === 'Y')){
+    //    if (rowData.grp_code == 'M001'){
+    //        $row.find('td[aria-describedby*=usr_name]').css({color: 'blue'})
+    //        $row.find('td[aria-describedby*=grp_code]').css({color: 'blue'})
+    //    }
+
+    //    if (rowData.usr_code == 'admin'){
+    //        $row.find('td[aria-describedby*=usr_code]').css({color: 'red'})
+    //        $row.find('td[aria-describedby*=usr_name]').css({color: 'red'})
+    //    }
+    //}
+    //";
+
+    //string actionBtn_test = @"
+    //$('<div>', {
+    //    title: 'test',
+    //    mouseover: function() {
+    //        $(this).addClass('ui-state-hover');
+    //    },
+    //    mouseout: function() {
+    //        $(this).removeClass('ui-state-hover');
+    //    },
+    //    click: function(e) {
+    //        console.log(rowData)
+    //    }
+    //}).css({ 'margin-right': '8px', float: 'left', cursor: 'pointer' })
+    //    .addClass('ui-pg-div ui-inline-custom')
+    //    .append('<span class=""ui-icon fa fa-pencil purple"" ></span>')
+    //    .prependTo($actionCell.children('div'));
+    //";
+
+    //onEachRowJs += actionBtn_test;
+
+    // 改對應的class
+    Html.RenderAction("pJqgrid_A", "jqgrid", new
+    {
+        pModelType = new BDP08_0000().GetType(),
+        pPrgCode = sPrgCode,
+        pCustomHtml_header = customBtnHtml,
+        pEnableRowFilter = "N",
+        pIsMultiselect = "Y",
+        pPageCount = 10,
+        //pCustomJs_bottom = bottomJs,
+        pAddPostDataJs = "",
+        pAddBtnsInActionCol = addBtnsInActionCol,
+        //onEachRowJs = onEachRowJs
+    });
+
+}
+@* 修改點 以上 *@

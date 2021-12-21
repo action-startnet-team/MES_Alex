@@ -1,0 +1,97 @@
+﻿@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@{
+    Layout = "~/Views/Shared/_EPBLayout.cshtml";
+
+    EPBLoginController CT = new EPBLoginController();
+    Comm comm = new Comm();
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string sAction = ViewContext.RouteData.Values["action"].ToString();
+
+    EPB030BController ECT = new EPB030BController();
+
+    string sEpbTypeArray = ECT.Get_EpbType(User.Identity.Name);
+}
+
+<link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+
+<body class="no-skin">
+    <h3 class="blue">請選擇功能</h3>
+    <hr />
+
+    <div class="row">
+        <div class="" style="display: flex; justify-content: center">
+            <a href="@Url.Action("ReadQRCode")" class="btn btn-white btn-success btn-round bigger-250">
+                進料檢驗
+            </a>
+        </div>
+        <hr />
+        <div class="" style="display: flex; justify-content: center">
+            <a href="@Url.Action("Index")" class="btn btn-white btn-success btn-round bigger-250">
+                電子表單
+            </a>
+        </div>
+    </div>
+
+
+
+    <script src="~/Scripts/assets/js/ace-elements.min.js"></script>
+    <script src="~/Scripts/assets/js/ace.min.js"></script>
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script>
+        jQuery.fn.center = function () {
+            this.css("position", "absolute");
+            this.css("top", ($(window).height() - this.height()) / 2 + $(window).scrollTop() + "px");
+            this.css("left", ($(window).width() - this.width()) / 2 + $(window).scrollLeft() + "px");
+            return this;
+        }
+     
+
+        function Save_Cookie(n, v) {
+            $.ajax({
+                method: "post",
+                async: true,
+                url: '@Url.Action("Save_Cookie", sPrgCode)',
+                data: {
+                    pCookieName: function () { return n; },
+                    pValue: function () { return v; },
+                },
+            })
+        }
+
+
+
+
+        if (!ace.vars['touch']) {
+            $('.chosen-select').chosen({ allow_single_deselect: true });
+            //resize the chosen on window resize
+
+            $(window)
+            .off('resize.chosen')
+            .on('resize.chosen', function () {
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            }).trigger('resize.chosen');
+            //resize chosen on sidebar collapse/expand
+            $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                if (event_name != 'sidebar_collapsed') return;
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            });
+
+            $('#chosen-multiple-style .btn').on('click', function (e) {
+                var target = $(this).find('input[type=radio]');
+                var which = parseInt(target.val());
+                if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                else $('#form-field-select-4').removeClass('tag-input-style');
+            });
+        }
+
+
+    </script>
+</body>
+

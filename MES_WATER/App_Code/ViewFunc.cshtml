@@ -1,0 +1,17 @@
+﻿
+@*檢查長度的共用函數*@
+@helper Set_ChkLength(string pFieldCode, string pLength)
+    {
+        <script>
+            if ($("#@pFieldCode").attr("type")=="text"){
+                $("#@pFieldCode").change(function () {
+                    if (Check_Length("@pFieldCode",@pLength) ) {
+                        alert("長度最多 @pLength 碼!");
+                    }
+                })
+            }
+        </script>
+    }
+
+
+

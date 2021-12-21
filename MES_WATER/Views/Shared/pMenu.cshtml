@@ -1,0 +1,261 @@
+﻿@using MES_WATER.Models;
+
+@{
+
+    List<BDP03_0000> menu_list_1 = ViewBag.menu_list_1;
+    List<BDP03_0000> menu_list_2 = ViewBag.menu_list_2;
+    List<BDP03_0000> menu_list_3 = ViewBag.menu_list_3;
+    List<BDP03_0000> menu_list_4 = ViewBag.menu_list_4;
+
+}
+
+
+
+
+@functions
+{
+    /// <summary>
+    /// 判斷是否有子選單
+    /// </summary>
+    /// <param name="menu"></param>
+    /// <returns></returns>
+    public bool hasSubMenu(BDP03_0000 menu)
+    {
+        // menu_type可能為A或B，A有子選單，B則無，
+        return menu.menu_type.Equals("A");
+    }
+
+    public string Dropdown(BDP03_0000 menu)
+    {
+        if (hasSubMenu(menu))
+        {
+            return "dropdown-toggle";
+        }
+        return "";
+    }
+
+    public string Arrow(BDP03_0000 menu)
+    {
+        if (hasSubMenu(menu))
+        {
+            return "fa fa-angle-down";
+        }
+        return "";
+    }
+
+    /// <summary>
+    /// 判斷目前選單在哪個上層選單中
+    /// </summary>
+    /// <param name="currentMenu">目前階層</param>
+    /// <param name="aboveMenu">上一階層</param>
+    /// <returns></returns>
+    public bool isMenuGroup(BDP03_0000 currentMenu, BDP03_0000 aboveMenu)
+    {
+        //取得要比對的碼數範圍
+        int range = 2 * (Convert.ToInt32(currentMenu.menu_level) - 1);
+
+        //取得兩者menu_code的前面碼數
+        string currentMenuGrp = currentMenu.menu_code.Substring(0, range);
+        string aboveMenuGrp = aboveMenu.menu_code.Substring(0, range);
+
+
+        return currentMenuGrp.Equals(aboveMenuGrp);
+    }
+
+}
+
+@helper MainMenuView(BDP03_0000 menu)
+{
+
+    <a href="@Url.Action(@menu.menu_src, @menu.prg_code)" class="@Dropdown(menu)">
+        @*<i class="menu-icon fa fa-tachometer"></i>*@
+        @{
+            string icon="";
+            Comm comm = new Comm();
+            if (comm.Get_QueryData("BDP00_0000", "menu-icon", "par_name", "par_value") != "N")
+            {
+                icon = menu.menu_name.Substring(0, 3);
+            }
+            <span class="menu-icon"
+                  style="font-family: 'Lucida Console';
+                     font-weight: bolder;
+                     font-size: 16px;
+                     border: 2px solid #585858;
+                     color: #585858;
+                     border-radius: 5px;
+                     padding: 2px 4px;">@icon
+            </span>
+        }
+        <span class="menu-text"> @menu.menu_name.Substring(3) </span>
+        <b class="arrow @Arrow(menu)"></b>
+    </a>
+
+}
+
+@helper SubMenuView(BDP03_0000 menu)
+{
+    @*<a href="@Url.Action(@menu.menu_src, @menu.prg_code)" class="@Dropdown(menu)" id="@menu.menu_code" >
+            <i class="menu-icon fa fa-caret-right"></i>
+            <span class="menu-text"> @menu.menu_name </span>
+            <b class="arrow @Arrow(menu)"></b>
+        </a>*@
+
+if (menu.prg_code == "RSS030B" && menu.menu_src != "Index")
+{
+    //報表用這個
+    <a href="@Url.Action("DataView", menu.prg_code, new { K = menu.menu_src })" class="@Dropdown(menu)" id="@menu.menu_code">
+        <i class="menu-icon fa fa-caret-right"></i>
+        <span class="menu-text"> @menu.menu_name </span>
+        <b class="arrow @Arrow(menu)"></b>
+    </a>
+}
+else if (menu.prg_code == "EPB030B" && menu.menu_src != "Index")
+{
+    //電子表單編輯用這個
+    <a href="@Url.Action("DataView", menu.prg_code, new { K = menu.menu_src })" class="@Dropdown(menu)" id="@menu.menu_code">
+        <i class="menu-icon fa fa-caret-right"></i>
+        <span class="menu-text"> @menu.menu_name </span>
+        <b class="arrow @Arrow(menu)"></b>
+    </a>
+}
+else
+{
+    //正常程式用這個
+    <a href="@Url.Action(menu.menu_src, menu.prg_code)" class="@Dropdown(menu)" id="@menu.menu_code">
+        <i class="menu-icon fa fa-caret-right"></i>
+        <span class="menu-text"> @menu.menu_name </span>
+        <b class="arrow @Arrow(menu)"></b>
+    </a>
+}
+}
+
+<style>
+    /* not work for main menu, 加在inline style */
+    /*.menu_icon {
+        font-family: 'Lucida Console';
+        font-weight: bolder;
+        font-size: 16px;
+        border: 2px solid #585858;
+        color: #585858;
+        border-radius: 5px;
+        padding: 2px 4px;
+    }*/
+</style>
+
+
+<ul class="nav nav-list menu_level_1">
+    @*第一層開始*@
+    @foreach (BDP03_0000 menu1 in menu_list_1)
+    {
+        <li class="">
+            @*判斷是否有子選單*@
+            @if (hasSubMenu(menu1))
+            {
+
+                @MainMenuView(menu1);
+
+                <ul class="submenu">
+                    @*第二層開始*@
+                    @foreach (BDP03_0000 menu2 in menu_list_2)
+                    {
+                        <text>
+                            @*判斷第二層屬於哪個上層*@
+                            @if (@isMenuGroup(menu2, menu1))
+                        {
+                                <li class="">
+                                    @*判斷是否有子選單*@
+                                    @if (hasSubMenu(menu2))
+                                    {
+
+                                        @SubMenuView(menu2);
+
+                                        <ul class="submenu">
+                                            @*第三層開始*@
+                                            @foreach (BDP03_0000 menu3 in menu_list_3)
+                                            {
+                                                <text>
+                                                    @*判斷第三層屬於哪個上層*@
+                                                    @if (@isMenuGroup(menu3, menu2))
+                                                    {
+                                                        <li class="">
+                                                            @*判斷是否有子選單*@
+                                                            @if (hasSubMenu(menu3))
+                                                            {
+                                                                @SubMenuView(menu3);
+
+                                                                <ul class="submenu">
+                                                                    @*第四層開始*@
+                                                                    @foreach (BDP03_0000 menu4 in menu_list_4)
+                                                                    {
+                                                                        <text>
+                                                                            @*判斷第四層屬於哪個上層*@
+                                                                            @if (isMenuGroup(menu4, menu3))
+                                                                            {
+                                                                                <li class="">
+                                                                                    @SubMenuView(menu4)
+                                                                                </li>
+                                                                            }
+                                                                        </text>
+                                                                    }
+                                                                </ul> @*第四層 end*@
+                                                            }
+                                                            else
+                                                            {
+
+                                                                @SubMenuView(menu3)
+                                                            }
+                                                        </li>
+                                                    }
+                                                </text>
+                                            }
+                                        </ul> @*第三層 end*@
+                                    }
+                                    else
+                                    {
+                                        @SubMenuView(menu2)
+                                    }
+                                </li>
+                            }
+                        </text>
+                    }
+                </ul> @*第二層 end*@
+            }
+            else
+            {
+                @MainMenuView(menu1)
+            }
+        </li>
+    }
+</ul> @*第一層 end*@
+
+
+<script>
+    $(function () {
+        //$('.nav-list a').parent().filter(function(){return this.href==location.href}).addClass('active').siblings().removeClass('active')
+        $('.nav-list a').click(function () {
+            $(this).parent().siblings().removeClass('active');
+        })
+        $('.nav-list a').each(function () {
+            //let arr = $($(this))[0].href.split('/');
+            if ($($(this))[0].href == String(window.location).substring(0, $($(this))[0].href.length) &&
+                // split陣列的最後一項不為空
+                $($(this))[0].href.split('/')[$($(this))[0].href.split('/').length - 1] != '') {
+                li = $(this).parent();
+                li.addClass("active");
+                li.parents("li").addClass("active open");
+            }
+        });
+
+        $('ul').each(function () {
+            if ($(this).children('li').length <= 0) {
+                $(this).parent("li").remove();
+            }
+        })
+        $('.menu_level_1').children('li').each(function () {
+            if ($(this).find('li').length <= 0) {
+                $(this).remove();
+            }
+        })
+    })
+
+</script>

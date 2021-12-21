@@ -1,0 +1,1057 @@
+﻿@using System.Data;
+@using MES_DASHBOARD.Models;
+@using MES_DASHBOARD.Controllers;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string mac_code = ViewBag.mac_code;
+    string mac_name = ViewBag.mac_name;
+    string controllerName = ViewContext.RouteData.Values["controller"].ToString();
+
+    Comm comm = new Comm();
+    DSH010AController Control = new DSH010AController();
+}
+<style>
+    .alarm {
+        border-radius: 10px;
+        height: 50px;
+        background-color: #eee;
+        line-height: 50px;
+        text-align: center;
+        color: #eee;
+        font-size: 16px;
+    }
+
+    .alarm-header {
+        background-color: #428BCA;
+    }
+
+    .alarm-cell {
+        background-color: #6f42c1;
+        /*background-color: rgb(22, 167, 101)*/
+        /*background-color: #51A351*/
+        
+    }
+
+    .alarm-error {
+        background-color: #FF3333;
+        color: aliceblue;
+        border-radius: 10px;
+        line-height: 50px;
+        height: 50px;
+    }
+
+        /*.alarmyaw {
+        border-radius: 10px;
+        height: 50px;
+        background-color: #eee;
+        line-height: 50px;
+        text-align: center;
+        color: #3C3C3C;
+        font-size: 16px;
+    }*/
+
+    .alarm-yaw {
+        background-color:#FFBF00;
+        border-radius: 10px;
+        line-height: 50px;
+        height: 50px;
+        color: #3C3C3C;
+    }
+
+
+    .alarm-correct {
+        background-color: #22C32E;
+        color: aliceblue;
+        border-radius: 10px;
+        line-height: 50px;
+        height: 50px;
+    }
+
+    .alarm-caption {
+        font-size: 20px;
+        background-color: #09134d;
+    }
+
+    .block {
+        border-radius: 10px;
+        height: 100px;
+        color: #eee;
+        /*background-color: #eee;*/
+        background-color: #428BCA;
+        text-align: center;
+        line-height: 100px;
+    }
+
+    .mac_img {
+        width: 84%;
+        height: auto;
+        border-radius: 10px;
+    }
+
+
+    .block-text {
+        /*color: #5599FF;*/
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .block-state-completed {
+        background-color: #28a745;
+    }
+
+    .block-state-working {
+        background-color: #dc3545;
+    }
+
+
+    .message-board {
+        text-align: center;
+        line-height: 60px;
+        /*display: flex;
+        justify-content: center;
+        align-items: center;*/
+        background-color: grey;
+        background-clip: content-box;
+        color: #eee;
+        height: 60px;
+        font-size: 21px;
+        /*width: 100%;*/
+        overflow: hidden;
+        position: relative;
+    }
+
+    .pause-hover:hover {
+        animation-play-state: paused;
+        -webkit-animation-play-state: paused;
+    }
+
+    .marguee-Yaxis {
+        width: 100%;
+        position: absolute;
+        /*-moz-animation: marquee 15s linear infinite;
+        -webkit-animation: marquee 15s linear infinite;*/
+        /*animation: marquee-Yaxis 3s linear infinite;*/
+        animation-delay: 2s;
+    }
+
+    .marguee-Xaxis {
+        position: absolute;
+        display: flex;
+        width: 100%;
+    }
+
+        .marguee-Xaxis div {
+            flex-shrink: 0;
+            width: 100%;
+        }
+
+    .marguee-Xaxis {
+        /*-moz-animation: marquee 15s linear infinite;
+        -webkit-animation: marquee 15s linear infinite;*/
+        animation: marquee-Xaxis 15s linear infinite;
+        animation-delay: 2s;
+    }
+
+    /* Move it (define the animation) */
+    /*@@-moz-keyframes marquee {
+        0%   { left: 100%; }
+        100% { left: 0%; -moz-transform: translateX(-100%); }
+    }
+    @@-webkit-keyframes marquee {
+        0%   { left: 100%; }
+        100% { left: 0%; -webkit-transform: translateX(-100%); }
+    }*/
+    @@keyframes marquee-Yaxis {
+        0% {
+            /*bottom: 100%;*/
+            /* Firefox bug fix */
+            /*-moz-transform: translateY(0%);
+            -webkit-transform: translateY(0%);*/
+            transform: translateY(0%);
+        }
+
+        100% {
+            /*bottom: 0%;*/
+            transform: translateY(-50%); /* 實際整個元素的長度是畫面的兩倍 */
+        }
+    }
+
+    @@keyframes marquee-Xaxis {
+        0% {
+            /*bottom: 100%;*/
+            /* Firefox bug fix */
+            /*-moz-transform: translateY(0%);
+            -webkit-transform: translateY(0%);*/
+            transform: translateX(0%);
+        }
+
+        100% {
+            /*bottom: 0%;*/
+            transform: translateX(-100%); /* 畫面的元素寬度 */
+        }
+    }
+
+    .mo_info-block [class*="col-"]:not(:last-child) {
+        padding-right: 0
+    }
+   
+
+</style>
+
+<div id="work_order">
+    <div class="row">
+        <!-- 第一線 -->
+        <div class="col-sm-6">
+            
+            <h3 class="">第一線</h3>
+
+            <!-- 工單 MO001-->
+            <div class="line1-currentOrder">
+                <div class="widget-box mo_info-block">
+                    <div class="widget-header">
+                        <h4 class="widget-title lighter smaller">
+                            <i class="ace-icon fa fa-comment blue"></i>
+                            目前製令: <span aria-describedby="mo_code">MO001</span>
+                        </h4>
+                    </div>
+
+                    <div class="widget-body">
+                        <div class="widget-main no-padding">
+                            <div class="dialogs">
+                                <div class="mo_code-pro_code">
+                                    @*表頭*@
+                                    <div class="row">
+                                        <div class="col-sm-4">
+                                            <div class="alarm alarm-header">
+                                                產品名稱
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-header">
+                                                預計產量
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-header">
+                                                目前產量
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-header">
+                                                不良品量
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-header">
+                                                狀態
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br />
+                                    @*表身*@
+                                    <div class="row">
+                                        <div class="col-sm-4">
+                                            <div class="alarm alarm-cell">
+                                                多喝水-450ML
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-cell">
+                                                16000
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-cell">
+                                                4281
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-cell">
+                                                20
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-correct ">
+                                                生產中
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr />
+                                <div class="mo_code-bom_code">
+                                    @* thead *@
+                                    <div class="row">
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-header">
+                                                料號
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-header">
+                                                品名
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-header">
+                                                預計產量
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-header">
+                                                實際投入
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-header">
+                                                庫存量
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-header">
+                                                狀態
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br />
+                                    @* tbody *@
+                                    <div class="row">
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-cell">
+                                                P0001
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-cell">
+                                                瓶蓋
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-cell">
+                                                16000
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-cell">
+                                                16500
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-cell">
+                                                2300000
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-correct ">
+                                                庫存正常
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <div class="row">
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-cell">
+                                                P0002
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-cell">
+                                                瓶胚
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-cell">
+                                                16000
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-cell">
+                                                16000
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-cell">
+                                                80000
+                                            </div>
+                                        </div>
+                                        <div class="col-sm-2">
+                                            <div class="alarm alarm-correct ">
+                                                庫存正常
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            @*<form>
+                        <div class="form-actions">
+                            <div class="input-group">
+                                <input placeholder="Type your message here ..." type="text" class="form-control" name="message" />
+                                <span class="input-group-btn">
+                                    <button class="btn btn-sm btn-info no-radius" type="button">
+                                        <i class="ace-icon fa fa-share"></i>
+                                        Send
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </form>*@
+                        </div><!-- /.widget-main -->
+                    </div><!-- /.widget-body -->
+                </div><!-- /.widget-box -->
+
+            </div>
+            
+            <br />
+            <!-- 工單 MO002-->
+            <div class="line1-nextOrder"></div>
+            <div class="widget-box mo_info-block">
+                <div class="widget-header">
+                    <h4 class="widget-title lighter smaller">
+                        <i class="ace-icon fa fa-comment blue"></i>
+                        下一張製令: MO002
+                    </h4>
+                </div>
+
+                <div class="widget-body">
+                    <div class="widget-main no-padding">
+                        <div class="dialogs">
+                            <div class="mo_code-pro_code">
+                                @*表頭*@
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="alarm alarm-header">
+                                            產品名稱
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            預計產量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            目前產量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            不良品量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            狀態
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                @*表身*@
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="alarm alarm-cell">
+                                            多喝水-600ML
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            8000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            0
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            0
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-yaw ">
+                                            未開始
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr />
+                            <div class="mo_code-bom_code">
+                                @* thead *@
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            料號
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            品名
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            預計產量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            實際投入
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            庫存量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            狀態
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                @* tbody *@
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            P0003
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            瓶蓋-600ML
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            8000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            9200
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            3500
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-error ">
+                                            庫存異常
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            P0004
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            瓶胚-600ML
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            8000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            9200
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            12000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-correct ">
+                                            庫存正常
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        @*<form>
+                        <div class="form-actions">
+                            <div class="input-group">
+                                <input placeholder="Type your message here ..." type="text" class="form-control" name="message" />
+                                <span class="input-group-btn">
+                                    <button class="btn btn-sm btn-info no-radius" type="button">
+                                        <i class="ace-icon fa fa-share"></i>
+                                        Send
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </form>*@
+                    </div><!-- /.widget-main -->
+                </div><!-- /.widget-body -->
+            </div><!-- /.widget-box -->
+
+        </div><!-- /.col -->
+
+        <!-- 第二線 -->
+        <div class="col-sm-6">
+
+            <h3>第二線</h3>
+
+            <!-- 工單 MO003-->
+            <div class="widget-box mo_info-block">
+                <div class="widget-header">
+                    <h4 class="widget-title lighter smaller">
+                        <i class="ace-icon fa fa-comment blue"></i>
+                        目前製令: MO003
+                    </h4>
+                </div>
+
+                <div class="widget-body">
+                    <div class="widget-main no-padding">
+                        <div class="dialogs">
+                            <div class="mo_code-pro_code">
+                                @*表頭*@
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="alarm alarm-header">
+                                            產品名稱
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            預計產量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            目前產量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            不良品量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            狀態
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                @*表身*@
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="alarm alarm-cell">
+                                            多喝水-450ML
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            16000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            4281
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            20
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-error ">
+                                            異常
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr />
+                            <div class="mo_code-bom_code">
+                                @* thead *@
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            料號
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            品名
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            預計產量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            實際投入
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            庫存量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            狀態
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                @* tbody *@
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            P0001
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            瓶蓋
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            16000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            16500
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            2300000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-correct ">
+                                            庫存正常
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            P0002
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            瓶胚
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            16000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            16000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            80000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-correct ">
+                                            庫存正常
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        @*<form>
+                            <div class="form-actions">
+                                <div class="input-group">
+                                    <input placeholder="Type your message here ..." type="text" class="form-control" name="message" />
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-sm btn-info no-radius" type="button">
+                                            <i class="ace-icon fa fa-share"></i>
+                                            Send
+                                        </button>
+                                    </span>
+                                </div>
+                            </div>
+                        </form>*@
+                    </div><!-- /.widget-main -->
+                </div><!-- /.widget-body -->
+            </div><!-- /.widget-box -->
+
+            <br />
+            <!-- 工單 MO004-->
+            <div class="widget-box mo_info-block">
+                <div class="widget-header">
+                    <h4 class="widget-title lighter smaller">
+                        <i class="ace-icon fa fa-comment blue"></i>
+                        下一張製令: MO004
+                    </h4>
+                </div>
+
+                <div class="widget-body">
+                    <div class="widget-main no-padding">
+                        <div class="dialogs">
+                            <div class="mo_code-pro_code">
+                                @*表頭*@
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="alarm alarm-header">
+                                            產品名稱
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            預計產量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            目前產量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            不良品量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            狀態
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                @*表身*@
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <div class="alarm alarm-cell">
+                                            多喝水-450ML
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            16000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            4281
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            20
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-yaw ">
+                                            未開始
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <hr />
+                            <div class="mo_code-bom_code">
+                                @* thead *@
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            料號
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            品名
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            預計產量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            實際投入
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            庫存量
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-header">
+                                            狀態
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                @* tbody *@
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            P0001
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            瓶蓋
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            16000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            16500
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            2300000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-correct ">
+                                            庫存正常
+                                        </div>
+                                    </div>
+                                </div>
+                                <br />
+                                <div class="row">
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            P0002
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            瓶胚
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            16000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            16000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-cell">
+                                            80000
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <div class="alarm alarm-correct ">
+                                            庫存正常
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        @*<form>
+                        <div class="form-actions">
+                            <div class="input-group">
+                                <input placeholder="Type your message here ..." type="text" class="form-control" name="message" />
+                                <span class="input-group-btn">
+                                    <button class="btn btn-sm btn-info no-radius" type="button">
+                                        <i class="ace-icon fa fa-share"></i>
+                                        Send
+                                    </button>
+                                </span>
+                            </div>
+                        </div>
+                    </form>*@
+                    </div><!-- /.widget-main -->
+                </div><!-- /.widget-body -->
+            </div><!-- /.widget-box -->
+        </div><!-- /.col -->
+    </div>
+
+</div>
+
+<br />
+<footer>
+    <div class="row">
+        @*<div class="col-sm-12 message-board">
+            <div class="marguee-Yaxis pause-hover">
+                <div>工單資訊</div>
+                <div>工單資訊</div>
+            </div>
+        </div>*@
+        <div class="col-sm-6 message-board">
+            <div>工單資訊-第一線</div>
+        </div>
+        <div class="col-sm-6 message-board">
+            <div>工單資訊-第二線</div>
+        </div>
+    </div>
+    <div class="space-6"></div>
+    <div class="row">
+        <div class="col-sm-12 message-board message-board">
+            <div class="marguee-Xaxis pause-hover">
+                <div>公告訊息跑馬燈</div>
+                <div>公告訊息跑馬燈</div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+@section footer_script {
+    <script>
+        jQuery(function ($) {
+
+            // 工單框格 高度
+            $('.dialogs,.comments').ace_scroll({
+                size: 600
+            });
+
+            // 第一線 工單狀態
+            $.ajax({
+                method: 'get',
+                url: '@Url.Action("Get_MoDataByLine", "MES")',
+                data: {
+                    pLineCode: "1",
+                }
+            }).done(function (data) {
+                console.log(data)
+            })
+
+            let row = $(`
+
+                `)
+
+            // 第一線 工單訊息
+
+        })
+    </script>
+    }

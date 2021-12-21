@@ -1,0 +1,160 @@
+﻿
+
+@{
+    string id = ViewBag.id;
+    string sWidth = ViewBag.sWidth;
+    string sHeight = ViewBag.sHeight;
+    string sAjaxUrl = ViewBag.sAjaxUrl;
+}
+
+<div class="container-fluid Kanban_DivArea" style="margin-top:5px;">
+    @*<table style="float:left;height:65px;color:#ff9000;font-size:30px;" class="col-lg-1">
+            <tr>
+                <td style="line-height:27px; vertical-align:middle;">M001</td>
+            </tr>
+            <tr>
+                <td style="line-height:27px; vertical-align:middle;"></td>
+            </tr>
+        </table>*@
+    <div id="@id" class="col-lg-11" style="width:@(sWidth)px; height:@(sHeight)px; margin:0 auto; float:right; "></div>
+</div>
+@Html.Resource(
+    @<script>
+        jQuery(function ($) {
+
+            // flot options
+            var options = {
+                series: {
+                    lines: {
+                        show: true,
+                        lineWidth: 3,
+                        fill: false
+                    }
+                },
+                //x軸設定 總共600秒 1格6秒
+                xaxis: {
+                    //每60秒顯示一格
+                    mode: "time",
+                    tickSize: [10, "second"],
+                    tickFormatter: function (v, axis) {
+                        var date = new Date(v);
+                        return "";
+
+                    }
+                },
+                //Y軸設定
+                yaxis: {
+                    min: 0,
+                    max: 2,
+                    tickSize: 2,
+                    tickFormatter: function (v, axis) {
+                        if (v == 0) {
+                            return "";
+                        } else if (v == 2) {
+                            return "";
+                        } else {
+                            return "";
+                        }
+                    }
+                },
+                grid: {
+                    backgroundColor: "#000000",
+                    tickColor: "#888888"
+                }
+            };
+
+            // 資料初始
+            let lineData = [];
+            let dataset = [
+                { data: lineData, color: "#00FF00" },
+            ];
+
+            let totalPoints = 600;
+            let updateInterval = 1000;
+            let now = new Date().getTime() - totalPoints * updateInterval;
+
+            // 初始格線
+            while (lineData.length < totalPoints) {
+                let time = now += updateInterval
+                lineData.push([time, -1]);
+            }
+
+            //for (let i = 0; i < totalPoints; i++) {
+            //    let step = totalPoints / 4
+            //    let time = now += updateInterval
+            //    if (i <= step) {
+            //        lineData.push([time, 0]);
+            //    } 
+            //    else if (i <= step * 2) {
+            //        lineData.push([time, 1]);
+            //    }
+            //    else if (i <= step * 3) {
+            //        lineData.push([time, 0]);
+            //    }
+            //    else {
+            //        lineData.push([time, 1]);
+            //    }
+            //}
+
+            // init flot
+            let flot = $.plot("#@id", dataset, options)
+
+            //
+            function GetData() {
+                $.ajax({
+                    method: 'get',
+                    cache: false,
+                    url: '@sAjaxUrl',
+                    data: {
+                        pParams: { TkCode: 1 }
+                    }
+                }).done(function (data) {
+                    //now += updateInterval
+                    //let point = [now, data]
+                    //let points = [point]
+                    updateFlot(data)
+                }).fail(function () {
+                    console.log('Ajax error! ')
+                    // if fail, prepare next update
+                    setTimeout(GetData, updateInterval)
+                })
+
+            }
+
+            // 更新flot
+            function updateFlot(data) {
+
+                //if (data.length >= totalPoints) {
+                //    data.shift()
+                //}
+
+                lineData.shift()
+
+                //lineData.push(point)
+                now += updateInterval
+                lineData.push([now, data])
+
+                //if (Array.isArray(points)) {
+                //    for (let i = 0; i < points.length; i++) {
+                //        lineData.push(points[i])
+                //    }
+                //}
+
+                // redraw flot
+                $.plot("#@id", dataset, options)
+                //flot.setData(dataset);
+                //flot.setupGrid(); // it is necessary here for refresh //only necessary if your new data will change the axes or grid
+                //flot.draw();
+
+                // next update
+                setTimeout(GetData, updateInterval)
+            }
+
+            // start draw flot and set update
+            updateFlot()
+
+            //var time_flotA01 = window.setInterval(updateFlot, updateInterval);
+
+        })
+    
+    </script>, "js")

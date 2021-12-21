@@ -1,0 +1,1002 @@
+﻿@using System.Data;
+@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@{
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string mac_code = ViewBag.mac_code;
+    string mac_name = ViewBag.mac_name;
+    string controllerName = ViewContext.RouteData.Values["controller"].ToString();
+    string signalr_url = ViewBag.signalr_url;
+
+    Comm comm = new Comm();
+    DSH010AController Control = new DSH010AController();
+}
+
+@section head_plugin{
+    <link href="~/Content/assets/css/custom.min.css" rel="stylesheet">
+
+    <link href="@signalr_url/Content/bootstrap.css" rel="stylesheet" />
+    <script src="@signalr_url/Scripts/modernizr-2.6.2.js"></script>
+
+    @* 這個會阻擋右上角 登出/登出 按鈕展開 *@
+    @*<script src="@signalr_url/Scripts/bootstrap.js"></script>*@
+
+    <script src="@signalr_url/Scripts/respond.js"></script>
+    <script src="@signalr_url/Scripts/jquery.signalR-2.4.1.min.js"></script>
+    <script src="@signalr_url/signalr/hubs"></script>
+    <script>
+        $(function () {
+            // A1L01004 hub.
+            var A1L01004 = $.connection.a1L01004Hub;
+            // 接收Hub函數
+            A1L01004.client.dashBoard = function (para) {
+                let $mac_code = $('[data-mac_code="A1L01004"]')
+                //設定產量
+                //$mac_code.find('.para3-value').text(para[3])//出瓶數量
+                $('#current_qty').text(para[3]);
+            };
+
+
+            //開始連線
+            //跨網域引用SignalR時，要設定hub.url, 並hub.start({ jsonp: true });
+            $.connection.hub.url = "@signalr_url/signalr";
+            $.connection.hub.start({ jsonp: true })
+            .done(function () {
+                //什麼都不做
+            });
+        });
+    </script>
+}
+<style>
+    .alarm {
+        border-radius: 10px;
+        height: 50px;
+        background-color: #eee;
+        line-height: 50px;
+        text-align: center;
+        color: #eee;
+        font-size: 16px;
+    }
+
+    .alarm-header {
+        background-color: #428BCA;
+    }
+
+    .alarm-cell {
+        background-color: #6f42c1;
+        /*background-color: rgb(22, 167, 101)*/
+        /*background-color: #51A351*/
+    }
+
+    .alarm-error {
+        background-color: #FF3333;
+        color: aliceblue;
+        border-radius: 10px;
+        line-height: 50px;
+        height: 50px;
+    }
+
+    /*.alarmyaw {
+            border-radius: 10px;
+            height: 50px;
+            background-color: #eee;
+            line-height: 50px;
+            text-align: center;
+            color: #3C3C3C;
+            font-size: 16px;
+        }*/
+
+    .alarm-yaw {
+        background-color: #FFBF00;
+        border-radius: 10px;
+        line-height: 50px;
+        height: 50px;
+        color: #3C3C3C;
+    }
+
+
+    .alarm-correct {
+        background-color: #22C32E;
+        color: aliceblue;
+        border-radius: 10px;
+        line-height: 50px;
+        height: 50px;
+    }
+
+    .alarm-caption {
+        font-size: 20px;
+        background-color: #09134d;
+    }
+
+    .block {
+        border-radius: 10px;
+        height: 100px;
+        color: #eee;
+        /*background-color: #eee;*/
+        background-color: #428BCA;
+        text-align: center;
+        line-height: 100px;
+    }
+
+    .mac_img {
+        width: 84%;
+        height: auto;
+        border-radius: 10px;
+    }
+
+
+    .block-text {
+        /*color: #5599FF;*/
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .block-state-completed {
+        background-color: #28a745;
+    }
+
+    .block-state-working {
+        background-color: #dc3545;
+    }
+
+
+    .message-board {
+        text-align: center;
+        line-height: 60px;
+        /*display: flex;
+            justify-content: center;
+            align-items: center;*/
+        background-color: grey;
+        background-clip: content-box;
+        color: #eee;
+        height: 60px;
+        font-size: 21px;
+        /*width: 100%;*/
+        overflow: hidden;
+        position: relative;
+    }
+
+    .pause-hover:hover {
+        animation-play-state: paused;
+        -webkit-animation-play-state: paused;
+    }
+
+    .marguee-Yaxis {
+        width: 100%;
+        position: absolute;
+        /*-moz-animation: marquee 15s linear infinite;
+            -webkit-animation: marquee 15s linear infinite;*/
+        /*animation: marquee-Yaxis 3s linear infinite;*/
+        animation-delay: 2s;
+    }
+
+    .marguee-Xaxis {
+        position: absolute;
+        display: flex;
+        width: 100%;
+    }
+
+        .marguee-Xaxis div {
+            flex-shrink: 0;
+            width: 100%;
+        }
+
+    .marguee-Xaxis {
+        /*-moz-animation: marquee 15s linear infinite;
+            -webkit-animation: marquee 15s linear infinite;*/
+        animation: marquee-Xaxis 15s linear infinite;
+        animation-delay: 2s;
+    }
+
+    /* Move it (define the animation) */
+    /*@@-moz-keyframes marquee {
+            0%   { left: 100%; }
+            100% { left: 0%; -moz-transform: translateX(-100%); }
+        }
+        @@-webkit-keyframes marquee {
+            0%   { left: 100%; }
+            100% { left: 0%; -webkit-transform: translateX(-100%); }
+        }*/
+    @@keyframes marquee-Yaxis {
+        0% {
+            /*bottom: 100%;*/
+            /* Firefox bug fix */
+            /*-moz-transform: translateY(0%);
+            -webkit-transform: translateY(0%);*/
+            transform: translateY(0%);
+        }
+
+        100% {
+            /*bottom: 0%;*/
+            transform: translateY(-50%); /* 實際整個元素的長度是畫面的兩倍 */
+        }
+    }
+
+    @@keyframes marquee-Xaxis {
+        0% {
+            /*bottom: 100%;*/
+            /* Firefox bug fix */
+            /*-moz-transform: translateY(0%);
+            -webkit-transform: translateY(0%);*/
+            transform: translateX(0%);
+        }
+
+        100% {
+            /*bottom: 0%;*/
+            transform: translateX(-100%); /* 畫面的元素寬度 */
+        }
+    }
+
+    /* 調整間隔 */
+    #input_indication [class*="col-"]:not(:last-child) {
+        padding-right: 0;
+    }
+    #today_mo_list [class*="col-"]:not(:last-child) {
+        padding-right: 0;
+    }
+</style>
+
+<!-- block 樣式調整 -->
+<style>
+    /* 在 1920x1080 螢幕上字體太小 */
+    @@media screen and (min-width: 1900px) {
+
+        h4.widget-title {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .alarm {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .message-board {
+            font-size: 32px;
+            font-weight: 700;
+        }
+    }
+
+    /* 品名靠左*/
+    [aria-describedby="pro_name"] {
+        text-align: left;
+        padding-left: 10px;
+    }
+
+    /* 數字靠右 */
+    [aria-describedby*="qty"] {
+        text-align: right;
+        padding-right: 10px;
+    }
+
+    /* 單純標註"IOT"字體顏色 */
+    .IOT {
+        color: #1a0dab;
+    }
+</style>
+
+
+<h3 id="title-prg_name" style="margin-bottom:0; margin-top:0; font-weight: bold" class="header smaller lighter blue">備料看板 - 第一線</h3>
+
+<div style="height: 12px"></div>
+
+<div id="content-wrapper">
+    <div class="row">
+        <div class="col-sm-12">
+
+            @* 投料指示  *@
+            <div id="input_indication" class="widget-box">
+                <div class="widget-header">
+                    <h4 class="widget-title lighter smaller">
+                        <i class="ace-icon fa fa-comment blue"></i>
+                        <span aria-describedby="mo_label">投料指示 </span>
+                    </h4>
+                </div>
+
+                <div class="widget-body">
+                    <div class="widget-main no-padding">
+                        <div class="dialogs">
+
+                        </div>
+                    </div><!-- /.widget-main-->
+                </div><!-- /.widget-body-->
+            </div><!-- /.widget-box-->
+
+            @* 今日製令一覽 *@
+            <div id="today_mo_list" class="widget-box">
+                <div class="widget-header">
+                    <h4 class="widget-title lighter smaller">
+                        <i class="ace-icon fa fa-comment blue"></i>
+                        <span aria-describedby="mo_label">今日製令一覽 </span>
+                    </h4>
+                </div>
+
+                <div class="widget-body">
+                    <div class="widget-main no-padding">
+                        <div class="dialogs">
+
+                        </div>
+                    </div><!-- /.widget-main-->
+                </div><!-- /.widget-body-->
+            </div><!-- /.widget-box-->
+
+        </div><!-- /.col -->
+        
+    </div>
+
+</div>
+
+<br />
+<div id="footer-message">
+    <div class="row">
+        @*<div class="col-sm-12 message-board">
+                <div class="marguee-Yaxis pause-hover">
+                    <div>工單資訊</div>
+                    <div>工單資訊</div>
+                </div>
+            </div>*@
+        @* 工單資訊 *@
+        <div id="line-msg" class="col-sm-12 message-board">
+            <div></div>
+        </div>
+    </div>
+    <div class="space-6"></div>
+    <div class="row">
+        <div class="col-sm-12 message-board message-board">
+            <div class="marguee-Xaxis pause-hover">
+                <div>公告訊息跑馬燈</div>
+                <div>公告訊息跑馬燈</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section footer_script {
+    <script>
+        jQuery(function ($) {
+
+            // 輪播 備料看板 (1、2線)
+            @if (ViewBag.IsCarousel ?? false){
+                <text>
+            setTimeout(function () {
+                let urls = ['Line1', 'Line2']
+                let pathArray = window.location.pathname.slice(1).split('/')
+                let current_prg_code = pathArray[1]
+                let current_index = urls.indexOf(current_prg_code)
+                if (current_index !== -1){
+                    let next_index = (current_index + 1) % (urls.length)
+                    let next_prg_code = urls[next_index]
+                    location = `/${pathArray[0]}/${next_prg_code}?IsCarousel=true&&interval=@ViewBag.interval`
+            }
+            }, @ViewBag.interval * 1000)
+            </text>
+            }
+
+            // widget box 的 content 高度
+            $('.dialogs, .comments').ace_scroll({
+                size: 600
+            });
+
+
+
+            // set 投料指示
+            let indicateTable = IndicateTable({
+                $el: $('#input_indication').find('.dialogs'),
+                ajaxOptions: {
+                    method: 'get',
+                    url: '@Url.Action("Get_FeedHint", "MES")',
+                    data: {
+                        //pDateString: "2019/02/21",
+                        pLineCode: "L1SMB01",
+                    }
+                }
+            })
+
+            let moTable = MoTable({
+                $el: $('#today_mo_list').find('.dialogs'),
+                ajaxOptions: {
+                    method: 'get',
+                    url: '@Url.Action("Get_MoDataByLine", "MES")',
+                    data: {
+                        //pDateString: "2020/03/27",
+                        pDateString: "@DateTime.Now.ToString("yyyy/MM/dd")",
+                        pLineCode: "A1L01%",
+                    }
+                }
+            })
+
+
+            // 第一線-工單資訊
+            $.ajax({
+                aysnc: false,
+                method: 'get',
+                url: '@Url.Action("Get_MoMsgByLine", "MES")',
+                data: {
+                    pLineCode: "1",
+                }
+            }).done(function (data) {
+                $('#line-msg').text(data)
+            })
+
+            // 投料指示 table
+            function IndicateTable(oOptions){
+                let options = {
+                    $el: '',
+                    ajaxOptions: {
+                        method: 'get',
+                        url: '/MES/Get_FeedHint',
+                        data: {
+                            //pDateString: "2019/02/21",
+                            pLineCode: "L1SMB01",
+                        }
+                    },
+                    data: []
+                }
+
+                $.extend(options, oOptions)
+
+                let container = $(`
+                    <div class = "indicate_table">
+                        <div class="indicate_table-head"></div>
+                        <div class="indicate_table-body"></div>
+                    </div>
+                    `)
+
+                function SetHead($el){
+                    container.find('.indicate_table-head').append($el)
+                }
+
+                function SetBody(data){
+                    data.forEach(function (item, index) {
+                        let sto_status_class = ''
+                        //switch (item.mo_Stat) {
+                        //    case '庫存正常':
+                        //        sto_status_class = 'alarm-correct'
+                        //        break
+                        //    case '庫存異常':
+                        //        sto_status_class = 'alarm-error'
+                        //        break
+                        //    default:
+                        //        sto_status_class = 'alarm-correct'
+                        //        break
+                        //}
+                        let $row = $(`
+                            <div class ="row">
+                                <div class ="col-sm-2">
+                                    <div class ="alarm alarm-cell" aria-describedby="pro_code">
+                                        ${item.pro_code}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-5">
+                                    <div class ="alarm alarm-cell" aria-describedby="pro_name">
+                                        ${item.pro_name}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-cell" aria-describedby="pro_qty">
+                                        ${parseInt(item.pro_qty_sum).toLocaleString('en')}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-cell" aria-describedby="res_qty">
+                                        ${parseInt(item.res_qty_sum).toLocaleString('en')}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-cell" aria-describedby="use_qty">
+                                        ${parseInt(item.use_qty_sum).toLocaleString('en')}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-2" >
+                                    <div class ="alarm alarm-cell" aria-describedby="sto_status">
+                                        ${item.loc_name}
+                                    </div>
+                                </div>
+                            </div>
+                            `)
+                        container.find('.indicate_table-body')
+                             .append($row)
+                             .append($('<br />'))
+
+                    })
+
+                }
+
+                // ajax 投料指示
+                function Ajax_Indicate(oOptions){
+
+                    let defaultOption = $.extend({}, options.ajaxOptions)
+
+                    $.extend(defaultOption, oOptions)
+
+                    return $.ajax(defaultOption)
+                }
+
+
+                // init table
+                let $head = $(`
+                            <div class ="row">
+                                <div class ="col-sm-2">
+                                    <div class ="alarm alarm-header">
+                                        料號
+                                    </div>
+                                </div>
+                                <div class ="col-sm-5">
+                                    <div class ="alarm alarm-header">
+                                        品名
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-header">
+                                        預計投入
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-header">
+                                        實際投入
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-header">
+                                        已使用量
+                                    </div>
+                                </div>
+                                <div class ="col-sm-2">
+                                    <div class ="alarm alarm-header">
+                                        投料口
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            `)
+
+                SetHead($head)
+
+                if (options.data.length > 0){
+                    SetBody(data)
+                    options.$el.append(container)
+                } else {
+                    Ajax_Indicate({}).done(function(data){
+                        SetBody(data)
+                        options.$el.append(container)
+                    })
+                }
+
+                // table api
+                return {
+
+                }
+            }
+
+            // 取得今天日期 (yyyy/MM/dd)
+            function GetDate() {
+                let today = new Date();
+                let y = today.getFullYear()
+                let m = (today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : '0' + (today.getMonth() + 1)
+                let d = today.getDate() > 9 ? today.getDate() : '0' + today.getDate()
+                let date = y + '/' + m + '/' + d;
+                return date
+            }
+
+
+            // 今日製令一覽 table
+            function MoTable(oOptions){
+                let options = {
+                    $el: '',
+                    ajaxOptions: {
+                        method: 'get',
+                        url: '/MES/Get_MoDataByLine',
+                        data: {
+                            pDateString: '',
+                            pLineCode: '',
+                        }
+                    },
+                    data: []
+                }
+
+                $.extend(options, oOptions)
+
+                let container = $(`
+                    <div class = "mo_table">
+                        <div class="mo_table-head"></div>
+                        <div class="mo_table-body"></div>
+                    </div>
+                    `)
+
+                function SetHead($el){
+                    container.find('.mo_table-head').append($el)
+                }
+
+                function SetBody(data){
+                    data.forEach(function (item, index) {
+                        let sto_status_class = ''
+                        let sto_status_name = ""
+                        let mo_status_class = ''
+                        let mo_status_name = ""
+                        switch (item.mo_status) {
+                            case '20':
+                                mo_status_class = 'alarm-yaw'
+                                mo_status_name = "排產中"
+                                break
+                            case '30':
+                                mo_status_class = 'alarm-correct'
+                                mo_status_name = "生產中"
+                                break
+                            default:
+                                mo_status_class = ''
+                                mo_status_name = ""
+                                break
+                        }
+                        switch (item.sto_status) {
+                            case 'Y':
+                                sto_status_class = 'alarm-correct'
+                                sto_status_name = "已投料"
+                                break
+                            case 'N':
+                                sto_status_class = 'alarm-yaw'
+                                sto_status_name = "待投料"
+                                break
+                            default:
+                                mo_status_class = ''
+                                mo_status_name = ""
+                                break
+                        }
+                        let $row = $(`
+                            <div class ="row">
+                                <div class ="col-sm-2">
+                                    <div class ="alarm alarm-cell" aria-describedby="mo_code">
+                                        ${item.mo_code}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-5">
+                                    <div class ="alarm alarm-cell" aria-describedby="pro_name">
+                                        ${item.pro_name}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-cell" aria-describedby="pro_qty">
+                                        ${parseInt(item.plan_qty).toLocaleString('en')}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-cell" aria-describedby="work_qty">
+                                        ${parseInt(item.ok_qty).toLocaleString('en')}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-cell" aria-describedby="nq_qty">
+                                        ${parseInt(item.ng_qty).toLocaleString('en')}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm  ${sto_status_class}" aria-describedby="sto_status">
+                                        ${sto_status_name}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm  ${mo_status_class}" aria-describedby="mo_status">
+                                        ${mo_status_name}
+                                    </div>
+                                </div>
+                            </div>
+                            `)
+                        container.find('.mo_table-body')
+                                 .append($row)
+                        if (index !== data.length - 1) {
+                            container.find('.mo_table-body').append($('<br />'))
+                        }
+                    })
+
+                }
+
+                // ajax 投料指示
+                function Ajax_Indicate(oOptions){
+
+                    let defaultOption = $.extend({}, options.ajaxOptions)
+
+                    $.extend(defaultOption, oOptions)
+
+                    return $.ajax(defaultOption)
+                }
+
+
+                // init table
+                let $head = $(`
+                            <div class ="row">
+                                <div class ="col-sm-2">
+                                    <div class ="alarm alarm-header">
+                                        製令號碼
+                                    </div>
+                                </div>
+                                <div class ="col-sm-5">
+                                    <div class ="alarm alarm-header">
+                                        品名
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-header">
+                                        預計產量
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-header">
+                                        目前產量
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-header">
+                                        不良品量
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-header">
+                                        備料狀態
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-header">
+                                        工單狀態
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            `)
+
+                SetHead($head)
+
+                if (options.data.length > 0){
+                    SetBody(data)
+                    options.$el.append(container)
+                } else {
+                    Ajax_Indicate({}).done(function(data){
+
+                        console.log(data)
+                        SetBody(data)
+                        options.$el.append(container)
+                    })
+                }
+
+                // table api
+                return {
+
+                }
+            }
+
+
+
+
+
+            // 以下目前沒用到，舊的代碼
+            // 投料指示 func generate grid
+            function BomRow() {
+                this.container =
+                    $(`
+                        <div class = "">
+                            <div class="bom_head"></div>
+                            <div class="bom_body"></div>
+                        </div>
+                    `)
+            }
+            (function () {
+                this.setBomHead = function () {
+                    let $head = $(`
+                            <div class ="row">
+                                <div class ="col-sm-2">
+                                    <div class ="alarm alarm-header">
+                                        料號
+                                    </div>
+                                </div>
+                                <div class ="col-sm-5">
+                                    <div class ="alarm alarm-header">
+                                        品名
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-header">
+                                        預計投入
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-header">
+                                        實際投入
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-header">
+                                        已使用量
+                                    </div>
+                                </div>
+                                <div class ="col-sm-2">
+                                    <div class ="alarm alarm-header">
+                                        投料口
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            `)
+                    this.container.find('.bom_head').append($head)
+                },
+                this.setBomBody = function (data) {
+                    $that = this
+                    data.forEach(function (item, index) {
+                        let sto_status_class = ''
+                        //switch (item.mo_Stat) {
+                        //    case '庫存正常':
+                        //        sto_status_class = 'alarm-correct'
+                        //        break
+                        //    case '庫存異常':
+                        //        sto_status_class = 'alarm-error'
+                        //        break
+                        //    default:
+                        //        sto_status_class = 'alarm-correct'
+                        //        break
+                        //}
+                        let $row = $(`
+                            <div class ="row">
+                                <div class ="col-sm-2">
+                                    <div class ="alarm alarm-cell" aria-describedby="pro_code">
+                                        ${item.pro_code}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-5">
+                                    <div class ="alarm alarm-cell" aria-describedby="pro_name">
+                                        ${item.pro_name}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-cell" aria-describedby="pro_qty">
+                                        ${parseInt(item.pro_qty_sum).toLocaleString('en')}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-cell" aria-describedby="res_qty">
+                                        ${parseInt(item.res_qty_sum).toLocaleString('en')}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-cell" aria-describedby="use_qty">
+                                        <b class ="IOT">IOT</b>
+                                    </div>
+                                </div>
+                                <div class ="col-sm-2" >
+                                    <div class ="alarm  ${sto_status_class}" aria-describedby="sto_status">
+                                        <b class ="IOT">IOT</b>
+                                    </div>
+                                </div>
+                            </div>
+                            `)
+                        $that.container.find('.bom_body').append($row)
+                        $that.container.find('.bom_body').append($('<br />'))
+                    })
+                }
+            }).call(BomRow.prototype)
+
+
+            // 今日製令一覽 func generate grid
+            function BomRow2() {
+                this.container =
+                    $(`
+                        <div class = "bom_row">
+                            <div class="bom_head"></div>
+                            <div class="bom_body"></div>
+                        </div>
+                    `)
+            }
+            (function () {
+                this.setBomHead = function () {
+                    let $head = $(`
+                            <div class ="row">
+                                <div class ="col-sm-2">
+                                    <div class ="alarm alarm-header">
+                                        製令號碼
+                                    </div>
+                                </div>
+                                <div class ="col-sm-5">
+                                    <div class ="alarm alarm-header">
+                                        品名
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-header">
+                                        預計產量
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-header">
+                                        目前產量
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-header">
+                                        不良品量
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-header">
+                                        備料狀態
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-header">
+                                        工單狀態
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            `)
+                    this.container.find('.bom_head').append($head)
+                },
+                this.setBomBody = function (aBomData) {
+
+                    $that = this
+
+                    aBomData.forEach(function (item, index) {
+                        let sto_status_class = ''
+                        let mo_status_class = ''
+                        let mo_status_name = ""
+                        switch (item.mo_status) {
+                            case '20':
+                                mo_status_class = 'alarm-yaw'
+                                mo_status_name = "排產中"
+                                break
+                            case '30':
+                                mo_status_class = 'alarm-correct'
+                                mo_status_name = "生產中"
+                                break
+                            default:
+                                mo_status_class = ''
+                                mo_status_name = ""
+                                break
+                        }
+                        let $row = $(`
+                            <div class ="row">
+                                <div class ="col-sm-2">
+                                    <div class ="alarm alarm-cell" aria-describedby="mo_code">
+                                        ${item.mo_code}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-5">
+                                    <div class ="alarm alarm-cell" aria-describedby="pro_name">
+                                        ${item.pro_name}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-cell" aria-describedby="pro_qty">
+                                        ${parseInt(item.plan_qty).toLocaleString('en')}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-cell" aria-describedby="work_qty">
+                                        ${mo_status_name}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm alarm-cell" aria-describedby="nq_qty">
+                                        ${mo_status_name}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm  ${sto_status_class}" aria-describedby="sto_status">
+                                        ${mo_status_name}
+                                    </div>
+                                </div>
+                                <div class ="col-sm-1">
+                                    <div class ="alarm  ${mo_status_class}" aria-describedby="mo_status">
+                                        ${mo_status_name}
+                                    </div>
+                                </div>
+                            </div>
+                            `)
+                        $that.container.find('.bom_body').append($row)
+                        if (index !== aBomData.length - 1) {
+                            $that.container.find('.bom_body').append($('<br />'))
+                        }
+                    })
+
+                }
+            }).call(BomRow2.prototype)
+
+        })
+    </script>
+}

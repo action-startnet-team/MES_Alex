@@ -1,0 +1,164 @@
+﻿
+@*<div class="col-md-8 col-sm-8 col-xs-12">
+    </div>*@
+
+@*<div class="x_panel">
+        <div class="x_title">
+            <h2>Bar Graph</h2>
+            <ul class="nav navbar-right panel_toolbox">
+                <li>
+                    <a class="collapse-link"><i class="fa fa-chevron-up"></i></a>
+                </li>
+                <li class="dropdown">
+                    <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false"><i class="fa fa-wrench"></i></a>
+                    <ul class="dropdown-menu" role="menu">
+                        <li>
+                            <a href="#">Settings 1</a>
+                        </li>
+                        <li>
+                            <a href="#">Settings 2</a>
+                        </li>
+                    </ul>
+                </li>
+                <li>
+                    <a class="close-link"><i class="fa fa-close"></i></a>
+                </li>
+            </ul>
+            <div class="clearfix"></div>
+        </div>
+        <div class="x_content">
+            <div id="@ViewBag.id" style="height: 350px; -webkit-tap-highlight-color: transparent; user-select: none; position: relative; background-color: transparent;" _echarts_instance_="ec_1570599976875">
+                <div style="position: relative; overflow: hidden; width: 876px; height: 350px; cursor: default;">
+                    <canvas width="876" height="350" data-zr-dom-id="zr_0" style="position: absolute; left: 0px; top: 0px; width: 876px; height: 350px; user-select: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></canvas>
+                </div>
+                <div style="position: absolute; display: none; border-style: solid; white-space: nowrap; z-index: 9999999; transition: left 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0s, top 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0s; background-color: rgba(0, 0, 0, 0.5); border-width: 0px; border-color: rgb(51, 51, 51); border-radius: 4px; color: rgb(255, 255, 255); font: 14px/21px Arial, Verdana, sans-serif; padding: 5px; left: 566px; top: 69px;">
+                    purchases<br>sales : 182.2
+                </div>
+            </div>
+        </div>
+
+    </div>*@
+
+<div id="barProcess_@ViewBag.date" style="height: 100%; -webkit-tap-highlight-color: transparent; user-select: none; position: relative; background-color: transparent;" _echarts_instance_="ec_1570599976875">
+    <div style="position: relative; overflow: hidden; width: 876px; height: 350px; cursor: default;">
+        <canvas width="876" height="350" data-zr-dom-id="zr_0" style="position: absolute; left: 0px; top: 0px; width: 876px; height: 350px; user-select: none; -webkit-tap-highlight-color: rgba(0, 0, 0, 0);"></canvas>
+    </div>
+    <div style="position: absolute; display: none; border-style: solid; white-space: nowrap; z-index: 9999999; transition: left 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0s, top 0.4s cubic-bezier(0.23, 1, 0.32, 1) 0s; background-color: rgba(0, 0, 0, 0.5); border-width: 0px; border-color: rgb(51, 51, 51); border-radius: 4px; color: rgb(255, 255, 255); font: 14px/21px Arial, Verdana, sans-serif; padding: 5px; left: 566px; top: 69px;">
+        purchases<br>sales : 182.2
+    </div>
+</div>
+
+
+@* Note: Sections don't work in partial views and that's by design. *@
+
+@* 讓部分頁面(Partial View)使用類似 @section 的功能 *@
+@Html.Resource(
+    @<script>
+
+        if ($('#barProcess_@ViewBag.date').length) {
+
+            //var echartBar = echarts.init(document.getElementById('@ViewBag.id'), 'dark');
+            //var echartBar = echarts.init(document.getElementById('bar_@ViewBag.date'), echarts_theme);
+            let option = {
+                title: {
+                    text: '製程加工分佈 - 長條圖',
+                    //subtext: 'Graph Sub-text'
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                legend: {
+                    data: ['sales', 'purchases']
+                },
+                toolbox: {
+                    show: false
+                },
+                calculable: false,
+                xAxis: [{
+                    type: 'category',
+                    data: ['1?', '2?', '3?', '4?', '5?', '6?', '7?', '8?', '9?', '10?', '11?', '12?']
+                }],
+                yAxis: [{
+                    type: 'value'
+                }],
+                series: [{
+                    name: 'data1',
+                    //name: 'sales',
+                    type: 'bar',
+                    //data: @Json.Encode(ViewBag.data),
+                    //data: JSON.parse('@Html.Raw(Json.Encode(ViewBag.data))'),
+                    data: [2.0, 4.9, 7.0, 23.2, 25.6, 76.7, 135.6, 162.2, 32.6, 20.0, 6.4, 3.3],
+                    markPoint: {
+                        data: [{
+                            type: 'max',
+                            name: '???'
+                        }, {
+                            type: 'min',
+                            name: '???'
+                        }]
+                    },
+                    markPoint: {
+                        data: [{
+                            type: 'max',
+                            name: 'data1 max'
+                        }, {
+                            type: 'min',
+                            name: 'data2 min'
+                        }]
+                    },
+                    markLine: {
+                        data: [{
+                            type: 'average',
+                            name: 'data average'
+                            //name: '???'
+                        }]
+                    }
+                }, {
+                    name: 'data2',
+                    //name: 'purchases',
+                    type: 'bar',
+                    //data: @Json.Encode(ViewBag.data2),
+                    data: [2.6, 5.9, 9.0, 26.4, 28.7, 70.7, 175.6, 182.2, 48.7, 18.8, 6.0, 2.3],
+                    markPoint: {
+                        data: [{
+                            name: 'sales',
+                            value: 182.2,
+                            xAxis: 7,
+                            yAxis: 183,
+                        }, {
+                            name: 'purchases',
+                            value: 2.3,
+                            xAxis: 11,
+                            yAxis: 3
+                        }]
+                    },
+                    markPoint: {
+                        data: [{
+                            type: 'max',
+                            name: 'data2 max'
+                        }, {
+                            type: 'min',
+                            name: 'data2 min'
+                        }]
+                    },
+                    markLine: {
+                        data: [{
+                            type: 'average',
+                            name: 'data2 average'
+                            //name: '???'
+                        }]
+                    }
+                }]
+            }
+            echarts.init(document.getElementById('barProcess_@ViewBag.date'), echarts_theme).setOption(option, true);
+            //}
+
+
+            setInterval(function () {
+                echarts.init(document.getElementById('barProcess_@ViewBag.date'), echarts_theme).clear();
+                echarts.init(document.getElementById('barProcess_@ViewBag.date'), echarts_theme).setOption(option, true)
+            }, 1000 * 10)
+
+        }
+
+    </script>, "js")

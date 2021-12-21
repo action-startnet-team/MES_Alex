@@ -1,0 +1,346 @@
+﻿@using MES_WATER.Models;
+
+@{
+    ViewBag.Title = "Index";
+
+}
+
+@section head_plugin{
+    <link rel="stylesheet" href="~/Content/assets/KanbanCss.css" />
+
+}
+
+@{
+    Html.RenderPartial("pPrgName");
+}
+<div>
+    <!--第1排 開始-->
+    <div class="row">
+        <div class="col-xs-12">
+            <h3>
+                @*<i class="ace-icon fa fa-line-chart "></i>*@
+                標準作業VSM
+            </h3>
+        </div>
+        <div class="col-xs-12">
+            <div class="container-fluid Kanban_DivArea" style="margin-top:5px;">
+                @*<table style="float:left;height:65px;color:#ff9000;font-size:30px;" class="col-lg-1">
+            <tr>
+                <td style="line-height:27px; vertical-align:middle;">M001</td>
+            </tr>
+            <tr>
+                <td style="line-height:27px; vertical-align:middle;"></td>
+            </tr>
+        </table>*@
+                <div id="flotA01" class="col-lg-11 flot-vsm" style=" height:150px; margin:0 auto; float:right; "></div>
+            </div>
+        </div>
+    </div>
+
+    <br />
+    <div class="row">
+        <div class="col-xs-12">
+            <h3>
+                @*<i class="ace-icon fa fa-line-chart "></i>*@
+                實際作業VSM
+            </h3>
+        </div>
+        <div class="col-xs-12">
+            <div class="container-fluid Kanban_DivArea" style="margin-top:5px;">
+                @*<table style="float:left;height:65px;color:#ff9000;font-size:30px;" class="col-lg-1">
+                        <tr>
+                            <td style="line-height:27px; vertical-align:middle;">M001</td>
+                        </tr>
+                        <tr>
+                            <td style="line-height:27px; vertical-align:middle;"></td>
+                        </tr>
+                    </table>*@
+                <div id="flotA02" class="col-lg-11 flot-vsm" style=" height:150px; margin:0 auto; float:right; "></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+
+
+
+@section footer_plugin{
+    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.pie.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.time.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.symbol.min.js"></script>
+    <script type="text/javascript" src="~/Scripts/flot/jquery.flot.axislabels.js"></script>
+
+}
+
+@section footer_script{
+    <script>
+        jQuery(function ($) {
+
+            // line資料初始
+            let lineData = [];
+            let lineData2 = [];
+
+            //let totalPoints = @ViewBag.std_time;
+            //let totalPoints = 120;
+            let totalPoints = 1200;  
+            let tickSize = [60, "second"]  // 刻度間隔
+            let updateInterval = 1000;  // 更新間隔，每一點幾秒 單位ms
+            let now = new Date().getTime() - totalPoints * updateInterval;
+            //let now = new Date().getTime()
+
+            // 初始塞空資料，顯示格線
+            while (lineData.length < totalPoints) {
+                now += updateInterval
+                lineData.push([now, -1]);
+                lineData2.push([now, -1]);
+            }
+
+            // flot options
+            var options = {
+                series: {
+                    lines: {
+                        show: true,
+                        lineWidth: 3,
+                        fill: false
+                    }
+                },
+
+                //x軸設定
+                xaxis: {
+                    mode: "time",
+                    tickSize: tickSize,  //刻度間隔 [60, 'second'] 
+                    tickFormatter: function (v, axis) {
+                        return ''
+
+                        //var date = new Date(v);
+                        //// 時間標籤以每隔n秒的間隔顯示
+                        //if (date.getSeconds() % 60 == 0) {
+                        //    var hours = date.getHours() < 10 ? "0" + date.getHours() : date.getHours();
+                        //    var minutes = date.getMinutes() < 10 ? "0" + date.getMinutes() : date.getMinutes();
+                        //    var seconds = date.getSeconds() < 10 ? "0" + date.getSeconds() : date.getSeconds();
+
+                        //    return hours + ":" + minutes //+ ':' + seconds
+                        //} else {
+                        //    return "";
+                        //}
+                    },
+                },
+                //Y軸設定
+                yaxis: {
+                    min: 0,
+                    max: 2,
+                    tickSize: 2,
+                    tickFormatter: function (v, axis) {
+                        if (v == 0) {
+                            return "";
+                        } else if (v == 2) {
+                            return "";
+                        } else {
+                            return "";
+                        }
+                    }
+                },
+                grid: {
+                    backgroundColor: "#000000",
+                    tickColor: "#888888"
+                }
+            };
+
+            // set flot width
+            $('.flot-vsm').each(function (i) {
+                let parentWidth = $(this).parent().width()
+                $(this).css('width', parentWidth)
+            })
+
+            // adjust width when window resize
+            $(window).resize(function () {
+                $('.flot-vsm').each(function (i) {
+                    let parentWidth = $(this).parent().width()
+                    $(this).css('width', parentWidth)
+                    $.plot('#flotA01', dataset, options)
+                    $.plot('#flotA02', dataset2, options)
+                })
+            });
+
+            let dataset = [
+               { data: lineData, color: "#00FF00" },
+            ];
+
+            let dataset2 = [
+                { data: lineData2, color: "#00FF00" },
+            ];
+
+            // init flot
+            let flotA01 = $.plot("#flotA01", dataset, options)
+            let flotA02 = $.plot("#flotA02", dataset2, options)
+
+            // 取得今天日期: yyyy/MM/dd
+            function GetDate() {
+                let today = new Date();
+                let y = today.getFullYear()
+                let m = (today.getMonth() + 1) > 9 ? (today.getMonth() + 1) : '0' + (today.getMonth() + 1)
+                let d = today.getDate() > 9 ? today.getDate() : '0' + today.getDate()
+                let date = y + '/' + m + '/' + d;
+                return date
+            }
+
+            let today = GetDate()
+
+            // 標準VSM
+            function GetData() {
+                $.ajax({
+                    method: 'get',
+                    cache: false,
+                    url: '/DSB080A/Get_VSMData_test',
+                    data: {
+                        pProCode: '123'
+                    }
+                }).done(function (data) {
+                    //now += updateInterval
+                    //let point = [now, data]
+                    //let points = [point]
+                    //let points = data.map(x =>[x.cal_date + ' ' + x.cal_time, x.status])
+
+                    //let arr = data.map(x => x.status)
+                    let arr = data
+                    //console.log(arr)
+
+                    updateFlot(arr)
+
+                    // next update
+                    //setTimeout(GetData, updateInterval)
+
+                }).fail(function () {
+                    console.log('Ajax error! ')
+                    // if fail, prepare next update
+                    setTimeout(GetData, updateInterval)
+                })
+            }
+
+            
+
+            // 實際VSM
+            function GetData2() {
+                $.ajax({
+                    method: 'get',
+                    cache: false,
+                    url: '/DSB080A/Get_Status',
+                    data: {
+                        pTkCode: 'mac001',
+                        pDate: today
+                    }
+                }).done(function (data) {
+                    switch (data) {
+                        case 0:
+                            updateFlot2(0)
+                            break
+                        case 1:
+                            updateFlot2(1)
+                            break
+                        default:
+                            updateFlot2(0)
+                            break
+                    }
+
+                    // next update
+                    //setTimeout(GetData2, updateInterval)
+                }).fail(function () {
+                    console.log('Ajax error! ')
+                    // if fail, prepare next update
+                    setTimeout(GetData, updateInterval)
+                })
+            }
+
+            // 標準VSM update
+            function updateFlot(data) {
+                if (data.length <= 0) {
+                    return 
+                }
+
+                let tempNow = lineData[lineData.length - 1][0]
+                if (Array.isArray(data)) {
+                    for (let i = 0; i < data.length; i++) {
+                        lineData.shift()
+                        tempNow += updateInterval
+                        lineData.push([tempNow, data[i]])
+                    }
+                }
+
+                // 放60秒空資料 ( 每點1秒, 刻度間隔60秒 )
+                // 為了顯示ㄇ字形
+                for (let i = 0; i < 60; i++) {
+                    lineData.shift()
+                    tempNow += updateInterval
+                    lineData.push([tempNow, -1])
+                }
+                
+
+                // redraw flot
+                $.plot("#flotA01", dataset, options)
+            }
+
+            // 放抓過的資料，目前是放識別碼
+            //let tempFetchedData = []
+
+            // 實際VSM update
+            function updateFlot2(data) {
+                
+                //// 取得line資料中最後日期
+                let tempNow = lineData2.length > 0 ? lineData2[lineData2.length - 1][0] : now
+
+                lineData2.shift()
+                tempNow += updateInterval
+                lineData2.push([tempNow, data])
+
+                //redraw flot
+                $.plot("#flotA02", dataset2, options)
+
+                setTimeout(GetData2, updateInterval)
+
+
+                //if (!Array.isArray(data)) {
+                //    return
+                //}
+
+                //// 篩選資料
+                //let arr = data.filter(x => !tempFetchedData.includes(x.med08_0000))
+
+                //if (arr.length <= 0) {
+                //    return 
+                //}
+
+                //// 取得line資料中最後日期
+                //let tempNow = lineData2.length > 0 ? lineData2[lineData2.length - 1][0] : now
+
+                //for (let i = 0; i < arr.length; i++) {
+
+                //    tempFetchedData.push(arr[i].med08_0000)
+
+                //    setTimeout(function () {
+                //        // set flot data
+                //        lineData2.shift()
+                //        tempNow += updateInterval
+                //        lineData2.push([tempNow, arr[i].status])
+
+                //        // redraw flot
+                //        $.plot("#flotA02", dataset2, options)
+
+                //    }, 500 * i)
+                //}
+
+                //setTimeout(GetData2, 500 * data.length)
+            }
+
+
+            // Start update flot
+            GetData()
+            GetData2()
+
+            //var time_flotA01 = window.setInterval(updateFlot, updateInterval);
+
+        })
+    </script>
+}

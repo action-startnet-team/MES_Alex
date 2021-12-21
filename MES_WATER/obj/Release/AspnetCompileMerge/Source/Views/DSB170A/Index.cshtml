@@ -1,0 +1,69 @@
+﻿
+@using MES_WATER.Controllers;
+@using System.Data;
+@section head_plugin{
+}
+<link rel="stylesheet" href="~/Scripts/assets/POMES_DASHBOARD/assets/css/dashboard.css">
+@*<link rel="stylesheet" href="~/Content/assets/css/databord.css">*@
+@{
+    <script src="~/Scripts/assets/POMES_DASHBOARD/assets/lib/echarts-4.8.0/dist/echarts.min.js"></script>
+    DSB170AController myCT = new DSB170AController();
+    //string usr_name = ViewBag.usr_name;
+    string id = ViewBag.id;
+
+
+}
+
+<!-- all simulator must be removed after completed -->
+<div id="pome_dashboard" class="simulator">
+
+    @{
+        for (int i = 1; i < myCT.Get_Data().Rows.Count; i++)
+        {
+            DataTable Row = myCT.Get_Data();
+            <div class="container line2">
+                <div class="row1">
+                    <div class="colume13 heading1-item">
+                        <div class="colume13 mr-18  ">
+                            <span class="value1  heading1-item-label">吹灌旋</span>
+                        </div>
+                        <div class="colume12">
+                            <span class="value4 heading1-item-value">2020081002</span>
+                        </div>
+                        <div class="colume-end"></div>
+                    </div>
+                    @*<div class="breathlight">
+                            <div>
+                                <span class="breathlight-item-alarm">警告</span>
+                            </div>
+                        </div>*@
+                    <div class="colume-end"></div>
+                </div>
+
+                <div class="row1 mt-5">
+                    @Html.Raw(Html.Action("LineItem_Usr", "DSB170A",
+           new { id = @Row.Rows[i]["line_code"].ToString(), imgSrc = "/Scripts/assets/POMES_DASHBOARD/assets/pictures/cds.png", usr_name = "" }))
+                </div>
+            </div>
+            <br />
+        }
+    }
+
+
+
+    <!-- all simulator must be removed after completed -->
+    <div style="clear:both;"></div>
+</div>
+<!-- all simulator must be removed after completed -->
+
+
+
+
+@section footer_script {
+    <script>
+        if ($('.breathlight>div>span').html() === " " || $('.breathlight>div>span').html() === "" || $('.breathlight>div>span').html() === "undefine") {
+            $('.breathlight').css({ 'display': 'none' })
+        }
+    </script>
+    <script src="~/Scripts/assets/POMES_DASHBOARD/assets/js/DSB170Ascript.js"></script>
+}

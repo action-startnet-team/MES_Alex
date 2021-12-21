@@ -1,0 +1,65 @@
+﻿@using MES_WATER.Models;
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewBag.sPrgCode ?? ViewContext.RouteData.Values["controller"].ToString();
+}
+
+
+@Html.Partial("pPrgName")
+
+@{
+    Func<object, HelperResult>
+        customBtnTemplate =
+        @<text>
+            <div class="pull-left" style="margin-left: 10px">
+                <a id="cusdata" class="btn btn-white btn-success btn-bold" role="button">
+                    <span class=''>客戶資料同步</span>
+                </a>
+            </div>
+        </text>;
+    // 在抓資料時另外傳參數
+    //string addPostData = ",pLineCode:()=>$('#linecode').val() ";
+    string sHeaderBtns = customBtnTemplate.Invoke(null).ToString();
+}
+
+@* 修改點 以下 *@
+@{
+    // 改對應的class
+    Html.RenderAction("pJqgrid_A", "jqgrid", new
+    {
+        pModelType = new ECB01_0000().GetType(),
+        pCustomHtml_header = sHeaderBtns,
+        pPrgCode = sPrgCode,
+    });
+
+}
+@* 修改點 以上 *@
+
+@Html.Resource(@<script typeof="text/javascript">
+    jQuery(function ($) {
+        $('#cusdata').on('click', function () {
+            $.ajax({
+                async: false,
+                method: 'post',
+                url: '/ECB010A/GetCusData',
+                data: {},
+                datatype: 'json',
+                success: function (data) {
+                    alert("同步成功")
+                    $('#grid-table').jqGrid('setGridParam', { datatype: 'json' }).trigger('reloadGrid');
+                },
+                error: function (xhr) {
+                    alert("同步失敗");
+                }
+            })
+        })
+    })
+</script>
+, "js")
+
+

@@ -1,0 +1,60 @@
+﻿@using MES_WATER.Models;
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewBag.sPrgCode ?? ViewContext.RouteData.Values["controller"].ToString();
+}
+
+@Html.Partial("pPrgName")
+
+@* 修改點 以下 *@
+@{
+    Func<object, HelperResult> customBtnTemplate =
+        @<text>
+            <div class="pull-left" style="margin-left: 10px">
+                <a id="test" class="btn btn-white btn-warning btn-bold" role="button">
+                    <span>確認</span>
+                </a>
+            </div>
+        </text>;
+    string sHeaderBtns = customBtnTemplate.Invoke(null).ToString();
+
+    Func<object, HelperResult> sCustomJs_bottomTemplate =
+        @<text>
+            $('#test').click(function(){
+            let selection = $('#grid-table').jqGrid('getGridParam', 'selarrrow')
+
+            let rowDatas = selection.map(id => $('#grid-table').jqGrid('getRowData', id))
+
+            $.ajax({
+                    method: 'post',
+                    url: '/MED060A/Ins_MEP02',
+                    data: {
+                    pRowDatas: JSON.stringify(rowDatas)
+                     }
+            }).done(function(json){
+                    if(json){alert("更新成功");}
+                    else{ alert("請檢查資料是否結案或包含異常資料");}
+                })
+           })
+        </text>;
+    string sCustomJs_bottom = sCustomJs_bottomTemplate.Invoke(null).ToString();
+
+    // 改對應的class
+    Html.RenderAction("pJqgrid_A", "jqgrid", new
+    {
+        pModelType = new MED06_0000().GetType(),
+        pPrgCode = sPrgCode,
+        pIsMultiselect = "Y",
+        pCustomHtml_header = sHeaderBtns,
+        pCustomJs_bottom = sCustomJs_bottom
+    });
+
+}
+@* 修改點 以上 *@
+
+

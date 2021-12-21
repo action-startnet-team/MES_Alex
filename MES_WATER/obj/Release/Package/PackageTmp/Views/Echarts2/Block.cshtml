@@ -1,0 +1,105 @@
+﻿
+<div id="block_@ViewBag.mac_code" style="text-align:center; color: white; display: flex; align-items: stretch; flex-direction: column; justify-content: space-around; height:100%">
+    @*<div>
+        <div style="background: grey; font-size: 18px">稼動率</div>
+        @Gauge_color(ViewBag.utilization_rate)
+    </div>
+    <div>
+        <div style="background: grey; font-size: 18px">產能效率</div>
+        @Gauge_color(ViewBag.capacity_efficiency)
+    </div>
+    <div>
+        <div style="background: grey; font-size: 18px">良率</div>
+        @Gauge_color(ViewBag.yield)
+    </div>*@
+</div>
+
+<style>
+
+</style>
+
+@Html.Resource(
+    @<script>
+        jQuery(function($){
+        let block_data = {
+            "稼動率": "80",
+            "產能效率": "85",
+            "良率": "95",
+        }
+
+            if ($('#block_@ViewBag.mac_code').length) {
+
+
+                // Set gauge data
+                @*$.ajax({
+                method: "get",
+                url: "@Url.Action("Get_BlockData", "DSB010A")",
+                data: { pTkCode: '@ViewBag.mac_code' },
+                success: function (json) {
+                    refreshBlockData($('#block_@ViewBag.mac_code'), json.data);
+                },
+                error: function (xhr) {
+                    alert("Ajax Error: " + xhr.status + ": " + xhr.statusText);
+                },
+            })*@
+                refreshBlockData($('#block_@ViewBag.mac_code'), block_data);
+            }
+
+            // 每n秒更新一次
+            setInterval(function () {
+                @*$.ajax({
+                method: "get",
+                url: "@Url.Action("Get_BlockData", "DSB010A")",
+                data: { pTkCode: '@ViewBag.mac_code' },
+                success: function (json) {
+                    refreshBlockData($('#block_@ViewBag.mac_code'), json.data);
+                },
+                error: function (xhr) {
+                    alert("Ajax Error: " + xhr.status + ": " + xhr.statusText);
+                },
+                refreshBlockData($('#block_@ViewBag.mac_code'), json.data);
+            })*@
+
+            }, 1000 * 3);
+
+
+            function refreshBlockData(chart, data) {
+                if (!chart) {
+                    return;
+                }
+                //<div>
+                //    <div style="background: grey; font-size: 18px">稼動率</div>
+                //    "<div style='background: " + color + "; font-size: 36px'>" + rate + "% </div>";
+                //</div>
+                //更新數據
+                chart.empty();
+                for (let key in data) {
+                    let div = $('<div></div>')
+                    @{ 
+                    int header_fontSize = ViewBag.header_fontSize ?? 18;
+                    int section_fontSize = ViewBag.section_fontSize ?? 36;
+
+                }
+                    div.append($('<div style="background: grey; font-size: ' +  '@header_fontSize' + 'px; ">' + key + '</div>")'))
+                    div.append($('<div style="background: ' + gauge_color(data[key]) + '; font-size: ' + '@section_fontSize' +'px; ">' + data[key] + '% </div>'))
+                    chart.append(div)
+                }
+
+
+            }
+
+            function gauge_color(rate) {
+                let color = "";
+                if (rate >= 70) {
+                    color = "lightgreen";
+                }
+                else if (rate >= 60) {
+                    color = "skyblue";
+                }
+                else {
+                    color = "orange";
+                }
+                return color;
+            }
+        })
+    </script>, "js")

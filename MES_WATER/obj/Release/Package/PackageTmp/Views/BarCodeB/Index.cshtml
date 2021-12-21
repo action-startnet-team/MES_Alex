@@ -1,0 +1,319 @@
+﻿@using MES_WATER.Models;
+@using System.Reflection;
+@using System.ComponentModel.DataAnnotations;
+@using System.ComponentModel.DataAnnotations.Schema;
+@using System.Data;
+@using MES_WATER.Controllers;
+
+@*修改點 以下*@
+@model BarCodeBController.BarCodeB
+@*修改點 以上*@
+
+@{
+    //主檔頁面
+    ViewBag.Title = "Update";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    //公用函數庫
+    Comm comm = new Comm();
+    GetModelValidation gmv = new GetModelValidation();
+    string key = gmv.GetKey<BarCodeBController.BarCodeB>(new BarCodeBController.BarCodeB());
+
+    //公用變數
+    string sPrgCode = ViewBag.prg_code;
+    BarCodeBController.BarCodeB Model = new BarCodeBController.BarCodeB();
+
+    @*修改點 向上*@
+    //取得畫面上下拉選單的選項值
+    List<DDLList> label_code_list = comm.Get_DDLOption("WMB09_0000", "label_code", "label_name");
+    string ip = HttpContext.Current.Request.UserHostAddress;
+}
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-multiselect.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/jquery-ui.custom.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+
+}
+
+@Html.Partial("pPrgName")
+<div class="row">
+    <ul class="nav nav-tabs" id="myTab">
+        <li class="active">
+            <a data-toggle="tab" href="#home">
+                <i class="green ace-icon fa fa-home bigger-120"></i>
+                主檔
+            </a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div id="home" class="tab-pane fade in active">
+            @using (Html.BeginForm("Index", sPrgCode, FormMethod.Post, new { @class = "form-horizontal", id = "validation_form", role = "form" }))
+            {
+                @*修改點 向下 輸入畫面編排*@
+                <div class="row">
+                    <div class="col-sm-offset-2 col-md-6">
+                        @Html.EditorFor(model => model.usr_code, new { htmlAttributes = new { @class = " col-xs-12", @Value = "L34", @autofocus = "autofocus", @hidden = "hidden" } })
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "label_code", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.label_code, new { htmlAttributes = new { @class = " col-xs-12", @Value = "L25", @autofocus = "autofocus" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.label_code, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "print_name", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.print_name, new { htmlAttributes = new { @class = " col-xs-12", @Value = "TSC TTP-247" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.print_name, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "fieldA", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.fieldA, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.fieldA, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "fieldB", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.fieldB, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.fieldB, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "fieldC", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.fieldC, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.fieldC, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "fieldD", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.fieldD, new { htmlAttributes = new { @class = " col-xs-12 " } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.fieldD, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "fieldE", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.fieldE, new { htmlAttributes = new { @class = " col-xs-12", @Value = comm.Get_Date() } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.fieldE, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+
+                    </div>
+                </div>
+                @*修改點 向上 輸入畫面編排*@
+                <br />
+                <div class="clearfix">
+                    <div class="col-md-offset-5 col-md-7">
+                        <input id="sub" type="submit" value="儲存" class="btn btn-white btn-info btn-bold" /> &nbsp;
+                    </div>
+                </div>
+                <div class="clearfix barcode__item">
+                    <label class="barcode__title">Enter</label>
+                    <img class="barcode__img1" src="~/Content/enter.jpg" />
+                    <img class="barcode__img2" src="~/Content/enter_barcode.jpg" />
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+
+
+@section footer_plugin{
+    <script src="~/Scripts/assets/js/wizard.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.validate.min.js"></script>
+    <script src="~/Scripts/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery-additional-methods.min.js"></script>
+    <script src="~/Scripts/assets/js/bootbox.js"></script>
+    <script src="~/Scripts/assets/js/jquery.maskedinput.min.js"></script>
+    <script src="~/Scripts/assets/js/select2.min.js"></script>
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="~/Scripts/assets/js/autosize.min.js"></script>
+
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+}
+@section footer_script{
+    <script type="text/javascript">
+        jQuery(function ($) {
+
+            $('#usr_code').val($.cookie('MAC'));
+            $(document).ready(function () {
+                var Print_name = $.cookie('print_L25');
+                if (Print_name != 'undefined' || Print_name != '') {
+                    console.log(Print_name);
+                    $('#print_name').val(Print_name);
+                }
+                $('#print_name').change(function()
+                {
+                    $.cookie('print_L25', $('#print_name').val());
+                })
+                if($('#usr_code').val() === 'undefined'|| $('#usr_code').val() === '')
+                {
+                    alert('未配對');
+                    document.location.href="/WMR000A";
+                }
+            })
+            $("#fieldE").keydown(function (event) {
+                if (event.keyCode == 13) {
+                    $("#sub").click();
+                }
+            })
+            $('#field01').focus()
+
+            $("input[name='@key']").change(function () {
+                $.ajax({
+                    method: "post",
+                    url: '@Url.Action("Check_Data", sPrgCode)',
+                    data: { @key: function() { return $("input[name='@key']").val(); } },
+                    success: function (data) {
+                        if (data.IsSuccess) {
+                            let validator = $('#validation_form').validate();
+                            validator.showErrors(data.ModelStateErrors)
+                            $('form input:submit').attr('disabled', 'disabled');
+                        }
+                        else {
+                            $('form input:submit').removeAttr('disabled')
+                        }
+                    },
+                    error: function () {
+                        //alert("error");
+                    }
+                });
+            })
+
+            $("#validation_form").bind("invalid-form.validate", function () {
+                $("#errMsgSummary").removeClass('hidden');
+            });
+            $('#validation_form').submit(function () {
+                if ($(this).valid()) {
+                    $('form input:submit').attr('disabled', 'disabled');
+                } else {
+                    $('form input:submit').removeAttr('disabled')
+                }
+            });
+
+            autosize($('textarea[class*=autosize]'));
+            $(document).one('ajaxloadstart.page', function (e) {
+                autosize.destroy('textarea[class*=autosize]')
+
+                $('.limiterBox,.autosizejs').remove();
+                $('.daterangepicker.dropdown-menu,.colorpicker.dropdown-menu,.bootstrap-datetimepicker-widget.dropdown-menu').remove();
+            });
+
+            if (!ace.vars['touch']) {
+                $('.chosen-select').chosen({ allow_single_deselect: true });
+                //resize the chosen on window resize
+
+                $(window)
+                .off('resize.chosen')
+                .on('resize.chosen', function () {
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                }).trigger('resize.chosen');
+                //resize chosen on sidebar collapse/expand
+                $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                    if (event_name != 'sidebar_collapsed') return;
+                    $('.chosen-select').each(function () {
+                        var $this = $(this);
+                        $this.next().css({ 'width': $this.parent().width() });
+                    })
+                });
+
+                $('#chosen-multiple-style .btn').on('click', function (e) {
+                    var target = $(this).find('input[type=radio]');
+                    var which = parseInt(target.val());
+                    if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                    else $('#form-field-select-4').removeClass('tag-input-style');
+                });
+            }
+
+
+            $(document).ready(function () {
+                $('input').addClass('enterIndex');
+                // get only input tags with class data-entry
+                textboxes = $('.enterIndex');
+                // now we check to see which browser is being used
+                $(textboxes).bind('keypress', CheckForEnter);
+                $('form .enterIndex').eq(0).select()
+            });
+            function CheckForEnter(event) {
+                if (event.keyCode == 13 && $(this).attr('type') != 'button' && $(this).attr('type') != 'submit' && $(this).attr('type') != 'textarea' && $(this).attr('type') != 'reset') {
+                    var i = $('.enterIndex').index($(this));  //現在是在第幾個
+                    var n = $('.enterIndex').length;  //總共有幾個
+                    if (i < n - 1) {
+                        if ($(this).attr('type') != 'radio')  //如果不是radio
+                        {
+                            NextDOM($('.enterIndex'), i);
+                        }
+                        else {  //如果是radio，不能focus到下一個，因為下一個可能是同樣name的radio
+                            var last_radio = $('.enterIndex').index($('.enterIndex[type=radio][name=' + $(this).attr('name') + ']:last'));
+                            NextDOM($('.enterIndex'), last_radio);
+                        }
+                    }
+                    return false;
+                }
+            }
+            function NextDOM(myjQueryObjects, counter) {
+                if (myjQueryObjects.eq(counter + 1)[0].disabled) {
+                    NextDOM(myjQueryObjects, counter + 1);
+                }
+                else {
+                    myjQueryObjects.eq(counter + 1).trigger('focus');
+                }
+            }
+
+        })
+    </script>
+}

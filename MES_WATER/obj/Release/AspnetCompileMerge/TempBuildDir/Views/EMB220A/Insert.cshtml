@@ -1,0 +1,247 @@
+﻿@using MES_WATER.Models;
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    string prg_code = ViewContext.RouteData.Values["controller"].ToString();
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+
+    // 共用函數庫
+    Comm comm = new Comm();
+}
+
+@{
+    // 下拉選單資料 //
+    // 故障原因保養設備群組
+    List<DDLList> mai_type_code_DDL = comm.Get_DDLOption("EMB05_0000", "mai_type_code", "mai_type_name");
+
+}
+
+@section head_plugin{
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-duallistbox.min.css" />
+}
+
+@Html.Partial("pPrgName")
+@*<div class="clearfix">
+        <div class="pull-left">
+            <a class="btn btn-white btn-pink btn-round" href="@Url.Action("Index", prg_code)">
+                <i class="ace-icon fa fa-undo "></i>
+                返回
+            </a>
+        </div>
+    </div>
+    <div class="space-12"></div>*@
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12">
+            <div class="row">
+                <div class="col-md-6"></div>
+                <div class="col-md-6">
+                    <!-- 保養設備群組下拉 -->
+                    <div class="clearfix">
+                        <div class="pull-left">
+                            <label for="mai_type_code">選擇保養設備群組</label>
+                            <select id="mai_type_code" name="mai_type_code">
+                                @CustomHelper.Get_Option(mai_type_code_DDL, "", false)
+                            </select>
+                        </div>
+                    </div>
+                    <!-- 保養設備群組下拉 end -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="space-6"></div>
+
+    <div class="row">
+        @*<label class="col-sm-3 control-label no-padding-top" for="duallist"> Dual listbox </label>*@
+        <div class="col-sm-12">
+            <select multiple="multiple" size="10" name="duallistbox_demo1[]" id="duallist"></select>
+        </div>
+    </div>
+    @*<div class="space-12"></div>*@
+
+    <div class="hr hr-16 hr-dotted"></div>
+
+    <div class="row">
+        <div class="col-sm-12" style="text-align: center">
+            <a id="saveFalutReasonCode" class="btn btn-white btn-info btn-round">
+                <i class="ace-icon fa fa-floppy-o bigger-120 blue"></i>
+                儲存
+            </a>
+            &nbsp;
+            <a class="btn btn-white btn-pink btn-round" href="@Url.Action("Insert2", @sPrgCode)">
+                切換
+            </a>
+            &nbsp;
+            <a class="btn btn-white btn-pink btn-round" href="@Url.Action("Index", prg_code)">
+                <i class="ace-icon fa fa-undo "></i>
+                返回
+            </a>
+        </div>
+    </div>
+</div>
+
+
+
+@section footer_plugin{
+    <script src="~/Scripts/assets/js/jquery.bootstrap-duallistbox.min.js"></script>
+}
+
+@section footer_script {
+
+    <script type="text/javascript">
+
+        jQuery(function ($) {
+
+
+            // 按下儲存按鈕
+            $('#saveFalutReasonCode').click(function () {
+                let mai_type_code = $('select[name="mai_type_code"]').val()
+                if (!mai_type_code) {
+                    alert(' 請選擇保養設備群組! ')
+                    return false
+                }
+
+                // 儲存故障原因保養設備群組
+                // It is array
+                let list = $dualListBox.val()
+                $.ajax({
+                    method: 'post',
+                    url: '@Url.Action("Update_FalutReasonCode", prg_code)',
+                    data: { pFalutReasonCodeList: list, pMaiTypeCode: mai_type_code },
+                    //dataType: 'json',
+                    //contentType: 'application/json; charset=utf-8',
+                }).done(function () {
+                    alert('儲存成功!')
+                })
+
+            })
+
+            const $dualListBox = $('#duallist')
+
+            // 向後端取資料，回傳 jquery的ajax物件
+            function Ajax_GetData(pMaiTypeCode, bGetNonSelected /* = true (ES6: default param value) */) {
+                // default parameter value
+                if (typeof bGetNonSelected === 'undefined')
+                    bGetNonSelected = true
+
+                return $.ajax({
+                    method: 'get',
+                    url: '@Url.Action("Get_FalutReasonCodeList", prg_code)',
+                    data: {
+                        pMaiTypeCode: pMaiTypeCode,
+                        bGetNonSelected: bGetNonSelected
+                    }
+                })
+            }
+
+            // 設置清單
+            function Set_Options($selector, data, selected) {
+                if (data.length > 0) {
+                    // selected
+                    if (selected === 'selected') {
+                        for (let i = 0; i < data.length; i++) {
+                            $selector.append($('<option>')
+                                .val(data[i].optionValue)
+                                .text(data[i].optionText)
+                                .attr('selected', ''))
+                        }
+                    }
+                    // non-selected
+                    else {
+                        for (let i = 0; i < data.length; i++) {
+                            $selector.append($('<option>')
+                                .val(data[i].optionValue)
+                                .text(data[i].optionText))
+                        }
+                    }
+                }
+                //
+            }
+
+            function Set_DualListBox($selector, pMaiTypeCode, afterSetOption) {
+
+                Ajax_GetData(pMaiTypeCode).done(function (data) {
+
+                    let selectedList = data.selectedList
+                    let nonSelectedList = data.nonSelectedList
+
+                    Set_Options($selector, selectedList, 'selected')
+                    Set_Options($selector, nonSelectedList)
+
+                    if (typeof afterSetOption === 'function') {
+                        afterSetOption()
+                    }
+                })
+
+            }
+
+
+            // 故障原因保養設備群組下拉，動態設置資料
+            $('select[name="mai_type_code"]').change(function () {
+                // 清空資料
+                $dualListBox.empty()
+
+                // 設置資料
+                let pMaiTypeCode = $(this).val()
+                Ajax_GetData(pMaiTypeCode).done(function (data) {
+
+                    let selectedList = data.selectedList
+                    let nonSelectedList = data.nonSelectedList
+
+                    Set_Options($dualListBox, selectedList, 'selected')
+                    Set_Options($dualListBox, nonSelectedList)
+
+                    $dualListBox.bootstrapDualListbox('refresh')
+                })
+            })
+
+            // dualListBox label選項
+            let duallistbox_demo1_Settings = {
+                filterTextClear: '取消篩選',
+                moveAllLabel: '移動全部',
+                removeAllLabel: '移動全部',
+                infoText: '<span class="label label-purple label-lg"> {0} 個故障原因</span>',
+                infoTextFiltered: '<span class="label label-purple label-lg">已篩選: {0} 個故障原因</span> ',
+                //infoTextEmpty: '<span class="label label-purple label-lg" style="visibility: hidden"> 無資料 </span>',
+                infoTextEmpty: '<span class="label label-purple label-lg"> 0 個故障原因 </span>',
+                filterPlaceHolder: '篩選 故障原因代碼',
+                showFilterInputs: true,
+                nonSelectedListLabel: `<div class="alert alert-info">
+											<strong>未分派故障原因</strong>
+											<br>
+										</div>`,
+                selectedListLabel: `<div class="alert alert-info">
+											<strong>已分派故障原因</strong>
+											<br>
+										</div>`,
+            }
+
+            // 初始化 dualListBox
+            function initListBox() {
+                let pMaiTypeCode = $('select[name="mai_type_code"]').val()
+
+                Ajax_GetData(pMaiTypeCode).done(function (data) {
+
+                    let selectedList = data.selectedList
+                    let nonSelectedList = data.nonSelectedList
+
+                    Set_Options($dualListBox, selectedList, 'selected')
+                    Set_Options($dualListBox, nonSelectedList)
+
+                    var demo1 = $('select[name="duallistbox_demo1[]"]').bootstrapDualListbox(duallistbox_demo1_Settings);
+                    var container1 = demo1.bootstrapDualListbox('getContainer');
+                    container1.find('.btn').addClass('btn-white btn-info btn-bold');
+                })
+            }
+
+            initListBox()
+
+            //in ajax mode, remove remaining elements before leaving page
+            $(document).one('ajaxloadstart.page', function (e) {
+                $('select[name="duallistbox_demo1[]"]').bootstrapDualListbox('destroy');
+            });
+
+        })
+    </script>
+}

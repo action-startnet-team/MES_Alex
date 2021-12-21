@@ -1,0 +1,369 @@
+﻿@using MES_WATER.Models;
+@using MES_WATER.Controllers;
+@{
+    ViewBag.Title = "Title";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+    string sAction = ViewContext.RouteData.Values["action"].ToString();
+
+    EPB030AController CT = new EPB030AController();
+    GetModelValidation gmv = new GetModelValidation();
+    Comm comm = new Comm();
+    GetData GD = new GetData();
+
+    string pubFieldTable = CT.pubFieldTable;
+    string pubPKCode = CT.pubPKCode();
+    string ScrNo = ViewBag.ScrNo;
+    string Key = ViewBag.Key;
+
+    string Data = CT.Get_EpbField(Key);
+
+}
+<link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+<link rel="stylesheet" href="/Content/assets/css/bootstrap-datepicker3.min.css" />
+<link rel="stylesheet" href="/Content/assets/css/bootstrap-multiselect.min.css" />
+<link rel="stylesheet" href="/Content/assets/css/jquery-ui.min.css" />
+
+
+<h3 class="blue">電子表單審核作業</h3>
+<hr />
+
+<form id="validation-form" method="post" action="@Url.Action(sAction, sPrgCode)" class="form-horizontal" role="form">
+
+    <div>
+        <label class="col-sm-2 control-label no-padding-right">
+            表單代號
+        </label>
+        <div class="col-sm-2">
+            <input type="text" class="check col-sm-12" id="epb_code" name="epb_code" value="@Key" readonly />
+        </div>
+        <label class="col-sm-1 control-label no-padding-right">
+            表單名稱
+        </label>
+        <div class="col-sm-2">
+            <input type="text" class="check col-sm-12" id="epb_name" name="epb_name" value="@GD.Get_Data("EPB02_0000",Key,"epb_code","epb_name")" readonly />
+        </div>
+    </div>
+
+    <div style="clear:both"></div>
+    <div class="row">
+        <ul class="nav nav-tabs" id="myTab">
+            <li class="active">
+                <a data-toggle="tab" href="#home">
+                    <i class="green ace-icon fa fa-home bigger-120"></i>
+                    主檔
+                </a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div id="home" class="tab-pane fade in active">
+
+
+                @if (Data != "")
+                {
+                    for (int i = 0; i < Data.Split(',').Length; i++)
+                    {
+                        string iData = Data.Split(',')[i];
+                        string iCtrType = GD.Get_Data(pubFieldTable, iData, pubPKCode, "ctr_type");
+                        string sFieldMemo = GD.Get_Data(pubFieldTable, iData, pubPKCode, "field_memo");
+                        string iFieldCode = GD.Get_Data(pubFieldTable, iData, pubPKCode, "field_code");
+                        string sSelectCode = GD.Get_Data(pubFieldTable, iData, pubPKCode, "select_code");
+                        string DDL_Tmp = GD.Get_DDLData(sSelectCode);
+
+                        string Is_Key = GD.Get_Data(pubFieldTable, iData, pubPKCode, "is_key");
+
+
+
+                        <div class="form-group">
+                            @if (Is_Key != "Y")
+                            {
+                                <label class="col-sm-3 control-label no-padding-right" for="form-field-1">
+                                    @GD.Get_Data(pubFieldTable, iData, pubPKCode, "field_name")
+                                    @*<a href='/Export/Export_CommonStr?Key=@iData' title='常用字串列印' ><i class='ace-icon fa fa-book bigger-150 blue'></i></a>*@
+                                </label>
+
+                                <div class="col-sm-3">
+                                    <div class="clearfix">
+                                        <input type="text" class="check col-sm-12 AutoCom" id="@iData" name="@iFieldCode" value="@CT.Get_FieldValue(ScrNo,iFieldCode)" readonly />
+                                    </div>
+                                </div>
+                            }
+
+
+                            @*@switch (iCtrType)
+                                {
+                                    case "T":
+                                        //Textbox
+                                        <div class="col-sm-3">
+                                            <div class="clearfix">
+                                                <input type="text" class="check col-sm-12 AutoCom" id="@iData" name="@iFieldCode" value="@iDefault" @ReadOnly />
+                                            </div>
+                                        </div>
+                                        break;
+                                    case "D":
+                                        //日期
+                                        <div class="col-sm-3">
+                                            <input type="text" class="date-picker check" id="@iData" name="@iFieldCode" value="@iDefault" />
+                                        </div>
+                                        break;
+                                    case "S":
+                                        //下拉
+                                        <div class="col-sm-3">
+                                            <select class="chosen-select" id="@iData" name="@iFieldCode">
+                                                @if (DDL_Tmp != "")
+                                                {
+                                                    for (int u = 0; u < DDL_Tmp.Split(',').Length; u++)
+                                                    {
+                                                        string DData = DDL_Tmp.Split(',')[u];
+                                                        string[] d = DData.Split('-');
+                                                        <option value="@d[0] - @d[1]">@d[0] - @d[1]</option>
+                                                    }
+                                                }
+                                            </select>
+                                        </div>
+                                        break;
+                                    case "M":
+                                        //複選下拉
+                                        <div class="col-sm-3">
+                                            <div class="clearfix">
+                                                <select type="text" id="@iData" name="@iFieldCode" placeholder="" class="multiselect" multiple="">
+                                                    @if (DDL_Tmp != "")
+                                                    {
+                                                        for (int u = 0; u < DDL_Tmp.Split(',').Length; u++)
+                                                        {
+                                                            string DData = DDL_Tmp.Split(',')[u];
+                                                            string[] d = DData.Split('-');
+                                                            <option value="@d[0] - @d[1]">@d[0] - @d[1]</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                        break;
+                                    case "C":
+                                        //核取
+                                        <div class="col-sm-3">
+                                            <label>
+                                                <input class="ace ace-switch ace-switch-6" type="checkbox" id="@iData" name="@iFieldCode" />
+                                                <span class="lbl"></span>
+                                            </label>
+                                        </div>
+                                        break;
+                                    default:
+                                        break;
+                                }*@
+                            @*<div class="col-sm-3">
+                                    <label>
+                                        <label class="ace" style="color:red" id="@iData" name="@iFieldCode">@sFieldMemo</label>
+                                    </label>
+                                </div>*@
+
+                        </div>
+
+                        @*<div id="err_@iData" class="form-group error" style="display:none">
+                                <label class="col-sm-4 control-label pull-left" style="color:red">
+                                </label>
+                            </div>*@
+
+                    }
+                }
+                else
+                {
+                    <div class="form-group">
+                        <label class="col-sm-5 control-label no-padding-right" for="form-field-1">
+                            <font size="6">尚未設定欄位</font>
+                        </label>
+                    </div>
+                }
+
+                <div style="clear:both"></div>
+
+                <div class="col-lg-offset-3">
+                    @*@if (Data != "")
+                        {
+                            <a class="btn btn-white btn-info btn-round" id="save">
+                                確認
+                            </a>
+                        }*@
+
+
+                    <a class="btn btn-white btn-info btn-round" id="">
+                        <i class="ace-icon fa fa-flag "></i>
+                        審核通過
+                    </a>
+                    &nbsp;&nbsp;
+                    <a class="btn btn-white btn-danger btn-round" id="">
+                        <i class="ace-icon fa fa-ban "></i>
+                        審核退回
+                    </a>
+                    &nbsp;&nbsp;
+                    @*<a class="btn btn-white btn-danger btn-round" id="back" href="/EPB030B/DataView?K=@Key">
+                        <i class="ace-icon fa fa-undo "></i>
+                        返回
+                    </a>*@
+
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+
+
+@section footer_plugin{
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="/Scripts/assets/js/jquery-ui.min.js"></script>
+    <script src="/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+    <script src="/Scripts/assets/js/bootstrap-multiselect.min.js"></script>
+}
+
+@section footer_script{
+    <script type="text/javascript">
+        $(document).ready(function () {
+        })
+
+        $(document).on('focus', '.AutoCom', function () {
+            var Common_str = [];
+            var id = $(this).attr('id')
+            $.ajax({
+                method: 'post',
+                async: false,
+                url: '@Url.Action("Get_CommonStr", sPrgCode)',
+                data: {
+                    Key: function () { return id; },
+                },
+                success: function (data) {
+                    if (data != "") {
+                        for (let i = 0; i < data.split(",").length; i++) {
+                            var d = data.split(",")[i]
+                            Common_str.push(d);
+                        }
+                        $("#" + id).autocomplete({
+                            source: Common_str
+                        });
+                    }
+                },
+            })
+        })
+
+
+        $(".date-picker").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr("autocomplete", 'off');
+
+        //input才需要檢查
+        $('.check').change(function () {
+            Chk_Input($(this).attr('id'), $(this).val())
+        })
+
+        $('#save').click(function () {
+            var submit = true
+            $(".check").each(function () {
+                if (Chk_Input($(this).attr('id'), $(this).val()) == false) {
+                    submit = false
+                }
+            });
+            if (submit) {
+                if (confirm('是否確定要儲存?') == true) {
+                    $("form").submit()
+                }
+            }
+        })
+
+        function Chk_Input(k, v) {
+            var bool
+            $.ajax({
+                method: "post",
+                async: false,
+                url: '@Url.Action("Chk_Input", sPrgCode)',
+                data: {
+                    Key: function () { return k; },
+                    pValue: function () { return v; },
+                },
+                success: function (data) {
+                    if (data != '') {
+                        $('#err_' + k).attr('style', 'display:block');
+                        $('#err_' + k).find('label').text(data)
+                        $('#' + k).select()
+                        $('#' + k).focus()
+                        $('#' + k).parents('.form-group').find('label').css({ "color": "red" })
+                        bool = false
+                    }
+                    else {
+                        $('#err_' + k).attr('style', 'display:none');
+                        $('#' + k).parents('.form-group').find('label').removeAttr('style')
+                        bool = true
+                    }
+                }
+            })
+            return bool
+        }
+
+        //function ErrorAlert_S(k) {
+        //    $('#err_' + k).attr('style', 'display:block');
+        //    $('#err_' + k).find('label').text(data)
+        //    $('#' + k).select()
+        //    $('#' + k).focus()
+        //    $('#' + k).parents('.form-group').find('label').css({ "color": "red" })
+        //}
+
+        //function ErrorAlert_E(k) {
+        //    $('#err_' + k).attr('style', 'display:none');
+        //    $('#' + k).parents('.form-group').find('label').removeAttr('style')
+        //}
+
+        //固定物件碼----------------------------------------------------------------------------------------------------------------------
+
+        if (!ace.vars['touch']) {
+            $('.chosen-select').chosen({ allow_single_deselect: true });
+            //resize the chosen on window resize
+
+            $(window)
+            .off('resize.chosen')
+            .on('resize.chosen', function () {
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            }).trigger('resize.chosen');
+            //resize chosen on sidebar collapse/expand
+            $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                if (event_name != 'sidebar_collapsed') return;
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            });
+
+            $('#chosen-multiple-style .btn').on('click', function (e) {
+                var target = $(this).find('input[type=radio]');
+                var which = parseInt(target.val());
+                if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                else $('#form-field-select-4').removeClass('tag-input-style');
+            });
+        }
+
+
+        $('.multiselect').multiselect({
+            enableFiltering: true,
+            enableHTML: true,
+            allSelectedText: false,
+            numberDisplayed: 10,
+            includeSelectAllOption: true,
+            maxHeight: 450,
+            buttonWidth: 300,
+            buttonClass: 'btn btn-white btn-primary',
+            templates: {
+                button: '<button type="button" class="multiselect dropdown-toggle" data-toggle="dropdown"><span class="multiselect-selected-text"></span> &nbsp;<b class="fa fa-caret-down"></b></button>',
+                ul: '<ul class="multiselect-container dropdown-menu"></ul>',
+                filter: '<li class="multiselect-item filter"><div class="input-group"><span class="input-group-addon"><i class="fa fa-search"></i></span><input class="form-control multiselect-search" type="text"></div></li>',
+                filterClearBtn: '<span class="input-group-btn"><button class="btn btn-default btn-white btn-grey multiselect-clear-filter" type="button"><i class="fa fa-times-circle red2"></i></button></span>',
+                li: '<li><a tabindex="0"><label></label></a></li>',
+                divider: '<li class="multiselect-item divider"></li>',
+                liGroup: '<li class="multiselect-item multiselect-group"><label></label></li>'
+            }
+        });
+
+
+    </script>
+}
