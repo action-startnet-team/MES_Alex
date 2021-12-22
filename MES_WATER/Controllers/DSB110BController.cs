@@ -218,11 +218,11 @@ namespace MES_WATER.Controllers
                     //items.Add(new { name = "iok_qty", value = iok_qty.ToString(), label = "良品" });
                     items.Add(new { name = "iok_qty", value = iok_qty.ToString(), label = "產量" });
                     //items.Add(new { name = "irate", value = irate.ToString("0.##%"), label = "良品率" });
-                    items.Add(new { name = "sor_code", value = sor_code, label = "工單型號" });
+                    items.Add(new { name = "sor_code", value = sor_code.ToString(), label = "工單型號" });
                     //items.Add(new { name = "ing_qty", value = ing_qty.ToString(), label = "不良品" });
-                    items.Add(new { name = "spec_c", value = spec_c, label = "尺寸" });
+                    items.Add(new { name = "spec_c", value = spec_c.ToString(), label = "尺寸" });
                     //items.Add(new { name = "sUsrName", value = sUsrName, label = "人員" });
-                    items.Add(new { name = "spec_a", value = spec_a, label = "孔數" });
+                    items.Add(new { name = "spec_a", value = spec_a.ToString(), label = "孔數" });
                     items.Add(new { name = "work_time", value = sWorkTime, label = "工單開始時間" });
                     //items.Add(new { name = "sEfficiency", value = sEfficiency.ToString("0.##%"), label = "效率" });
 
