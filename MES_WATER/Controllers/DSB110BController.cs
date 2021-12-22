@@ -114,8 +114,8 @@ namespace MES_WATER.Controllers
                     ,ISNULL(a.QTY,0) AS '產量' 
                     /*,case f.mac_code when '' then e.mac_code else f.mac_code end   as '機台'*/   /*以 mem01 實際進站開工為優先, 若無才取met03 */
                 FROM MET02_0000 a
-                WHERE  a.ins_date = @sch_date_s AND a.MO_STATUS in ('0','1') AND a.MACHINE_CODE = @MACHINE_CODE order by a.seq_no ";
-
+                WHERE  a.MO_STATUS in ('0', '1') AND a.MACHINE_CODE = @MACHINE_CODE order by a.seq_no ";
+            //a.ins_date = @sch_date_s AND a.MO_STATUS in ('0', '1') AND
 
             DataTable dtTmp = comm.Get_DataTable(sSql,new {sch_date_s = DateTime.Now.ToString("yyyy-MM-dd"), MACHINE_CODE = mac_code });
             return Json(dtTmp, JsonRequestBehavior.AllowGet);
@@ -152,12 +152,16 @@ namespace MES_WATER.Controllers
                     string sMoCode = Get_DataByStationCode(mac_code, "mo_code");
 
                     string sWrkCode = Get_DataByStationCode(mac_code, "OPERATION_CODE");
+                    string spec_c = Get_DataByStationCode(mac_code, "spec_c");
+                    string sor_code = Get_DataByStationCode(mac_code, "sor_code");
+                    string spec_a = Get_DataByStationCode(mac_code, "spec_a");
                     double iok_qty = comm.sGetDouble(Get_DataByStationCode(mac_code, "QTY"));
                     double ing_qty = comm.sGetDouble(Get_DataByStationCode(mac_code, "SCRAP_QTY"));
                     double irate = 0;
                     //string sUsrName = Get_DataByStationCode(seq_no, "usr_code");
                     string sUsrName = "";
                     string sWorkTime = Get_DataByStationCode(mac_code, "ins_date");
+
                     DataTable dt = comm.Get_DataTable("select top 1 * from MBA_E00 where MO_DOC_NO='" + sMoCode + "' order by TRANSACTION_DATE");
                     if (dt.Rows.Count>0)
                     {
@@ -214,11 +218,11 @@ namespace MES_WATER.Controllers
                     //items.Add(new { name = "iok_qty", value = iok_qty.ToString(), label = "良品" });
                     items.Add(new { name = "iok_qty", value = iok_qty.ToString(), label = "產量" });
                     //items.Add(new { name = "irate", value = irate.ToString("0.##%"), label = "良品率" });
-                    items.Add(new { name = "irate", value = "", label = "工單型號" });
+                    items.Add(new { name = "sor_code", value = sor_code, label = "工單型號" });
                     //items.Add(new { name = "ing_qty", value = ing_qty.ToString(), label = "不良品" });
-                    items.Add(new { name = "ing_qty", value = "", label = "尺寸" });
+                    items.Add(new { name = "spec_c", value = spec_c, label = "尺寸" });
                     //items.Add(new { name = "sUsrName", value = sUsrName, label = "人員" });
-                    items.Add(new { name = "sUsrName", value = sUsrName, label = "孔數" });
+                    items.Add(new { name = "spec_a", value = spec_a, label = "孔數" });
                     items.Add(new { name = "work_time", value = sWorkTime, label = "工單開始時間" });
                     //items.Add(new { name = "sEfficiency", value = sEfficiency.ToString("0.##%"), label = "效率" });
 
