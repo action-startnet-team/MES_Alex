@@ -10,18 +10,18 @@ using System.Web.ModelBinding;
 
 namespace MES_WATER.Models
 {
-    public class MEB15_0000
+    public class MEB50_0000
     {
         [Key]
-        [DisplayName("機台代號")]
+        [DisplayName("產品別")]
         [Required(ErrorMessage = "請輸入{0}")]
         [StringLength(10, ErrorMessage = "長度最多{1}個字!")]
-        public string mac_code { get; set; }
+        public string ITEM_CODE { get; set; }
 
-        [DisplayName("機台名稱")]
+        [DisplayName("孔數")]
         [Required(ErrorMessage = "請輸入{0}")]
         [StringLength(50, ErrorMessage = "長度最多{1}個字!")]
-        public string mac_name { get; set; }
+        public string ITEM_SPECIFICATION { get; set; }
 
         //[DisplayName("機台群組代號")]
         //[StringLength(10, ErrorMessage = "長度最多{1}個字!")]
@@ -45,10 +45,10 @@ namespace MES_WATER.Models
 
         [DisplayName("線別")]
         [Required(ErrorMessage = "請輸入{0}")]
-        public string line_code { get; set; }
+        public string _pro_type { get; set; }
 
-        [DisplayName("線別名稱")]
-        public string line_name { get; set; }
+        //[DisplayName("線別名稱")]
+        //public string line_name { get; set; }
 
         //[DisplayName("每小時標準產量")]
         //[HiddenInJqgrid]
@@ -58,8 +58,8 @@ namespace MES_WATER.Models
         //[Required(ErrorMessage = "請輸入{0}")]
         //public Int32 std_time { get; set; }
 
-        [DisplayName("機台類別")]
-        public string mac_type { get; set; }
+        [DisplayName("標準工時")]
+        public decimal pro_uph { get; set; }
 
         //[DisplayName("備註")]
         //[StringLength(100, ErrorMessage = "長度最多{1}個字!")]

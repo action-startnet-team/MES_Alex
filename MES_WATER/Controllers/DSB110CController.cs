@@ -159,7 +159,7 @@ namespace MES_WATER.Controllers
             string sql = " select sum(Convert(int,QTY)) as qty,CONVERT(varchar, TRANSACTION_DATE, 23) as TDate from MBA_E10 " +
                          " where TRANSACTION_DATE between '" + fquery_date_s + "' and '" + fquery_date_e + "' ";
             if (!string.IsNullOrEmpty(mac_code)) { sql += " and XMACHINE_CODE='" + mac_code + "' "; }
-            sql += " group by CONVERT(varchar, TRANSACTION_DATE, 23)";
+            sql += " group by CONVERT(varchar, TRANSACTION_DATE, 23) order by CONVERT(varchar, TRANSACTION_DATE, 23)";
             DataTable dt = comm.Get_DataTable(sql);
 
             //日期區間
