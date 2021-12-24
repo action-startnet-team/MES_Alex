@@ -218,6 +218,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AjaxFunctionController.cs" />
+    <Compile Include="Controllers\DSB111BController.cs" />
     <Compile Include="Controllers\DSB110BController.cs" />
     <Compile Include="Controllers\ECB050AController.cs" />
     <Compile Include="Controllers\AMB020AController.cs" />
@@ -235,6 +236,7 @@
     <Compile Include="Controllers\ECB020AController.cs" />
     <Compile Include="Controllers\ECB030AController.cs" />
     <Compile Include="Controllers\ECB010AController.cs" />
+    <Compile Include="Controllers\MEB500AController.cs" />
     <Compile Include="Controllers\MEB150AController.cs" />
     <Compile Include="Controllers\MET100AController.cs" />
     <Compile Include="Controllers\RPT210AController.cs" />
@@ -510,6 +512,7 @@
     <Compile Include="Helpers\CustomHelper.cs" />
     <Compile Include="Helpers\HtmlRenderHelper.cs" />
     <Compile Include="Models\AllowedIpOnlyAttribute.cs" />
+    <Compile Include="Models\DSB11_0100.cs" />
     <Compile Include="Models\DSB11_0200.cs" />
     <Compile Include="Models\ECB05_0000.cs" />
     <Compile Include="Models\ECB02_0000.cs" />
@@ -542,6 +545,7 @@
     <Compile Include="Models\JqgridButton.cs" />
     <Compile Include="Models\MBA_E00.cs" />
     <Compile Include="Models\MEB12_0100.cs" />
+    <Compile Include="Models\MEB50_0000.cs" />
     <Compile Include="Models\MEB15_0100.cs" />
     <Compile Include="Models\MEB15_0200.cs" />
     <Compile Include="Models\MEB20_0100.cs" />
@@ -778,6 +782,7 @@
     <Compile Include="Repository\EMT01_0100Repository.cs" />
     <Compile Include="Repository\EMT02_0000Repository.cs" />
     <Compile Include="Repository\EMT02_0100Repository.cs" />
+    <Compile Include="Repository\MEB50_0000Repository.cs" />
     <Compile Include="Repository\MEB15_0100Repository.cs" />
     <Compile Include="Repository\MEB15_0200Repository.cs" />
     <Compile Include="Repository\MEB20_0200Repository.cs" />
@@ -2270,6 +2275,13 @@
     <Content Include="Views\DSB110B\MacItem.cshtml" />
     <Content Include="Views\DSB110B\MoreItem.cshtml" />
     <Content Include="Views\DSB110C\Index.cshtml" />
+    <Content Include="Views\MEB500A\Index.cshtml" />
+    <Content Include="Views\MEB500A\Insert.cshtml" />
+    <Content Include="Views\MEB500A\Update.cshtml" />
+    <Content Include="Views\DSB111B\Board.cshtml" />
+    <Content Include="Views\DSB111B\Index.cshtml" />
+    <Content Include="Views\DSB111B\Index_test.cshtml" />
+    <Content Include="Views\DSB111B\MacItem.cshtml" />
     <None Include="Web References\WebReference\wmsapi.disco" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
