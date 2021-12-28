@@ -48,7 +48,7 @@ namespace MES_WATER.Controllers
         /// 建立 DSB10_0000 的期初資料
         /// </summary>
         /// <param name="mac_code_list"></param>
-        public void Init_DataInDB(List<string> mac_code_list)
+        public void Init_DataInDB(List<string> mac_code_list, string line_code)
         {
             if (mac_code_list.Count <= 0)
             {
@@ -60,7 +60,11 @@ namespace MES_WATER.Controllers
             string sSql = " Select * "
                         + " from MEB15_0000 "
                         + " left join DSB10_0000 on MEB15_0000.mac_code = DSB10_0000.mac_code  "
+                        + " left join MEB12_0000 on MEB15_0000.line_code = MEB12_0000.line_code   "
                         + " where MEB15_0000.mac_code in @mac_code_list";
+
+            if (line_code != "") sSql += " and MEB12_0000.line_code='"+ line_code + "'";
+
             using (SqlConnection con_db = comm.Set_DBConnection())
             {
                 list = con_db.Query<DSB10_0000>(sSql, new { mac_code_list = mac_code_list }).ToList();
@@ -84,6 +88,7 @@ namespace MES_WATER.Controllers
                     data.mo_code = "";
                     foreach (string mac_code in filter_list)
                     {
+
                         data.mac_code = mac_code;
                         con_db.Execute(sSql, data);
                     }
@@ -98,27 +103,42 @@ namespace MES_WATER.Controllers
         /// 取得機台清單
         /// </summary>
         /// <returns></returns>
-        public JsonResult Init_Get_MacCodeList()
+        public JsonResult Init_Get_MacCodeList(string line_code, string Item, string order="")
         {
             // 機台基本檔
             string sql = "Select * from MEB15_0000 left join DSB10_0000 on MEB15_0000.mac_code = DSB10_0000.mac_code ";
+            string[] arr=null;
+            if (line_code != "") sql += " where line_code= '" + line_code + "' ";
+            if (Item != "") { arr = Item.Split(','); }
             DataTable dt = comm.Get_DataTable(sql);
 
-            List<string> mac_code_list = new List<string>();
+            List<object> mac_code_list = new List<object>();
 
             if (dt.Rows.Count > 0)
             {
                 foreach (DataRow dr in dt.Rows)
                 {
-                    mac_code_list.Add(dr["mac_code"].ToString());
+                    if (arr!=null && !arr.Where(x => x.Equals(dr["mac_code"].ToString())).Any()) { continue; }
+                    mac_code_list.Add(new { mac_code= dr["mac_code"].ToString() ,mac_name = dr["mac_name"].ToString()} );
                 }
             }
 
             // 設置 DSB10_0000 期初
-            Init_DataInDB(mac_code_list);
+            //Init_DataInDB(mac_code_list, line_code);
 
+            return Json(mac_code_list, JsonRequestBehavior.AllowGet);
+        }
+
+        public JsonResult Init_Get_MacCodeSelectList(string line_code)
+        {
+            // 機台基本檔
+            string sql = "Select MEB15_0000.mac_code,MEB15_0000.mac_name from MEB15_0000 left join DSB10_0000 on MEB15_0000.mac_code = DSB10_0000.mac_code ";
+            if (line_code != "") sql += " where line_code= '" + line_code + "' ";
+            DataTable dt = comm.Get_DataTable(sql, "line_code", line_code);
             return Json(dt, JsonRequestBehavior.AllowGet);
         }
+       
+        
 
 
         /// <summary>
@@ -141,6 +161,9 @@ namespace MES_WATER.Controllers
             Dictionary<string, Oee> result = new Dictionary<string, Oee>();
             foreach (string mac_code in mac_code_list)
             {
+                
+                
+
                 result.Add(mac_code, Get_OEE_ByMacCode(mac_code));
             }
 
@@ -396,6 +419,21 @@ namespace MES_WATER.Controllers
             public double work_time { get; set; }
             public double pro_rate { get; set; }
         }
+
+        //public JsonResult Get_LineCodeList()
+        //{
+        //    //抓取線別
+        //    List<string> line_code_list = new List<string>() { };
+
+        //    string sSql = "Select distinct line_code from MEB12_0000";
+        //    using (SqlConnection con_db = comm.Set_DBConnection())
+        //    {
+        //        line_code_list = con_db.Query<string>(sSql).ToList();
+        //    }
+
+        //    return Json(line_code_list, JsonRequestBehavior.AllowGet);
+        //}
+
 
         public JsonResult Get_LineCodeList()
         {

@@ -20,6 +20,9 @@ namespace MES_WATER.Models
         [DisplayName("機台名稱")]
         public string mac_name { get; set; }
 
+        [DisplayName("線別")]
+        public string line_code { get; set; }
+
         [DisplayName("稼動率")]
         //[Range(0, 200, ErrorMessage = "請輸入0~100")]
         public decimal utilization_rate { get; set; }
