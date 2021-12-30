@@ -85,7 +85,7 @@
             background: #000;
         }
 
-            .oee-container .oee-item.yield-div,
+            .oee-container .oee-item.MACHINE_CODE-div,
             .oee-container .oee-item.stopTime-div {
                 margin-right: 5px;
             }
@@ -95,7 +95,7 @@
                 margin-left: 5px;
             }
 
-            .oee-container .oee-item .yield-value,
+            .oee-container .oee-item .MACHINE_CODE-value,
             .oee-container .oee-item .utilization-value,
             .oee-container .oee-item .stop_time-value,
             .oee-container .oee-item .work_time-value {
@@ -265,10 +265,10 @@
         function setTimerUpdate() {
             let timer = Timer({
                 initSeconds: 15,
-                tick: 10000000000000000,
+                tick: 15000,
                 launch: {
                     callback: function () {
-                        //Set_MacHtml()
+                        Set_MacHtml()
                         let arr = Get_Current_MacElements()
                         update(arr)
                     }
@@ -428,7 +428,7 @@
 
             let $status = $el.find('.status')
 
-            let $yield = $el.find('.yield-value')
+            let $MACHINE_CODE = $el.find('.MACHINE_CODE-value')
             let $utilization = $el.find('.utilization-value')
             let $stop_time = $el.find('.stop_time-value')
             let $work_time = $el.find('.work_time-value')
@@ -472,7 +472,7 @@
                 }
             }
 
-            $yield.text(data.yield)  // 產量
+            $MACHINE_CODE.text(data.MACHINE_CODE)  // 產量
             $utilization.text(data.utilization)
             $stop_time.text(data.stop_time + '分')  // 停機
             $work_time.text(data.work_time + '分')  // 工時

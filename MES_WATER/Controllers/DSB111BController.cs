@@ -159,6 +159,7 @@ namespace MES_WATER.Controllers
 
             // 抓取DSB10_0000的資料，回傳給前端
             Dictionary<string, Oee> result = new Dictionary<string, Oee>();
+            Dictionary<string, Oee_2> result_2 = new Dictionary<string, Oee_2>();
             foreach (string mac_code in mac_code_list)
             {
                 
@@ -366,10 +367,20 @@ namespace MES_WATER.Controllers
             public string mac_code { get; set; }
             public string mo_code { get; set; }
             public string status { get; set; }
-            public double yield { get; set; }
+            public double pro_qty { get; set; }
             public double utilization { get; set; }
             public double stop_time { get; set; }
             public double work_time { get; set; }
+        }
+
+        public class Oee_2
+        {
+            public int _300182 { get; set; }
+            public int _300183 { get; set; }
+            public int _300184 { get; set; }
+            public int _300185 { get; set; }
+            public string MACHINE_CODE { get; set; }
+            
         }
 
         /// <summary>
@@ -380,7 +391,7 @@ namespace MES_WATER.Controllers
         public Oee Get_OEE_ByMacCode(string pMacCode)
         {
             Oee result = new Oee();
-
+            Oee_2 result_2 = new Oee_2();
             result.mac_code = pMacCode;
 
 
@@ -400,13 +411,42 @@ namespace MES_WATER.Controllers
             {
                 result.mo_code = data.mo_code;
                 result.status = data.status;
-                result.yield = data.pro_qty;
+                result.pro_qty = data.pro_qty;
                 result.utilization = data.pro_rate;
                 result.stop_time = data.stop_time;
                 result.work_time = data.work_time;
             }
 
+            DynamicParameters sqlparams_2 = new DynamicParameters();
+            string sql_2 = "select TOP(1) * from MEA_E01 ";
+
+
+            DataTable dTmp = comm.Get_DataTable(sql_2);
+
+            if (dTmp.Rows.Count > 0)
+            {
+                int _300182 = comm.sGetInt32(dTmp.Rows[0]["300182"].ToString());
+                int _300183 = comm.sGetInt32(dTmp.Rows[0]["300183"].ToString());
+                int _300184 = comm.sGetInt32(dTmp.Rows[0]["300184"].ToString());
+                int _300185 = comm.sGetInt32(dTmp.Rows[0]["300185"].ToString());
+                return result;
+
+            }
+
+            DSB11_0000 data_2 = new DSB11_0000();
+            using (SqlConnection con_db = comm.Set_DBConnection())
+            {
+                data_2 = con_db.QueryFirstOrDefault<DSB11_0000>(sql_2, sqlparams_2);
+            }
+
+            if (data_2 != null)
+            {
+                result_2._300182 = data_2._300182;
+                result_2.MACHINE_CODE = data_2.MACHINE_CODE;
+            }
+
             return result;
+
         }
 
         public class DSB10_0000
@@ -418,6 +458,17 @@ namespace MES_WATER.Controllers
             public double stop_time { get; set; }
             public double work_time { get; set; }
             public double pro_rate { get; set; }
+
+        }
+
+        public class DSB11_0000
+        {
+            public int _300182 { get; set; }
+            public int _300183 { get; set; }
+            public int _300184 { get; set; }
+            public int _300185 { get; set; }
+            public string MACHINE_CODE { get; set; }
+
         }
 
         //public JsonResult Get_LineCodeList()
