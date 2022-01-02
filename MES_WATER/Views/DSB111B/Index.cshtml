@@ -85,7 +85,7 @@
             background: #000;
         }
 
-            .oee-container .oee-item.MACHINE_CODE-div,
+            .oee-container .oee-item.pro_qty-div,
             .oee-container .oee-item.stopTime-div {
                 margin-right: 5px;
             }
@@ -95,7 +95,7 @@
                 margin-left: 5px;
             }
 
-            .oee-container .oee-item .MACHINE_CODE-value,
+            .oee-container .oee-item .pro_qty-value,
             .oee-container .oee-item .utilization-value,
             .oee-container .oee-item .stop_time-value,
             .oee-container .oee-item .work_time-value {
@@ -416,6 +416,7 @@
 
         //
         function _setMacElementText($el, data) {
+            console.log()
             if (!data) {
                 return
             }
@@ -428,7 +429,7 @@
 
             let $status = $el.find('.status')
 
-            let $MACHINE_CODE = $el.find('.MACHINE_CODE-value')
+            let $pro_qty = $el.find('.pro_qty-value')
             let $utilization = $el.find('.utilization-value')
             let $stop_time = $el.find('.stop_time-value')
             let $work_time = $el.find('.work_time-value')
@@ -472,7 +473,7 @@
                 }
             }
 
-            $MACHINE_CODE.text(data.MACHINE_CODE)  // 產量
+            $pro_qty.text(data.pro_qty)  // 產量
             $utilization.text(data.utilization)
             $stop_time.text(data.stop_time + '分')  // 停機
             $work_time.text(data.work_time + '分')  // 工時
