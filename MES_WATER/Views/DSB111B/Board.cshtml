@@ -418,7 +418,7 @@
             // 狀態(中文 + 背景顏色)
             $status.attr('data-status_code', data.status)
             switch (data.status.toUpperCase()) {
-                case 'R':
+                case '1':
                     $status.text('生產')
                     $status.attr('class', 'status status-color-run')
                     break;
@@ -426,7 +426,7 @@
                     $status.text('關機')
                     $status.attr('class', 'status status-color-default')
                     break;
-                case 'I':
+                case '0':
                     $status.text('閒置')
                     $status.attr('class', 'status status-color-idle')
                     break;
@@ -434,8 +434,8 @@
                     $status.text('停機')
                     $status.attr('class', 'status status-color-stop')
                     break;
-                case 'A':
-                    $status.text('警報')
+                case '2':
+                    $status.text('異常中')
                     $status.attr('class', 'status status-color-stop')
                     break;
                 default:
@@ -444,7 +444,7 @@
                     break;
             }
 
-            $pro_qty.text(data._300182)  // 產量
+            $pro_qty.text(data.$pro_qty)  // 產量
             $utilization.text(data.utilization + '%')  // 稼動
 
             //// 稼動 換成百分比

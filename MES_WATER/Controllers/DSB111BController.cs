@@ -159,17 +159,12 @@ namespace MES_WATER.Controllers
 
             // 抓取DSB10_0000的資料，回傳給前端
             Dictionary<string, Oee> result = new Dictionary<string, Oee>();
-            //Dictionary<string, Oee_2> result_2 = new Dictionary<string, Oee_2>();
             foreach (string mac_code in mac_code_list)
             {            
                 result.Add(mac_code, Get_OEE_ByMacCode(mac_code));
             }
 
-            //foreach (string mac_code_2 in mac_code_list)
-            //{
 
-            //    result_2.Add(mac_code_2, Get_OEE_ByMacCode_2(mac_code_2));
-            //}
 
             return Json(result, JsonRequestBehavior.AllowGet);
         }
@@ -394,16 +389,30 @@ namespace MES_WATER.Controllers
         public Oee Get_OEE_ByMacCode(string pMacCode)
         {
             Oee result = new Oee();
+
+            //通過key查找元素
             Dictionary<string,int> macItem = new Dictionary<string,int>
             {
-                { "1001-M1", 300182 },
+                
                 { "A01", 300182 },
                 { "B01", 300192 },
                 { "C01", 300202 },
-                { "C02", 300212 }
+                { "C02", 300212 },
+                { "D01", 300222 },
+                { "D02", 300232 },
+                { "E01", 300242 },
+                { "E02", 300252 },
+                { "E03", 300262 },
+                { "E04", 300272 },
+                { "F01", 300282 },
+                { "F02", 300292 },
+                { "F03", 300302 },
+                { "F04", 300312 },
+                { "G01", 300322 }
+
             };
 
-            string sql = "select * from MEA_E01 ";
+            string sql = "select TOP(1) * from MEA_E01 order by update_at DESC ";
             DataTable dtTmp = comm.Get_DataTable(sql);
 
             if (dtTmp.Rows.Count > 0)
@@ -412,6 +421,7 @@ namespace MES_WATER.Controllers
                 {
                     int Outresult = 0;
                     int key = macItem.TryGetValue(pMacCode, out Outresult) ? Outresult : 0;
+
                     if (key <= 0 || dtTmp.Columns.IndexOf(key.ToString()) <= 0 ) continue;
                     result.status = dr[ key.ToString() ].ToString();
                     result.pro_qty = comm.sGetDouble(dr[(key + 1).ToString()].ToString());
@@ -425,43 +435,6 @@ namespace MES_WATER.Controllers
 
         }
 
-        public Oee_2 Get_OEE_ByMacCode_2(string pMacCode_2)
-        {
-            
-            Oee_2 result_2 = new Oee_2();
-            result_2._300182 = pMacCode_2;
-
-
-            DynamicParameters sqlparams_2 = new DynamicParameters();
-            string sql_2 = "select TOP(1) * from MEA_E01 ";
-
-
-            DataTable dTmp = comm.Get_DataTable(sql_2);
-
-            if (dTmp.Rows.Count > 0)
-            {
-                string _300182 = comm.sGetString(dTmp.Rows[0]["300182"].ToString());
-                string _300183 = comm.sGetString(dTmp.Rows[0]["300183"].ToString());
-                string _300184 = comm.sGetString(dTmp.Rows[0]["300184"].ToString());
-                string _300185 = comm.sGetString(dTmp.Rows[0]["300185"].ToString());
-
-            }
-
-            DSB11_0000 data_2 = new DSB11_0000();
-            using (SqlConnection con_db = comm.Set_DBConnection())
-            {
-                data_2 = con_db.QueryFirstOrDefault<DSB11_0000>(sql_2, sqlparams_2);
-            }
-
-            if (data_2 != null)
-            {
-                result_2._300182 = data_2._300182;
-                result_2.MACHINE_CODE = data_2.MACHINE_CODE;
-            }
-
-            return result_2;
-
-        }
 
         public class DSB10_0000
         {
