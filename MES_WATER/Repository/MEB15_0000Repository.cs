@@ -53,6 +53,7 @@ namespace MES_WATER.Repository
                             //cmemo = comm.sGetString(reader["cmemo"].ToString()),
                             line_code = comm.sGetString(reader["line_code"].ToString()),
                             mac_type = comm.sGetString(reader["mac_type"].ToString()),
+                            address_code = comm.sGetString(reader["address_code"].ToString()),
                         };
                     }
                 }
@@ -95,6 +96,7 @@ namespace MES_WATER.Repository
                     data.mac_name = comm.sGetString(reader["mac_name"].ToString());
                     //data.cmemo = comm.sGetString(reader["cmemo"].ToString());
                     data.line_code = comm.sGetString(reader["line_code"].ToString());
+                    data.address_code = comm.sGetString(reader["address_code"].ToString());
                     data.can_delete = "Y";
                     data.can_update = "Y";
                     list.Add(data);
@@ -137,7 +139,7 @@ namespace MES_WATER.Repository
                     data.mac_name = comm.sGetString(reader["mac_name"].ToString());
                     //data.cmemo = comm.sGetString(reader["cmemo"].ToString());
                     data.line_code = comm.sGetString(reader["line_code"].ToString());
-
+                    data.address_code = comm.sGetString(reader["address_code"].ToString());
                     //檢查授權刪除、修改
                     data.can_delete = sLimitStr.Contains("D") ? "Y" : "N";
                     data.can_update = sLimitStr.Contains("M") ? "Y" : "N";
@@ -200,8 +202,8 @@ namespace MES_WATER.Repository
         public void InsertData(MEB15_0000 MEB15_0000)
         {
             string sSql = "INSERT INTO " +
-                          " MEB15_0000 (  mac_code,  mac_name,line_code,  mac_type ) " +
-                          "     VALUES ( @mac_code, @mac_name, @line_code, @mac_type ) ";
+                          " MEB15_0000 (  mac_code,  mac_name,line_code,  mac_type, address_code ) " +
+                          "     VALUES ( @mac_code, @mac_name, @line_code, @mac_type, @address_code) ";
             using (SqlConnection con_db = comm.Set_DBConnection())
             {
                 con_db.Execute(sSql, MEB15_0000);
@@ -217,7 +219,8 @@ namespace MES_WATER.Repository
             string sSql = " UPDATE MEB15_0000                        " +
                           "    SET mac_name       =  @mac_name,      " +
                           "        line_code      =  @line_code,     " +
-                          "        mac_type       =  @mac_type       " +
+                          "        mac_type       =  @mac_type,       " +
+                          "        address_code   =  @address_code   " +
                           "  WHERE mac_code       =  @mac_code       " ;
 
 

@@ -61,6 +61,9 @@ namespace MES_WATER.Models
         [DisplayName("機台類別")]
         public string mac_type { get; set; }
 
+        [DisplayName("點位代碼")]
+        public string address_code { get; set; }
+
         //[DisplayName("備註")]
         //[StringLength(100, ErrorMessage = "長度最多{1}個字!")]
         //public string cmemo { get; set; }
