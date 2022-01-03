@@ -390,51 +390,47 @@ namespace MES_WATER.Controllers
         {
             Oee result = new Oee();
 
-            //通過key查找元素
-            Dictionary<string,int> macItem = new Dictionary<string,int>
-            {
-                
-                { "A01", 300182 },
-                { "B01", 300192 },
-                { "C01", 300202 },
-                { "C02", 300212 },
-                { "D01", 300222 },
-                { "D02", 300232 },
-                { "E01", 300242 },
-                { "E02", 300252 },
-                { "E03", 300262 },
-                { "E04", 300272 },
-                { "F01", 300282 },
-                { "F02", 300292 },
-                { "F03", 300302 },
-                { "F04", 300312 },
-                { "G01", 300322 }
+            result.mac_code = pMacCode;
 
-            };
 
-            string sql = "select TOP(1) * from MEA_E01 order by update_at DESC ";
-            DataTable dtTmp = comm.Get_DataTable(sql);
+            //DSB10_0000 data = Get_One_DSB10_0000_ByMacCode(pMacCode);
 
-            if (dtTmp.Rows.Count > 0)
-            {
-                foreach (DataRow dr in dtTmp.Rows)
-                {
-                    int Outresult = 0;
-                    int key = macItem.TryGetValue(pMacCode, out Outresult) ? Outresult : 0;
+            string sql = @"SELECT a.COLUMN_NAME as 'key' FROM MEB15_0000 m
+                       LEFT JOIN INFORMATION_SCHEMA.COLUMNS a on a.TABLE_NAME = 'MEA_E01' and a.COLUMN_NAME = m.address_code
+                       where m.mac_code = @mac_code ";
+            DataTable dtKey = comm.Get_DataTable(sql,new { mac_code = pMacCode });
+            int key = dtKey.Rows.Count > 0 && dtKey.Rows[0][0].ToString() != ""
+                ? comm.sGetInt32(dtKey.Rows[0]["key"].ToString())
+                : 0;
 
-                    if (key <= 0 || dtTmp.Columns.IndexOf(key.ToString()) <= 0 ) continue;
-                    result.status = dr[ key.ToString() ].ToString();
-                    result.pro_qty = comm.sGetDouble(dr[(key + 1).ToString()].ToString());
-                    result.utilization = comm.sGetDouble(dr[(key + 2).ToString()].ToString());
-                    result.stop_time = comm.sGetDouble(dr[(key + 3).ToString()].ToString());
-                    break;
-                }
-            }
+
+            result = Get_MacCodeItemStatus(key);
 
             return result;
-
         }
 
+        private Oee Get_MacCodeItemStatus(int key)
+        {
+            List<int> range = new List<int>();
+            string sSql = " Select Top(1) * From MEA_E01 order by update_at DESC";
+            DataTable dtTemp = comm.Get_DataTable(sSql);
+            if (key != 0 && dtTemp.Rows.Count > 0)
+            {
+                Oee result = new Oee();
+                foreach (DataRow dr in dtTemp.Rows) {
+                    result.status = (dtTemp.Columns.IndexOf((key).ToString()) > 0)
+                        ? dr[key.ToString()].ToString() : "";
+                    result.pro_qty = (dtTemp.Columns.IndexOf((key+1).ToString()) > 0)
+                        ? comm.sGetDouble(dr[ (key + 1).ToString() ].ToString()):0;
+                    result.utilization = (dtTemp.Columns.IndexOf((key + 2).ToString()) > 0)
+                        ? comm.sGetDouble(dr[(key + 2).ToString()].ToString()) : 0;
+                    result.stop_time = (dtTemp.Columns.IndexOf((key + 3).ToString()) > 0)
+                        ? comm.sGetDouble(dr[(key + 3).ToString()].ToString()) : 0;
+                }
+                return result;
+            }
+            return new Oee();
+        }
 
         public class DSB10_0000
         {
