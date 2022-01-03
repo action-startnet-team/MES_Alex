@@ -7,7 +7,7 @@
   <PropertyGroup>
     <TimeStampOfAssociatedLegacyPublishXmlFile />
     <_PublishTargetUrl>C:\2021_12_10 Alex發行檔（去Web.config）</_PublishTargetUrl>
-    <History>True|2021-12-22T07:29:51.2548450Z;True|2021-12-21T11:11:35.0447875+08:00;</History>
+    <History>True|2022-01-03T03:57:31.6018098Z;True|2021-12-22T15:29:51.2548450+08:00;True|2021-12-21T11:11:35.0447875+08:00;</History>
   </PropertyGroup>
   <ItemGroup>
     <File Include="App_Code/ViewFunc.cshtml">
@@ -23,22 +23,22 @@
       <publishTime>02/22/2013 08:43:40</publishTime>
     </File>
     <File Include="bin/App_Code.compiled">
-      <publishTime>12/22/2021 15:29:39</publishTime>
+      <publishTime>01/03/2022 11:57:20</publishTime>
     </File>
     <File Include="bin/App_Code.dll">
-      <publishTime>12/22/2021 15:29:39</publishTime>
+      <publishTime>01/03/2022 11:57:20</publishTime>
     </File>
     <File Include="bin/App_global.asax.compiled">
-      <publishTime>12/22/2021 15:29:39</publishTime>
+      <publishTime>01/03/2022 11:57:20</publishTime>
     </File>
     <File Include="bin/App_global.asax.dll">
-      <publishTime>12/22/2021 15:29:39</publishTime>
+      <publishTime>01/03/2022 11:57:20</publishTime>
     </File>
     <File Include="bin/App_GlobalResources.compiled">
-      <publishTime>12/22/2021 15:29:38</publishTime>
+      <publishTime>01/03/2022 11:57:19</publishTime>
     </File>
     <File Include="bin/App_GlobalResources.dll">
-      <publishTime>12/22/2021 15:29:38</publishTime>
+      <publishTime>01/03/2022 11:57:19</publishTime>
     </File>
     <File Include="bin/BouncyCastle.Crypto.dll">
       <publishTime>02/21/2020 16:24:54</publishTime>
@@ -59,16 +59,16 @@
       <publishTime>04/18/2012 12:05:14</publishTime>
     </File>
     <File Include="bin/MES_WATER.dll">
-      <publishTime>12/22/2021 15:29:26</publishTime>
+      <publishTime>01/03/2022 11:57:08</publishTime>
     </File>
     <File Include="bin/MES_WATER.dll.config">
-      <publishTime>12/20/2021 10:11:00</publishTime>
+      <publishTime>12/28/2021 11:25:09</publishTime>
     </File>
     <File Include="bin/MES_WATER.pdb">
-      <publishTime>12/22/2021 15:29:26</publishTime>
+      <publishTime>01/03/2022 11:57:08</publishTime>
     </File>
     <File Include="bin/MES_WATER.XmlSerializers.dll">
-      <publishTime>12/22/2021 15:29:27</publishTime>
+      <publishTime>01/03/2022 11:57:08</publishTime>
     </File>
     <File Include="bin/Microsoft.AspNet.SignalR.Core.dll">
       <publishTime>04/03/2019 00:30:56</publishTime>
@@ -7046,7 +7046,7 @@
       <publishTime>09/26/2019 13:37:08</publishTime>
     </File>
     <File Include="PrecompiledApp.config">
-      <publishTime>12/22/2021 15:29:29</publishTime>
+      <publishTime>01/03/2022 11:57:11</publishTime>
     </File>
     <File Include="product.jpg">
       <publishTime>08/01/2019 16:44:43</publishTime>
@@ -8510,7 +8510,7 @@
       <publishTime>07/22/2020 14:39:14</publishTime>
     </File>
     <File Include="Views/DSB100A/MacItem.cshtml">
-      <publishTime>07/27/2020 10:50:46</publishTime>
+      <publishTime>12/23/2021 16:38:28</publishTime>
     </File>
     <File Include="Views/DSB110A/Index.cshtml">
       <publishTime>12/30/2020 10:59:54</publishTime>
@@ -8522,7 +8522,7 @@
       <publishTime>12/30/2020 11:05:14</publishTime>
     </File>
     <File Include="Views/DSB110B/Index.cshtml">
-      <publishTime>10/08/2021 16:50:12</publishTime>
+      <publishTime>12/23/2021 15:26:34</publishTime>
     </File>
     <File Include="Views/DSB110B/MacItem.cshtml">
       <publishTime>10/05/2021 14:30:00</publishTime>
@@ -8532,6 +8532,18 @@
     </File>
     <File Include="Views/DSB110C/Index.cshtml">
       <publishTime>10/08/2021 13:55:30</publishTime>
+    </File>
+    <File Include="Views/DSB111B/Board.cshtml">
+      <publishTime>01/03/2022 09:19:30</publishTime>
+    </File>
+    <File Include="Views/DSB111B/Index.cshtml">
+      <publishTime>01/03/2022 09:32:51</publishTime>
+    </File>
+    <File Include="Views/DSB111B/Index_test.cshtml">
+      <publishTime>12/23/2021 13:54:41</publishTime>
+    </File>
+    <File Include="Views/DSB111B/MacItem.cshtml">
+      <publishTime>01/03/2022 08:56:41</publishTime>
     </File>
     <File Include="Views/DSB120A/Index.cshtml">
       <publishTime>07/31/2020 18:09:16</publishTime>
@@ -9146,13 +9158,13 @@
       <publishTime>11/17/2020 09:57:38</publishTime>
     </File>
     <File Include="Views/MEB120A/Index.cshtml">
-      <publishTime>12/22/2020 11:29:28</publishTime>
+      <publishTime>12/23/2021 11:56:42</publishTime>
     </File>
     <File Include="Views/MEB120A/Insert.cshtml">
       <publishTime>10/04/2021 09:13:54</publishTime>
     </File>
     <File Include="Views/MEB120A/Update.cshtml">
-      <publishTime>10/04/2021 09:15:56</publishTime>
+      <publishTime>12/23/2021 11:48:46</publishTime>
     </File>
     <File Include="Views/MEB130A/Index.cshtml">
       <publishTime>07/20/2020 10:32:42</publishTime>
@@ -9176,13 +9188,13 @@
       <publishTime>10/04/2021 11:55:14</publishTime>
     </File>
     <File Include="Views/MEB150A/Insert.cshtml">
-      <publishTime>10/04/2021 09:42:20</publishTime>
+      <publishTime>12/23/2021 12:02:42</publishTime>
     </File>
     <File Include="Views/MEB150A/Update.cshtml">
-      <publishTime>10/04/2021 09:43:36</publishTime>
+      <publishTime>12/23/2021 12:05:25</publishTime>
     </File>
     <File Include="Views/MEB150A/Update2.cshtml">
-      <publishTime>12/17/2020 11:22:08</publishTime>
+      <publishTime>12/23/2021 12:05:25</publishTime>
     </File>
     <File Include="Views/MEB160A/Index.cshtml">
       <publishTime>12/22/2020 11:31:04</publishTime>
@@ -9429,6 +9441,15 @@
     </File>
     <File Include="Views/MEB490A/Update.cshtml">
       <publishTime>12/17/2020 11:06:54</publishTime>
+    </File>
+    <File Include="Views/MEB500A/Index.cshtml">
+      <publishTime>12/23/2021 13:24:35</publishTime>
+    </File>
+    <File Include="Views/MEB500A/Insert.cshtml">
+      <publishTime>12/23/2021 13:30:01</publishTime>
+    </File>
+    <File Include="Views/MEB500A/Update.cshtml">
+      <publishTime>12/23/2021 13:48:06</publishTime>
     </File>
     <File Include="Views/MED010A/Index.cshtml">
       <publishTime>08/03/2020 13:32:16</publishTime>
@@ -10490,7 +10511,7 @@
       <publishTime>11/21/2019 14:06:12</publishTime>
     </File>
     <File Include="Web.config">
-      <publishTime>12/21/2021 11:11:06</publishTime>
+      <publishTime>01/03/2022 11:57:10</publishTime>
     </File>
   </ItemGroup>
 </Project>

@@ -24,10 +24,11 @@
 
 
     // 改對應的class
-    Html.RenderAction("pJqgrid_C", "jqgrid", new
+    Html.RenderAction("pJqgrid_A", "jqgrid", new
     {
-        pMasterModelType = new MEB12_0000().GetType(),
-        pDetailModelType = new MEB12_0100().GetType(),
+        pModelType = new MEB12_0000().GetType(),
+        //pMasterModelType = new MEB12_0000().GetType(),
+        //pDetailModelType = new MEB12_0100().GetType(),  
         pPrgCode = sPrgCode,
     });
 
