@@ -59,9 +59,8 @@ namespace MES_WATER.Controllers
             List<DSB10_0000> list = new List<DSB10_0000>();
             string sSql = " Select * "
                         + " from MEB15_0000 "
-                        + " left join DSB10_0000 on MEB15_0000.mac_code = DSB10_0000.mac_code  "
                         + " left join MEB12_0000 on MEB15_0000.line_code = MEB12_0000.line_code   "
-                        + " where MEB15_0000.mac_code in @mac_code_list";
+                        + " where MEB15_0000.mac_code in @mac_code_list and MEB15_0000.mac_code <> '1001-M1'";
 
             if (line_code != "") sSql += " and MEB12_0000.line_code='"+ line_code + "'";
 
@@ -106,9 +105,9 @@ namespace MES_WATER.Controllers
         public JsonResult Init_Get_MacCodeList(string line_code, string Item, string order="")
         {
             // 機台基本檔
-            string sql = "Select * from MEB15_0000 left join DSB10_0000 on MEB15_0000.mac_code = DSB10_0000.mac_code ";
+            string sql = "Select * from MEB15_0000  where MEB15_0000.mac_code <> '1001-M1' ";
             string[] arr=null;
-            if (line_code != "") sql += " where line_code= '" + line_code + "' ";
+            if (line_code != "") sql += " and line_code= '" + line_code + "' ";
             if (Item != "") { arr = Item.Split(','); }
             DataTable dt = comm.Get_DataTable(sql);
 
@@ -132,8 +131,8 @@ namespace MES_WATER.Controllers
         public JsonResult Init_Get_MacCodeSelectList(string line_code)
         {
             // 機台基本檔
-            string sql = "Select MEB15_0000.mac_code,MEB15_0000.mac_name from MEB15_0000 left join DSB10_0000 on MEB15_0000.mac_code = DSB10_0000.mac_code ";
-            if (line_code != "") sql += " where line_code= '" + line_code + "' ";
+            string sql = "Select MEB15_0000.mac_code,MEB15_0000.mac_name from MEB15_0000  where MEB15_0000.mac_code <> '1001-M1' ";
+            if (line_code != "") sql += " and line_code= '" + line_code + "' ";
             DataTable dt = comm.Get_DataTable(sql, "line_code", line_code);
             return Json(dt, JsonRequestBehavior.AllowGet);
         }
@@ -395,15 +394,12 @@ namespace MES_WATER.Controllers
 
             //DSB10_0000 data = Get_One_DSB10_0000_ByMacCode(pMacCode);
 
-            string sql = @"SELECT a.COLUMN_NAME as 'key' FROM MEB15_0000 m
-                       LEFT JOIN INFORMATION_SCHEMA.COLUMNS a on a.TABLE_NAME = 'MEA_E01' and a.COLUMN_NAME = m.address_code
+            string sql = @"SELECT a.COLUMN_NAME as 'key' FROM MEB15_0000 m 
+                       LEFT JOIN INFORMATION_SCHEMA.COLUMNS a  on a.TABLE_NAME = 'MEA_E01' and a.COLUMN_NAME = m.address_code
                        where m.mac_code = @mac_code ";
             DataTable dtKey = comm.Get_DataTable(sql,new { mac_code = pMacCode });
-            int key = dtKey.Rows.Count > 0 && dtKey.Rows[0][0].ToString() != ""
-                ? comm.sGetInt32(dtKey.Rows[0]["key"].ToString())
-                : 0;
-
-
+            int key = comm.sGetInt32(dtKey.Rows[0]["key"].ToString());
+                
             result = Get_MacCodeItemStatus(key);
 
             return result;
@@ -411,21 +407,23 @@ namespace MES_WATER.Controllers
 
         private Oee Get_MacCodeItemStatus(int key)
         {
+            
             List<int> range = new List<int>();
-            string sSql = " Select Top(1) * From MEA_E01 order by update_at DESC";
+            string sSql = @" select TOP(1) *
+                            from MEA_E01  
+                            where update_at between convert(varchar(10),GETDATE(),120)+' 00:00:01.000' 
+                            and convert(varchar(10),GETDATE(),120)+' 23:59:59.999'
+                            order by update_at desc";
             DataTable dtTemp = comm.Get_DataTable(sSql);
             if (key != 0 && dtTemp.Rows.Count > 0)
             {
                 Oee result = new Oee();
-                foreach (DataRow dr in dtTemp.Rows) {
-                    result.status = (dtTemp.Columns.IndexOf((key).ToString()) > 0)
-                        ? dr[key.ToString()].ToString() : "";
-                    result.pro_qty = (dtTemp.Columns.IndexOf((key+1).ToString()) > 0)
-                        ? comm.sGetDouble(dr[ (key + 1).ToString() ].ToString()):0;
-                    result.utilization = (dtTemp.Columns.IndexOf((key + 2).ToString()) > 0)
-                        ? comm.sGetDouble(dr[(key + 2).ToString()].ToString()) : 0;
-                    result.stop_time = (dtTemp.Columns.IndexOf((key + 3).ToString()) > 0)
-                        ? comm.sGetDouble(dr[(key + 3).ToString()].ToString()) : 0;
+                foreach (DataRow dr in dtTemp.Rows)
+                {
+                    result.status = dr[key.ToString()].ToString();
+                    result.pro_qty = comm.sGetDouble(dr[(key + 1).ToString()].ToString());
+                    result.utilization = comm.sGetDouble(dr[(key + 2).ToString()].ToString());
+                    result.stop_time = comm.sGetDouble(dr[(key + 3).ToString()].ToString());
                 }
                 return result;
             }
