@@ -55,6 +55,22 @@
         data.show_type = "B";
         excel_code_list.Add(data);
     }
+    for (int I = 0; I <= 25; I++)
+    {
+        DDLList data = new DDLList();
+        data.field_code = "B" + Convert.ToChar(65 + I).ToString();
+        data.field_name = "";
+        data.show_type = "B";
+        excel_code_list.Add(data);
+    }
+    for (int I = 0; I <= 25; I++)
+    {
+        DDLList data = new DDLList();
+        data.field_code = "C" + Convert.ToChar(65 + I).ToString();
+        data.field_name = "";
+        data.show_type = "B";
+        excel_code_list.Add(data);
+    }
     //修改點 向上//
 }
 
