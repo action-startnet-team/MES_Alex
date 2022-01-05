@@ -113,24 +113,24 @@ namespace MES_WATER.Controllers
                 DataTable dt3 = new DataTable();
 
                 string columnNames = "A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z," +
-                                      "AA,AB,AC,AD,AE,AF,AG,AH,AI,AJ,AK,AL,AM,AN,AO,AP,AQ,AR,AS,AT,AU,AV,AW,AX,AY,AZ,";
+                                      "AA,AB,AC,AD,AE,AF,AG,AH,AI,AJ,AK,AL,AM,AN,AO,AP,AQ,AR,AS,AT,AU,AV,AW,AX,AY,AZ," +
+                                      "BA,BB,BC,BD,BE,BF,BG,BH,BI,BJ,BK,BL,BM,BN,BO,BP,BW,BR,BS,BT,BU,BV,BW,BX,BY,BZ," +
+                                      "CA,CB,CC,CD,CE,CF,CG,CH,CI,CJ,CK,CL,CM,CN,CO,CP,CW,CR,CS,CT,CU,CV,CW,CX,CY,CZ";
                 string[] columns = columnNames.Split(',');
                 for (int i = 0; i < dt.Columns.Count; i++)
                 {
                     DataColumn column = new DataColumn(columns[i].Trim());
                     dt3.Columns.Add(column);
                 }
-                //大衛版---i 為讀取上傳的資料 第
-                //大衛版---dt 上傳的excel檔
+
                 for (int i = 0; i < dt.Rows.Count; i++)
                 {
                     DataRow drow = dt3.NewRow();
-                    //大衛版---dt3.Columns.Count 是 上傳的execl的上面欄位，ex:A、B、C、...，的計算有幾個項目，像是有次上面共有16項
-
+                    
                     for (int j = 0; j < dt3.Columns.Count; j++)
                     {
                         drow[j] = dt.Rows[i][j].ToString();
-                        //資料有成功傳入drow[j]，ex:Debug時看到的"巨大"
+                        
                     }
                     dt3.Rows.Add(drow);
                 }
@@ -138,10 +138,9 @@ namespace MES_WATER.Controllers
                 //製作預覽表格
                 DataTable TempTable = new DataTable();
                 TempTable.Columns.Add("客戶編號");
-                TempTable.Columns.Add("批號");
                 TempTable.Columns.Add("線別");
                 int x = 0;
-                //大衛版---dt2，就   是上面sql語法設定的組合
+
                 foreach (DataRow dr2 in dt2.Rows)
                 {
                     var n = dr2["ERP_FIELD_NAME"] == null ? "" : dr2["ERP_FIELD_NAME"];
@@ -159,9 +158,6 @@ namespace MES_WATER.Controllers
                     {
                         TempTable.Columns.Add("車種名稱");
                         TempTable.Columns.Add("廠別");
-                        TempTable.Columns.Add("狀態");
-                        TempTable.Columns.Add("備註");
-                        TempTable.Columns.Add("單位");
                         TempTable.Columns.Add("訂單下單");
                         TempTable.Columns.Add("廠商料號");
                         TempTable.Columns.Add("裝箱內容");
@@ -181,12 +177,10 @@ namespace MES_WATER.Controllers
                
                 int save_count = 0;
                 List<ECT02_0000> notSaveList = new List<ECT02_0000>();
-                //大衛版---經過Debug後，dt3是上傳的資料，是沒有問題的
-                //大衛版---dt2，就是上面sql語法設定的組合
+               
                 foreach (DataRow dr in dt3.Rows)
                 {
                     int order_num = 1;
-                    //大衛版---生成ECT02_0000的新的一筆資料
                     ECT02_0000 data = new ECT02_0000();
                     data.SALES_ORDER_NO_ID = Guid.NewGuid().ToString();
                     data.SALES_CUSTOMER_CODE_EDITION = dt2.Rows[0]["SALES_CUSTOMER_CODE_EDITION"].ToString();
@@ -222,7 +216,6 @@ namespace MES_WATER.Controllers
                     //建立TempTable新資料行
                     DataRow drow = TempTable.NewRow();
                     drow["客戶編號"] = customer_code;
-                    drow["批號"] = "";
                     drow["線別"] = "";
                     int z = 0;
                     foreach (DataRow dr2 in dt2.Rows)
@@ -240,9 +233,6 @@ namespace MES_WATER.Controllers
                         {
                             drow["車種名稱"] = "";
                             drow["廠別"] = "";
-                            drow["狀態"] = "";
-                            drow["備註"] = "";
-                            drow["單位"] = "";
                             drow["訂單下單"] = "";
                             drow["廠商料號"] = "";
                             drow["裝箱內容"] = "";
