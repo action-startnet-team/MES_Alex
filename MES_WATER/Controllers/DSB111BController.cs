@@ -60,7 +60,7 @@ namespace MES_WATER.Controllers
             string sSql = " Select * "
                         + " from MEB15_0000 "
                         + " left join MEB12_0000 on MEB15_0000.line_code = MEB12_0000.line_code   "
-                        + " where MEB15_0000.mac_code in @mac_code_list and MEB15_0000.mac_code <> '1001-M1'";
+                        + " where MEB15_0000.mac_code in @mac_code_list and MEB15_0000.mac_code <> '1001-M1' and MEB15_0000.mac_code <> '1001-M2'";
 
             if (line_code != "") sSql += " and MEB12_0000.line_code='"+ line_code + "'";
 
@@ -105,7 +105,7 @@ namespace MES_WATER.Controllers
         public JsonResult Init_Get_MacCodeList(string line_code, string Item, string order="")
         {
             // 機台基本檔
-            string sql = "Select * from MEB15_0000  where MEB15_0000.mac_code <> '1001-M1' ";
+            string sql = "Select * from MEB15_0000  where MEB15_0000.mac_code <> '1001-M1' and MEB15_0000.mac_code <> '1001-M2' ";
             string[] arr=null;
             if (line_code != "") sql += " and line_code= '" + line_code + "' ";
             if (Item != "") { arr = Item.Split(','); }
@@ -131,7 +131,7 @@ namespace MES_WATER.Controllers
         public JsonResult Init_Get_MacCodeSelectList(string line_code)
         {
             // 機台基本檔
-            string sql = "Select MEB15_0000.mac_code,MEB15_0000.mac_name from MEB15_0000  where MEB15_0000.mac_code <> '1001-M1' ";
+            string sql = "Select MEB15_0000.mac_code,MEB15_0000.mac_name from MEB15_0000  where MEB15_0000.mac_code <> '1001-M1' and MEB15_0000.mac_code <> '1001-M2' ";
             if (line_code != "") sql += " and line_code= '" + line_code + "' ";
             DataTable dt = comm.Get_DataTable(sql, "line_code", line_code);
             return Json(dt, JsonRequestBehavior.AllowGet);
@@ -370,15 +370,6 @@ namespace MES_WATER.Controllers
             public double work_time { get; set; }
         }
 
-        public class Oee_2
-        {
-            public string _300182 { get; set; }
-            public string _300183 { get; set; }
-            public string _300184 { get; set; }
-            public string _300185 { get; set; }
-            public string MACHINE_CODE { get; set; }
-            
-        }
 
         /// <summary>
         /// 計算單一機台的資訊
@@ -442,15 +433,6 @@ namespace MES_WATER.Controllers
 
         }
 
-        public class DSB11_0000
-        {
-            public string _300182 { get; set; }
-            public string _300183 { get; set; }
-            public string _300184 { get; set; }
-            public string _300185 { get; set; }
-            public string MACHINE_CODE { get; set; }
-
-        }
 
         //public JsonResult Get_LineCodeList()
         //{

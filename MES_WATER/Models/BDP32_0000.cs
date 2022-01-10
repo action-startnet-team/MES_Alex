@@ -61,7 +61,7 @@ namespace MES_WATER.Models
 
 
         [DisplayName("控制項資料來源")]
-        [StringLength(10, ErrorMessage = "長度最多為{1}個字!")]
+        [StringLength(20, ErrorMessage = "長度最多為{1}個字!")]
         public string data_source { get; set; }
 
         [DisplayName("控制項預設值")]

@@ -114,7 +114,7 @@ namespace MES_WATER.Controllers
 
                 string columnNames = "A,B,C,D,E,F,G,H,I,J,K,L,M,N,O,P,Q,R,S,T,U,V,W,X,Y,Z," +
                                       "AA,AB,AC,AD,AE,AF,AG,AH,AI,AJ,AK,AL,AM,AN,AO,AP,AQ,AR,AS,AT,AU,AV,AW,AX,AY,AZ," +
-                                      "BA,BB,BC,BD,BE,BF,BG,BH,BI,BJ,BK,BL,BM,BN,BO,BP,BW,BR,BS,BT,BU,BV,BW,BX,BY,BZ," +
+                                      "BA,BB,BC,BD,BE,BF,BG,BH,BI,BJ,BK,BL,BM,BN,BO,BP,BQ,BR,BS,BT,BU,BV,BW,BX,BY,BZ," +
                                       "CA,CB,CC,CD,CE,CF,CG,CH,CI,CJ,CK,CL,CM,CN,CO,CP,CW,CR,CS,CT,CU,CV,CW,CX,CY,CZ";
                 string[] columns = columnNames.Split(',');
                 for (int i = 0; i < dt.Columns.Count; i++)
@@ -137,7 +137,7 @@ namespace MES_WATER.Controllers
 
                 //製作預覽表格
                 DataTable TempTable = new DataTable();
-                TempTable.Columns.Add("客戶編號");
+                //TempTable.Columns.Add("客戶編號");
                 TempTable.Columns.Add("線別");
                 int x = 0;
 
@@ -215,7 +215,7 @@ namespace MES_WATER.Controllers
 
                     //建立TempTable新資料行
                     DataRow drow = TempTable.NewRow();
-                    drow["客戶編號"] = customer_code;
+                    //drow["客戶編號"] = customer_code;
                     drow["線別"] = "";
                     int z = 0;
                     foreach (DataRow dr2 in dt2.Rows)
