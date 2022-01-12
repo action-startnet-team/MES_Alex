@@ -24,7 +24,7 @@ using MES_WATER.Helpers;
 
 namespace MES_WATER.Models
 {
-    
+
     public class Comm
     {
         /// <summary>
@@ -38,7 +38,18 @@ namespace MES_WATER.Models
             string dbName = chosenDB != "" ? chosenDB : defaultDB;
 
             string connStr = WebConfigurationManager.ConnectionStrings[dbName].ConnectionString;
-            
+
+            return connStr;
+        }
+
+        /// <summary>
+        /// 自定義
+        /// </summary>
+        /// <param name="dbCode"></param>
+        /// <returns></returns>
+        public string Get_ConnStr(string dbCode)
+        {
+            string connStr = WebConfigurationManager.ConnectionStrings[dbCode] != null ? WebConfigurationManager.ConnectionStrings[dbCode].ConnectionString : "";
             return connStr;
         }
 
@@ -63,13 +74,24 @@ namespace MES_WATER.Models
             return Connection_Db;
         }
 
-        public SqlConnection Set_DBConnection2(string db)
+        /// <summary>
+        /// 自定義
+        /// </summary>
+        /// <param name="dbCode"></param>
+        /// <returns></returns>
+        public SqlConnection Set_DBConnection(string dbCode)
         {
-            SqlConnection Connection_Db;
-            Connection_Db = new SqlConnection(Get_ConnStr2(db));
-            Connection_Db.Open();
-            return Connection_Db;
+            string conn = Get_ConnStr(dbCode);
+            if (conn != "")
+            {
+                SqlConnection Connection_Db;
+                Connection_Db = new SqlConnection(conn);
+                Connection_Db.Open();
+                return Connection_Db;
+            }
+            return null;
         }
+
 
         public SqlConnection Get_SqlConn(string conn_name)
         {
@@ -168,9 +190,9 @@ namespace MES_WATER.Models
             DataTable datatable = new DataTable();
             try
             {
-                if (pSql.Length > 0)
+                if (pSql.Length > 0 && Set_DBConnection("alex_ori") != null)
                 {
-                    using (SqlConnection con_db = Set_DBConnection2("alex_ori"))
+                    using (SqlConnection con_db = Set_DBConnection("alex_ori"))
                     {
                         SqlDataAdapter Adapter = new SqlDataAdapter(pSql, con_db);
                         Adapter.Fill(datatable);
@@ -248,7 +270,7 @@ namespace MES_WATER.Models
         /// <param name="pSql"></param>
         /// <param name="pSqlParams"></param>
         /// <returns></returns>
-        public DataTable Get_DataTable2(string pConnName, string pSql, Dictionary<string, object> pSqlParams = null )
+        public DataTable Get_DataTable2(string pConnName, string pSql, Dictionary<string, object> pSqlParams = null)
         {
             DataTable datatable = new DataTable();
             try
@@ -268,7 +290,7 @@ namespace MES_WATER.Models
                                 sqlCommand.Parameters.Add(sqlParam);
                             }
                         }
-                   
+
                         sqlCommand.CommandText = pSql;
                         SqlDataReader reader = sqlCommand.ExecuteReader();
                         datatable.Load(reader);
@@ -341,7 +363,7 @@ namespace MES_WATER.Models
             string sSql = "select " + pFieldCode + " from " + pTableCode + " where " + pKeyCode + " = @" + pKeyCode;
             using (SqlConnection con_db = Set_DBConnection())
             {
-                SqlCommand sqlCommand = new SqlCommand(sSql);              
+                SqlCommand sqlCommand = new SqlCommand(sSql);
                 sqlCommand.Connection = con_db;
                 sqlCommand.Parameters.Add(new SqlParameter(pKeyCode, pKeyValue));
                 SqlDataReader reader = sqlCommand.ExecuteReader();
@@ -860,7 +882,7 @@ namespace MES_WATER.Models
         /// <param name="pFieldName">欄位名稱</param>
         /// <param name="pShowType">A:全秀(預設),B:秀值,C:秀名</param>
         /// <returns></returns>
-        public List<DDLList> Get_DDLOption(string pTableCode, string pFieldCode = "", string pFieldName = "", string pShowType = "A")
+        public List<DDLList> Get_DDLOption(string pTableCode, string pFieldCode , string pFieldName, string pShowType = "A")
         {
             List<DDLList> list = new List<DDLList>();
             string sSql = "";
@@ -905,25 +927,59 @@ namespace MES_WATER.Models
 
                 return list;
             }
+            SqlConnection con_db = Set_DBConnection();
+            SqlCommand sqlCommand = new SqlCommand();
+            sqlCommand.CommandText = sSql;
+            sqlCommand.Connection = con_db;
+            SqlDataReader reader = sqlCommand.ExecuteReader();
 
-            using (SqlConnection con_db = Set_DBConnection())
+            while (reader.Read())
             {
-                SqlCommand sqlCommand = new SqlCommand();
-                sqlCommand.CommandText = sSql;
-                sqlCommand.Connection = con_db;
-                SqlDataReader reader = sqlCommand.ExecuteReader();
-
-                while (reader.Read())
+                DDLList data = new DDLList
                 {
-                    DDLList data = new DDLList();
-                    data.field_code = reader["field_code"].ToString();
-                    data.field_name = reader["field_name"].ToString();
-                    data.show_type = pShowType;
-                    list.Add(data);
-                }
+                    field_code = reader["field_code"].ToString(),
+                    field_name = reader["field_name"].ToString(),
+                    show_type = pShowType
+                };
+                list.Add(data);
             }
+
             return list;
         }
+
+        public List<DDLList> Get_DDLOptionByDb(string pSelectCode,string DbCode, string pShowType = "A")
+        {
+            List<DDLList> list = new List<DDLList>();
+
+            string sSql = Get_DDLSql(pSelectCode);
+
+            // 若沒有在BDP31_0000設定Sql語法，則在BDP21_0100中找清單資料
+            if (string.IsNullOrEmpty(sSql))
+            {
+                list = Get_DDLOption(pSelectCode);
+
+                return list;
+            }
+            SqlConnection con_db = Set_DBConnection(DbCode) ?? Set_DBConnection();
+            SqlCommand sqlCommand = new SqlCommand();
+            sqlCommand.CommandText = sSql;
+            sqlCommand.Connection = con_db;
+            SqlDataReader reader = sqlCommand.ExecuteReader();
+
+            while (reader.Read())
+            {
+                DDLList data = new DDLList
+                {
+                    field_code = reader["field_code"].ToString(),
+                    field_name = reader["field_name"].ToString(),
+                    show_type = pShowType
+                };
+                list.Add(data);
+            }
+
+            return list;
+        }
+
 
         public List<DDLList> Get_DDLOptionBySql(string sSql, string pShowType = "A")
         {
@@ -954,11 +1010,12 @@ namespace MES_WATER.Models
                         list.Add(data);
                     }
                 }
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
 
             }
-            
+
             return list;
         }
 
@@ -989,7 +1046,7 @@ namespace MES_WATER.Models
             return sSql;
         }
 
-        
+
 
         /// <summary>
         /// 取得BDP31_0000資料
@@ -1021,7 +1078,18 @@ namespace MES_WATER.Models
         /// </summary>
         /// <param name="pPrgCode"></param>
         /// <returns></returns>
-        public List<BDP32_0000> Get_BDP32_0000(string pPrgCode)
+        public List<BDP32_0000> Get_BDP32_0000(string pPrgCode, string DbCode = "")
+        {
+            string sSql = !string.IsNullOrEmpty(pPrgCode)
+                ? " Select * from BDP32_0000 Where prg_code = @prg_code order by scr_no"
+                : " Select * from BDP32_0000 order by scr_no";
+
+            SqlConnection con_db = Set_DBConnection(DbCode) ?? Set_DBConnection();
+            List<BDP32_0000> list = con_db.Query<BDP32_0000>(sSql, new { prg_code = pPrgCode }).ToList();
+            return list;
+        }
+
+        public List<BDP32_0000> Get_AlexBDP32_0000(string pPrgCode)
         {
             List<BDP32_0000> list = new List<BDP32_0000>();
             string sSql = "";
@@ -1033,7 +1101,7 @@ namespace MES_WATER.Models
             {
                 sSql = " Select * from BDP32_0000 order by scr_no";
             }
-            using (SqlConnection con_db = Set_DBConnection())
+            using (SqlConnection con_db = Set_DBConnection("alex_ori"))
             {
                 list = con_db.Query<BDP32_0000>(sSql, new { prg_code = pPrgCode }).ToList();
             }
@@ -1149,7 +1217,7 @@ namespace MES_WATER.Models
                     sNo = Get_AutoIntMax("WMT07_0000", "RIGHT(chkup_code, 2)", "And chkup_code LIKE '" + sKey + "%'") + 1;
                     sCode = sKey + StrRigth("00" + sNo.ToString(), 2);
                     break;
-                case "MET040A": 
+                case "MET040A":
                     sKey = "UP" + DateTime.Now.ToString("yyyyMMdd");
                     sNo = Get_AutoIntMax("MET04_0000", "RIGHT(ureport_code, 4)", "And ureport_code LIKE '" + sKey + "%'") + 1;
                     sCode = sKey + StrRigth("0000" + sNo.ToString(), 4);
@@ -1251,12 +1319,12 @@ namespace MES_WATER.Models
         /// <param name="pTableCode">資料表的鍵值</param>
         /// <param name="pCodeCnt">補0的位數</param>
         /// <returns></returns>
-        public string Get_TkCode(string pKeyId,string pTable,string pTableCode,int pCodeCnt)
+        public string Get_TkCode(string pKeyId, string pTable, string pTableCode, int pCodeCnt)
         {
             string sKey = "";  //字軌
             string sCode = ""; //單號
             int sNo = 0;       //序號
-            string sDigit = string.Empty.PadRight(pCodeCnt,'0');
+            string sDigit = string.Empty.PadRight(pCodeCnt, '0');
 
             sKey = pKeyId + DateTime.Now.ToString("yyyyMMdd");
             sNo = Get_AutoIntMax(pTable, "RIGHT(" + pTableCode + ", " + pCodeCnt.ToString() + ")", "And " + pTableCode + " LIKE '" + sKey + "%'") + 1;
@@ -1302,7 +1370,7 @@ namespace MES_WATER.Models
         /// <returns></returns>
         public string Get_Guid()
         {
-            return Guid.NewGuid().ToString().Replace("-","");
+            return Guid.NewGuid().ToString().Replace("-", "");
         }
 
         /// <summary>
@@ -1535,7 +1603,7 @@ namespace MES_WATER.Models
             string sValue = "";
             for (int i = 0; i < dtTmp.Rows.Count; i++)
             {
-                if (i > 0) { sValue += ","; };               
+                if (i > 0) { sValue += ","; };
                 sValue += dtTmp.Rows[i][pFieldCode].ToString();
             }
             return sValue;
@@ -1589,7 +1657,7 @@ namespace MES_WATER.Models
         {
             string sSql = " UPDATE " + pTableCode +
                           "    SET " + pFieldCode + " = @" + pFieldCode +
-                          "  WHERE " + pKeyCode + "   = @" + pKeyCode; 
+                          "  WHERE " + pKeyCode + "   = @" + pKeyCode;
             using (SqlConnection con_db = Set_DBConnection())
             {
                 SqlCommand sqlCommand = new SqlCommand(sSql);
@@ -1608,7 +1676,7 @@ namespace MES_WATER.Models
         /// <param name="pKeyValue">鍵值</param>
         public void Del_QueryData(string pTableCode, string pKeyCode, string pKeyValue)
         {
-            string sSql = " DELETE " + pTableCode + 
+            string sSql = " DELETE " + pTableCode +
                           "  WHERE " + pKeyCode + "   = @" + pKeyCode;
             using (SqlConnection con_db = Set_DBConnection())
             {
@@ -1873,7 +1941,7 @@ namespace MES_WATER.Models
                     return;
                 }
             }
-            
+
             BDP20_0000 data = new BDP20_0000()
             {
                 usr_code = pUsrCode,
@@ -3050,15 +3118,16 @@ namespace MES_WATER.Models
                 " AND sch_date_s=@sch_date_s" +
                 " AND plan_line_code=@plan_line_code" +
                 " ORDER BY sch_date_s,sch_time_s";
-            DataTable dtTmp = Get_DataTable(sSql, "sch_date_s,plan_line_code", sNowDate +","+ sLineCode);
+            DataTable dtTmp = Get_DataTable(sSql, "sch_date_s,plan_line_code", sNowDate + "," + sLineCode);
             int iNo = 1;
             for (int i = 0; i <= dtTmp.Rows.Count - 1; i++)
             {
                 string mo_code = dtTmp.Rows[i]["mo_code"].ToString();
-                if (pMoCode== mo_code)
+                if (pMoCode == mo_code)
                 {
                     break;
-                } else
+                }
+                else
                 {
                     iNo += 1;
                 }
@@ -3070,7 +3139,7 @@ namespace MES_WATER.Models
         {
             int sRetun = 1;
             string sSql = "";
-            sSql = "SELECT ISNULL(MAX(sap_scr_no),0) AS Max_no FROM MET04_0200 WHERE mo_code='"+ pMoCode + "'";
+            sSql = "SELECT ISNULL(MAX(sap_scr_no),0) AS Max_no FROM MET04_0200 WHERE mo_code='" + pMoCode + "'";
             using (SqlConnection con_db = Set_DBConnection())
             {
                 SqlCommand sqlCommand = new SqlCommand(sSql);
@@ -3199,12 +3268,12 @@ namespace MES_WATER.Models
         /// <param name="upload"></param>
         /// <param name="sQsheetcode"></param>
         /// <returns></returns>
-        public bool FileByUpdateData(HttpPostedFileBase upload,string sQsheetcode="")
+        public bool FileByUpdateData(HttpPostedFileBase upload, string sQsheetcode = "")
         {
-            string typeName, pro_code; 
-            DataTable dTmp = Get_DataTable(" SELECT * FROM QMB03_0000 WHERE qsheet_code='" + sQsheetcode +"' ");
+            string typeName, pro_code;
+            DataTable dTmp = Get_DataTable(" SELECT * FROM QMB03_0000 WHERE qsheet_code='" + sQsheetcode + "' ");
 
-            if (upload.ContentLength > 0　&& dTmp.Rows.Count > 0)
+            if (upload.ContentLength > 0 && dTmp.Rows.Count > 0)
             {
                 typeName = dTmp.Rows[0]["qsheet_type"].ToString();
                 pro_code = dTmp.Rows[0]["pro_code"].ToString();
@@ -3224,7 +3293,7 @@ namespace MES_WATER.Models
                 }
                 upload.SaveAs(path);
                 File.Move(path, changeName);
-               
+
             }
             else { return false; }
             return true;
@@ -3287,16 +3356,20 @@ namespace MES_WATER.Models
         /// </summary>
         /// <param name="pRelCode"></param>
         /// <param name="pwmt0200"></param>
-        public void Upd_WMT0200_SapCode(string pRelCode,string pwmt0200)
+        public void Upd_WMT0200_SapCode(string pRelCode, string pwmt0200)
         {
             string sWmt0200 = pwmt0200;
-            string sSql="update WMT0200 set sap_code='"+ pRelCode + "'"+
-                        " where wmt0200='"+ sWmt0200 + "'";
+            string sSql = "update WMT0200 set sap_code='" + pRelCode + "'" +
+                        " where wmt0200='" + sWmt0200 + "'";
             using (SqlConnection con_db = Set_DBConnection())
             {
                 con_db.Execute(sSql);
             }
         }
 
+        public List<DDLList> Get_AlexDDLOption(string pSelectCode, string pShowType = "A")
+        {
+            return Get_DDLOptionByDb(pSelectCode, "alex_ori", pShowType);
+        }
     }
 }
