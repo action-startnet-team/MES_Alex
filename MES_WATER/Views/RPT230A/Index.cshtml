@@ -15,7 +15,7 @@
     List<DDLList> query_DDL = comm.Get_BDP30_0200(sPrgCode, "C");
 
     //查詢的運算子的下拉選單//
-    List<DDLList> field_op_DDL = comm.Get_DDLOption("field_operator");
+    List<DDLList> field_op_DDL = comm.Get_AlexDDLOption("field_operator","A");
 }
 
 @{
@@ -158,13 +158,13 @@
                                     break;
                                 case "S":
                                     <select name="field_value" class="chosen-select">
-                                        @(CustomHelper.Get_Option(comm.Get_DDLOption(qColList[i].data_source, "A"), qColList[i].default_value, true))
+                                        @(CustomHelper.Get_Option(comm.Get_AlexDDLOption(qColList[i].data_source, "A"), qColList[i].default_value, true))
                                     </select>
                                     if (qColList[i].field_type.ToUpper() == "B")
                                     {
                                         <span class="to_text">至</span>
                                         <select name="field_value" class="chosen-select">
-                                            @CustomHelper.Get_Option(comm.Get_DDLOption(qColList[i].data_source, "A"), qColList[i].default_value, true)
+                                            @CustomHelper.Get_Option(comm.Get_AlexDDLOption(qColList[i].data_source, "A"), qColList[i].default_value, true)
                                         </select>
                                     }
                                     break;

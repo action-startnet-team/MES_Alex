@@ -138,7 +138,7 @@ namespace MES_WATER.Controllers
 
             string sSql = "";
             int i;
-            DataTable dtTmp = comm.Get_DataTable(sSql);
+            DataTable dtTmp = comm.Get_AlexDataTable(sSql);
 
             //抓取資料
             sSql = @" SELECT  SALES_ORDER_DOC.DOC_NO, SALES_ORDER_DOC_D.SequenceNumber, CUSTOMER.CUSTOMER_NAME, --訂單單號、序號、客戶
@@ -154,8 +154,7 @@ namespace MES_WATER.Controllers
                     INNER JOIN CUSTOMER ON SALES_ORDER_DOC.CUSTOMER_ID = CUSTOMER.CUSTOMER_BUSINESS_ID 
                     LEFT OUTER JOIN CUSTOMER_ITEM ON SALES_ORDER_DOC_D.CUSTOMER_ITEM_ID = CUSTOMER_ITEM.CUSTOMER_ITEM_ID 
                     INNER JOIN PLANT ON SALES_ORDER_DOC_SD.DELIVERY_PLANT_ID = PLANT.PLANT_ID 
-                    INNER JOIN SALES_CENTER ON SALES_ORDER_DOC.Owner_Org_ROid = SALES_CENTER.SALES_CENTER_ID
-                    WHERE SALES_ORDER_DOC_SD.[CLOSE]= 0";
+                    INNER JOIN SALES_CENTER ON SALES_ORDER_DOC.Owner_Org_ROid = SALES_CENTER.SALES_CENTER_ID";
 
             if (!string.IsNullOrEmpty(sSALES_CENTER_CODE)) { sSql += " AND SALES_CENTER.SALES_CENTER_CODE ='" + sSALES_CENTER_CODE + "'"; }
             if (!string.IsNullOrEmpty(sPLANT_CODE_S)) { sSql += " AND PLANT.PLANT_CODE >='" + sPLANT_CODE_S + "'"; }
@@ -164,13 +163,14 @@ namespace MES_WATER.Controllers
             if (!string.IsNullOrEmpty(sDOC_NO_E)) { sSql += " AND SALES_ORDER_DOC.DOC_NO <='" + sDOC_NO_E + "'"; }
             if (!string.IsNullOrEmpty(sPLAN_DELIVERY_DATE_S)) { sSql += " AND PLANT.PLAN_DELIVERY_DATE >='" + sPLAN_DELIVERY_DATE_S + "'"; }
             if (!string.IsNullOrEmpty(sPLAN_DELIVERY_DATE_E)) { sSql += " AND PLANT.PLAN_DELIVERY_DATE <='" + sPLAN_DELIVERY_DATE_E + "'"; }
-            if (!string.IsNullOrEmpty(sCUSTOMER_ORDER_NO_S)) { sSql += " AND CUSTOMER.CUSTOMER_ORDER_NO >='" + sCUSTOMER_ORDER_NO_S + "'"; }
-            if (!string.IsNullOrEmpty(sCUSTOMER_ORDER_NO_E)) { sSql += " AND CUSTOMER.CUSTOMER_ORDER_NO <='" + sCUSTOMER_ORDER_NO_E + "'"; }
-            if (!string.IsNullOrEmpty(sCUSTOMER_CODE)) { sSql += " AND CUSTOMER.CUSTOMER_CODE <='" + sCUSTOMER_CODE + "'"; }
+            if (!string.IsNullOrEmpty(sCUSTOMER_ORDER_NO_S)) { sSql += " AND SALES_ORDER_DOC.CUSTOMER_ORDER_NO >='" + sCUSTOMER_ORDER_NO_S + "'"; }
+            if (!string.IsNullOrEmpty(sCUSTOMER_ORDER_NO_E)) { sSql += " AND SALES_ORDER_DOC.CUSTOMER_ORDER_NO <='" + sCUSTOMER_ORDER_NO_E + "'"; }
+            if (!string.IsNullOrEmpty(sCUSTOMER_CODE)) { sSql += " AND CUSTOMER.CUSTOMER_CODE ='" + sCUSTOMER_CODE + "'"; }
             if (!string.IsNullOrEmpty(sCUSTOMER_ITEM_CODE_S)) { sSql += " AND CUSTOMER_ITEM.CUSTOMER_ITEM_CODE >='" + sCUSTOMER_ITEM_CODE_S + "'"; }
             if (!string.IsNullOrEmpty(sCUSTOMER_ITEM_CODE_E)) { sSql += " AND CUSTOMER_ITEM.CUSTOMER_ITEM_CODE <='" + sCUSTOMER_ITEM_CODE_E + "'"; }
-
-            dtTmp = comm.Get_DataTable(sSql);
+            
+            dtTmp = comm.Get_AlexDataTable(sSql);
+            
             comm.Ins_BDP20_0000("admin", "RPT230A", "RPT", sSql);
 
 
