@@ -103,17 +103,23 @@ namespace MES_WATER.Controllers
             string sSql = @"
                 SELECT  top " + count + @"
 		            ROW_NUMBER() OVER(ORDER BY a.seq_no  ) AS #,
-		            a.mo_code as '產品',a.plan_qty AS '計畫',		
+		            a.mo_code as '工單號',c.day_target_qty AS '計畫',		
                     (case a.MO_STATUS 
                         when 'W' then '待排程'
 			            when '0' then '待生產'
 			            when '1' then '生產中'
 			            when '2' then '結案'
 			            when '3' then '強制結案'
-			            END)  as '狀態' 
-                    ,ISNULL(a.QTY,0) AS '產量' 
+			            END)  as '狀態' ,
+						(case 
+						when a.MO_STATUS ='1' then (SELECT TOP (1) SUM(m.QTY) AS QTY  FROM mba_e10 m   WHERE Convert(varchar,m.TRANSACTION_DATE,23) = Convert(varchar,GETDATE(),23) and XMACHINE_CODE = @MACHINE_CODE) 
+						when a.MO_STATUS ='0' then '0'
+						END) as '產量'
+
+                    /*,ISNULL(a.QTY,0) AS '產量' */
                     /*,case f.mac_code when '' then e.mac_code else f.mac_code end   as '機台'*/   /*以 mem01 實際進站開工為優先, 若無才取met03 */
                 FROM MET02_0000 a
+                left join MEB12_0000 c on c.line_code = a.MACHINE_CODE
                 WHERE  a.MO_STATUS in ('0', '1') AND a.MACHINE_CODE = @MACHINE_CODE order by a.seq_no ";
             //a.ins_date = @sch_date_s AND a.MO_STATUS in ('0', '1') AND
 
@@ -153,12 +159,19 @@ namespace MES_WATER.Controllers
 
                     string sWrkCode = Get_DataByStationCode(mac_code, "OPERATION_CODE");
                     string spec_c = Get_DataByStationCode(mac_code, "spec_c");
-                    string sor_code = Get_DataByStationCode(mac_code, "sor_code");
+                    //string sor_code = Get_DataByStationCode(mac_code, "sor_code");
                     string spec_a = Get_DataByStationCode(mac_code, "spec_a");
-                    double iok_qty = comm.sGetDouble(Get_DataByStationCode(mac_code, "QTY"));
-                    double ing_qty = comm.sGetDouble(Get_DataByStationCode(mac_code, "SCRAP_QTY"));
-                    double irate = 0;
-                    //string sUsrName = Get_DataByStationCode(seq_no, "usr_code");
+                    //double ing_qty = comm.sGetDouble(Get_DataByStationCode(mac_code, "SCRAP_QTY"));
+                    //double irate = comm.sGetDouble(Get_DataByStationCode(mac_code, "irate"));
+                    //double MAX_QTY = comm.sGetDouble(Get_DataByStationCode(mac_code, "MAX_QTY"));
+                    //double Min_QTY = comm.sGetDouble(Get_DataByStationCode(mac_code, "Min_QTY"));
+                    double QTY = comm.sGetDouble(Get_DataByStationCode(mac_code, "QTY"));
+                    double hour_count = comm.sGetDouble(Get_DataByStationCode(mac_code, "hour_count"));
+                    double pro_uph = comm.sGetDouble(Get_DataByStationCode(mac_code, "pro_uph"));
+                    double day_target_qty = comm.sGetDouble(Get_DataByStationCode(mac_code, "day_target_qty"));
+
+
+                //string sUsrName = Get_DataByStationCode(seq_no, "usr_code");
                     string sUsrName = "";
                     string sWorkTime = Get_DataByStationCode(mac_code, "ins_date");
 
@@ -170,19 +183,24 @@ namespace MES_WATER.Controllers
                     //sUsrName = comm.Get_QueryData("BDP08_0000", sUsrName, "usr_code", "usr_name") + "(" + Get_UserCodeByMacCodeCount(work_code) + ")";
 
                     double completeRate = 0;
-                    double iplan_qty = comm.sGetDouble(Get_DataByStationCode(mac_code, "plan_qty"));
+                    double iplan_qty = 0;
+                    double iok_qty = 0;
+                    iok_qty = QTY;
+                    iplan_qty = QTY / (hour_count*pro_uph);
+
+                    //double iplan_qty = comm.sGetDouble(Get_DataByStationCode(mac_code, "plan_qty"));
                     //double imo_qty = comm.sGetDouble(Get_DataByStationCode(seq_no, "mo_qty"));
 
 
 
-                    //if (iok_qty + ing_qty != 0)
-                    //{
-                    //    irate = iok_qty / (iok_qty + ing_qty);
-                    //}
+                //if (iok_qty + ing_qty != 0)
+                //{
+                //    irate = iok_qty / (iok_qty + ing_qty);
+                //}
 
-                    if (iplan_qty != 0)
+                if (day_target_qty != 0)
                     {
-                        completeRate = iok_qty / iplan_qty;// 達成率=良品/計畫輛
+                        completeRate = QTY / day_target_qty;// 達成率=良品/計畫輛
                     }
 
                     //double dRelTime = Get_RelTime(sWrkCode);
@@ -204,25 +222,25 @@ namespace MES_WATER.Controllers
                     if (string.IsNullOrEmpty(sMoCode))
                     {
                         iok_qty = 0;
-                        ing_qty = 0;
-                        irate = 0;
+                        //iplan_qty = 0;
+                        //ing_qty = 0;
+                        //irate = 0;
                         sUsrName = "";
-                        sWorkTime = "";
-                        completeRate = 0;
+                        //sWorkTime = "";
+                        //completeRate = 0;
                     }
 
                     List<object> items = new List<object>();
                     //items.Add(new { name = "iplan_qty", value = (iok_qty + ing_qty).ToString() + "/" + iplan_qty.ToString(), label = "產量" });
-                    items.Add(new { name = "iplan_qty", value = iplan_qty.ToString(), label = "計畫" });
+                    items.Add(new { name = "day_target_qty", value = day_target_qty.ToString(), label = "今日生產計畫" });
+                    items.Add(new { name = "QTY", value = QTY.ToString(), label = "今日生產產出" });
                     items.Add(new { name = "completeRate", value = completeRate.ToString("0.##%"), label = "達成率" });
                     //items.Add(new { name = "iok_qty", value = iok_qty.ToString(), label = "良品" });
-                    items.Add(new { name = "iok_qty", value = iok_qty.ToString(), label = "產量" });
-                    //items.Add(new { name = "irate", value = irate.ToString("0.##%"), label = "良品率" });
-                    items.Add(new { name = "sor_code", value = sor_code.ToString(), label = "工單型號" });
+                    items.Add(new { name = "iplan_qty", value = iplan_qty.ToString("0.##%"), label = "OEE" });
+                    //items.Add(new { name = "sor_code", value = sor_code.ToString(), label = "工單型號" });
                     //items.Add(new { name = "ing_qty", value = ing_qty.ToString(), label = "不良品" });
-                    items.Add(new { name = "spec_c", value = spec_c.ToString(), label = "尺寸" });
-                    //items.Add(new { name = "sUsrName", value = sUsrName, label = "人員" });
-                    items.Add(new { name = "spec_a", value = spec_a.ToString(), label = "孔數" });
+                    items.Add(new { name = "spec_c", value = spec_c.ToString(), label = "" });
+                    items.Add(new { name = "spec_a", value = spec_a.ToString(), label = "" });
                     items.Add(new { name = "work_time", value = sWorkTime, label = "工單開始時間" });
                     //items.Add(new { name = "sEfficiency", value = sEfficiency.ToString("0.##%"), label = "效率" });
 
@@ -316,8 +334,18 @@ namespace MES_WATER.Controllers
             //       "   and work_time_s <> ''" +
             //       "   and work_time_e = ''" +
             //       " order by work_time_s desc";
-            sSql = "select MET02_0000.* from MET02_0000 with (nolock)" +
-                  " where MET02_0000.MACHINE_CODE='" + mac_code + "' and MO_STATUS='1'";
+            sSql = @"   SELECT SUM(m.QTY) AS QTY,
+                       DATEDIFF(HOUR
+                        ,(select TOP(1) TRANSACTION_DATE from MBA_E10 where  Convert(varchar,TRANSACTION_DATE,23) = Convert(varchar,GETDATE(),23) and Convert(varchar,TRANSACTION_DATE,108) > '01:00:00' order by  TRANSACTION_DATE )
+	                    ,(select TOP(1) TRANSACTION_DATE from MBA_E10 where  Convert(varchar, TRANSACTION_DATE,23) = Convert(varchar,GETDATE(),23) and Convert(varchar,TRANSACTION_DATE,108) > '01:00:00' order by  TRANSACTION_DATE DESC)) AS hour_count
+                        ,(select TOP(1) mo_code from MET02_0000 where Convert(varchar, TRANSACTION_DATE,23) = Convert(varchar,GETDATE(),23) order by TRANSACTION_DATE) AS mo_code
+	                    , a.day_target_qty AS day_target_qty, c.pro_uph AS pro_uph
+                       FROM mba_e10 m
+                       left join MEB12_0000 a on a.line_code = m.XMACHINE_CODE 
+                       left join MET02_0000 b on b.mo_code = m.MO_DOC_NO
+                       left join MEB50_0000 c on c.ITEM_SPECIFICATION = b.pro_spec
+                       WHERE Convert(varchar,m.TRANSACTION_DATE,23) = Convert(varchar,GETDATE(),23) AND XMACHINE_CODE='" + mac_code+"' "+
+                       " group by a.day_target_qty, c.pro_uph";
             DataTable dtTmp = comm.Get_DataTable(sSql);
 
             if (dtTmp.Rows.Count > 0)
