@@ -9,7 +9,7 @@ using Dapper;
 
 namespace MES_WATER.Repository
 {
-    public class RPT23_0000Repository
+    public class RPT23_0100Repository
     {
         Comm comm = new Comm();
 
@@ -23,33 +23,32 @@ namespace MES_WATER.Repository
         /// <summary>
         /// 傳入一個WMB01_0000的DTO，存檔，一次存檔一筆
         /// </summary>
-        /// <param name="RPT23_0000">DTO</param>
-        public void InsertData(RPT23_0000 RPT23_0000)
+        /// <param name="RPT23_0100">DTO</param>
+        public void InsertData(RPT23_0100 RPT23_0100)
         {
             string sSql = @" INSERT INTO 
-                           MBA_E20 (  DOC_NO, SequenceNumber, bussiness_reply,  Production_reply,  shipment_reply, update_at, usr_code ) 
-                               VALUES ( @DOC_NO, @SequenceNumber, @bussiness_reply, @Production_reply, @shipment_reply, @update_at, @usr_code  ) ";
+                           MBA_E30 (  DOC_NO, SequenceNumber, buy_reply,  store_reply,  update_at, usr_code ) 
+                               VALUES ( @DOC_NO, @SequenceNumber, @buy_reply, @store_reply,  @update_at, @usr_code  ) ";
             using (SqlConnection con_db = comm.Set_DBConnection())
             {
-                con_db.Execute(sSql, RPT23_0000);
+                con_db.Execute(sSql, RPT23_0100);
             }
         }
 
         /// <summary>
         /// 傳入一個WMB01_0000的DTO，修改，一次修改一筆
         /// </summary>
-        /// <param name="RPT23_0000">DTO</param>
-        public void UpdateData(RPT23_0000 RPT23_0000)
+        /// <param name="RPT23_0100">DTO</param>
+        public void UpdateData(RPT23_0100 RPT23_0100)
         {
             string sSql = " UPDATE MBA_E20               " +
-                          "    SET bussiness_reply =  @bussiness_reply,     " +
-                          "        Production_reply  =  @Production_reply,      " +
-                          "        shipment_reply =  @shipment_reply      " +
+                          "    SET buy_reply =  @buy_reply,     " +
+                          "        store_reply  =  @store_reply,      " +
                           "  WHERE DOC_NO =  @DOC_NO      "+
                             "  and SequenceNumber =  @SequenceNumber      ";
             using (SqlConnection con_db = comm.Set_DBConnection())
             {
-                con_db.Execute(sSql, RPT23_0000);
+                con_db.Execute(sSql, RPT23_0100);
                 //SqlCommand sqlCommand = new SqlCommand(sSql);
                 //sqlCommand.Connection = con_db;
                 //sqlCommand.Parameters.Add(new SqlParameter("@sto_code", WMB01_0000.sto_code));
@@ -63,6 +62,7 @@ namespace MES_WATER.Repository
         /// 傳入一個鍵值，刪除、一次刪除一筆
         /// </summary>
         /// <param name="pTkCode">資料鍵值</param>
+
 
         ////暫存DataTable參考
         //// <summary>

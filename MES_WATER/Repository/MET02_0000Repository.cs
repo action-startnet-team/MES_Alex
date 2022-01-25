@@ -782,49 +782,49 @@ namespace MES_WATER.Repository
             //    }
             //}
 
-            string sql = "select t1.ITEM_CODE,t1.ITEM_NAME, t1.ITEM_SPECIFICATION,t1.EXPR6,t1.EXPR7,t1.[A01-01],t1.[A01-03],t1.[A01-091],t2.[3-車圈型號],t2.[6-車圈尺寸],t2.[D-車圈/花鼓孔數] " +
-                         "from( " +
-                         " select * " +
-                         " from( " +
-                         " SELECT     ITEM.ITEM_CODE, ITEM.ITEM_NAME, ITEM.ITEM_SPECIFICATION, FEATURE.FEATURE_CODE, ITEM_FEATURE_VALUE.FEATURE_VALUE, " +
-                         "                       ITEM_FEATURE_VALUE_1.FEATURE_VALUE AS EXPR6, " +
-                         "                       ITEM_FEATURE_VALUE_1.FEATURE_VALUE_DESC AS EXPR7 " +
-                         " FROM         FEATURE INNER JOIN " +
-                         "                       ITEM_FEATURE_VALUE ON FEATURE.FEATURE_ID = ITEM_FEATURE_VALUE.FEATURE_ID INNER JOIN " +
-                         "                       ITEM_FEATURE_VALUE ITEM_FEATURE_VALUE_1 INNER JOIN " +
-                         "                       FEATURE FEATURE_1 ON ITEM_FEATURE_VALUE_1.FEATURE_ID = FEATURE_1.FEATURE_ID INNER JOIN " +
-                         "                       ITEM INNER JOIN " +
-                         "                       BOM_D ON ITEM.ITEM_BUSINESS_ID = BOM_D.PARENT_ITEM_ID INNER JOIN " +
-                         "                       ITEM ITEM_1 ON BOM_D.SOURCE_ID_ROid = ITEM_1.ITEM_BUSINESS_ID ON ITEM_FEATURE_VALUE_1.ITEM_BUSINESS_ID = ITEM_1.ITEM_BUSINESS_ID ON " +
-                         "                       ITEM_FEATURE_VALUE.ITEM_BUSINESS_ID = ITEM.ITEM_BUSINESS_ID " +
-                         " WHERE ITEM.ApproveStatus = 'Y' AND ITEM_1.ApproveStatus = 'Y' AND FEATURE_1.FEATURE_CODE = 'B01-01' AND FEATURE.FEATURE_CODE in ('A01-01', 'A01-03', 'A01-091') " +
-                         " ) t " +
-                         " pivot( " +
-                         "     MAX(FEATURE_VALUE) " +
-                         "     FOR FEATURE_CODE IN([A01-01],[A01-03],[A01-091]) " +
-                         " ) p " +
-                         " ) t1 " +
-                         " left join( " +
-                         " select * " +
-                         " from( " +
-                         " SELECT     ITEM.ITEM_CODE, FEATURE.FEATURE_NAME, " +
-                         "                       ITEM_FEATURE_VALUE.FEATURE_VALUE_DESC, ITEM_FEATURE_VALUE_1.FEATURE_VALUE AS EXPR6, " +
-                         "                       ITEM_FEATURE_VALUE_1.FEATURE_VALUE_DESC AS EXPR7 " +
-                         " FROM         FEATURE INNER JOIN " +
-                         "                       ITEM_FEATURE_VALUE ON FEATURE.FEATURE_ID = ITEM_FEATURE_VALUE.FEATURE_ID INNER JOIN " +
-                         "                       ITEM_FEATURE_VALUE ITEM_FEATURE_VALUE_1 INNER JOIN " +
-                         "                       FEATURE FEATURE_1 ON ITEM_FEATURE_VALUE_1.FEATURE_ID = FEATURE_1.FEATURE_ID INNER JOIN " +
-                         "                       ITEM INNER JOIN " +
-                         "                       BOM_D ON ITEM.ITEM_BUSINESS_ID = BOM_D.PARENT_ITEM_ID INNER JOIN " +
-                         "                       ITEM ITEM_1 ON BOM_D.SOURCE_ID_ROid = ITEM_1.ITEM_BUSINESS_ID ON ITEM_FEATURE_VALUE_1.ITEM_BUSINESS_ID = ITEM_1.ITEM_BUSINESS_ID ON " +
-                         "                       ITEM_FEATURE_VALUE.ITEM_BUSINESS_ID = ITEM.ITEM_BUSINESS_ID " +
-                         " WHERE ITEM.ApproveStatus = 'Y' AND ITEM_1.ApproveStatus = 'Y' AND FEATURE_1.FEATURE_CODE = 'B01-01' AND FEATURE.FEATURE_CODE in ('A01-01', 'A01-03', 'A01-091') " +
-                         " ) t " +
-                         " pivot( " +
-                         "     MAX(FEATURE_VALUE_DESC) " +
-                         "     FOR FEATURE_NAME IN([3-車圈型號],[6-車圈尺寸],[D-車圈/花鼓孔數]) " +
-                         " ) p " +
-                         " ) t2 on t1.ITEM_CODE = t2.ITEM_CODE ";
+            string sql = @"select t1.ITEM_CODE,t1.ITEM_NAME, t1.ITEM_SPECIFICATION,t1.EXPR6,t1.EXPR7,t1.[A01-01],t1.[A01-03],t1.[A01-091],t2.[3-車圈型號],t2.[6-車圈尺寸],t2.[D-車圈/花鼓孔數] 
+                         from(
+                         select *
+                          from(
+                          SELECT     ITEM.ITEM_CODE, ITEM.ITEM_NAME, ITEM.ITEM_SPECIFICATION, FEATURE.FEATURE_CODE, ITEM_FEATURE_VALUE.FEATURE_VALUE,
+                                               ITEM_FEATURE_VALUE_1.FEATURE_VALUE AS EXPR6,
+                                                ITEM_FEATURE_VALUE_1.FEATURE_VALUE_DESC AS EXPR7
+                          FROM         FEATURE INNER JOIN
+                                                ITEM_FEATURE_VALUE ON FEATURE.FEATURE_ID = ITEM_FEATURE_VALUE.FEATURE_ID INNER JOIN
+                                                ITEM_FEATURE_VALUE ITEM_FEATURE_VALUE_1 INNER JOIN
+                                                FEATURE FEATURE_1 ON ITEM_FEATURE_VALUE_1.FEATURE_ID = FEATURE_1.FEATURE_ID INNER JOIN
+                                                ITEM INNER JOIN
+                                                BOM_D ON ITEM.ITEM_BUSINESS_ID = BOM_D.PARENT_ITEM_ID INNER JOIN
+                                                ITEM ITEM_1 ON BOM_D.SOURCE_ID_ROid = ITEM_1.ITEM_BUSINESS_ID ON ITEM_FEATURE_VALUE_1.ITEM_BUSINESS_ID = ITEM_1.ITEM_BUSINESS_ID ON
+                                                ITEM_FEATURE_VALUE.ITEM_BUSINESS_ID = ITEM.ITEM_BUSINESS_ID
+                          WHERE ITEM.ApproveStatus = 'Y' AND ITEM_1.ApproveStatus = 'Y' AND FEATURE_1.FEATURE_CODE = 'B01-01' AND FEATURE.FEATURE_CODE in ('A01-01', 'A01-03', 'A01-091')
+                          ) t
+                          pivot(
+                              MAX(FEATURE_VALUE)
+                              FOR FEATURE_CODE IN([A01 - 01],[A01 - 03],[A01 - 091])
+                          ) p
+                          ) t1
+                          left join(
+                          select *
+                          from(
+                          SELECT     ITEM.ITEM_CODE, FEATURE.FEATURE_NAME,
+                                                ITEM_FEATURE_VALUE.FEATURE_VALUE_DESC, ITEM_FEATURE_VALUE_1.FEATURE_VALUE AS EXPR6,
+                                                ITEM_FEATURE_VALUE_1.FEATURE_VALUE_DESC AS EXPR7
+                          FROM         FEATURE INNER JOIN
+                                                ITEM_FEATURE_VALUE ON FEATURE.FEATURE_ID = ITEM_FEATURE_VALUE.FEATURE_ID INNER JOIN
+                                                ITEM_FEATURE_VALUE ITEM_FEATURE_VALUE_1 INNER JOIN
+                                                FEATURE FEATURE_1 ON ITEM_FEATURE_VALUE_1.FEATURE_ID = FEATURE_1.FEATURE_ID INNER JOIN
+                                                ITEM INNER JOIN
+                                                BOM_D ON ITEM.ITEM_BUSINESS_ID = BOM_D.PARENT_ITEM_ID INNER JOIN
+                                                ITEM ITEM_1 ON BOM_D.SOURCE_ID_ROid = ITEM_1.ITEM_BUSINESS_ID ON ITEM_FEATURE_VALUE_1.ITEM_BUSINESS_ID = ITEM_1.ITEM_BUSINESS_ID ON
+                                                ITEM_FEATURE_VALUE.ITEM_BUSINESS_ID = ITEM.ITEM_BUSINESS_ID
+                          WHERE ITEM.ApproveStatus = 'Y' AND ITEM_1.ApproveStatus = 'Y' AND FEATURE_1.FEATURE_CODE = 'B01-01' AND FEATURE.FEATURE_CODE in ('A01-01', 'A01-03', 'A01-091')
+                          ) t
+                          pivot(
+                              MAX(FEATURE_VALUE_DESC)
+                              FOR FEATURE_NAME IN([3 - 車圈型號],[6 - 車圈尺寸],[D - 車圈 / 花鼓孔數])
+                          ) p
+                          ) t2 on t1.ITEM_CODE = t2.ITEM_CODE ";
 
             DataTable dt2 = comm.Get_AlexDataTable(sql);
 

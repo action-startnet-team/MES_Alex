@@ -50,6 +50,7 @@ namespace MES_WATER.Repository
 
                             line_code = comm.sGetString(reader["line_code"].ToString()),
                             line_name = comm.sGetString(reader["line_name"].ToString()),
+                            day_target_qty = comm.sGetDecimal(reader["day_target_qty"].ToString()),
                             //area_code = comm.sGetString(reader["area_code"].ToString()),
                             //cmemo = comm.sGetString(reader["cmemo"].ToString()),
 
@@ -243,8 +244,8 @@ namespace MES_WATER.Repository
         public void InsertData(MEB12_0000 MEB12_0000)
         {
             string sSql = "INSERT INTO " +
-                          " MEB12_0000 (  line_code,  line_name ) " +
-                          "     VALUES ( @line_code, @line_name ) " ;
+                          " MEB12_0000 (  line_code,  line_name, day_target_qty ) " +
+                          "     VALUES ( @line_code, @line_name, @day_target_qty ) ";
             using (SqlConnection con_db = comm.Set_DBConnection())
             {
                 con_db.Execute(sSql, MEB12_0000);
@@ -264,7 +265,8 @@ namespace MES_WATER.Repository
         public void UpdateData(MEB12_0000 MEB12_0000)
         {
             string sSql = " UPDATE MEB12_0000                        " +
-                          "    SET line_name     =  @line_name       " +
+                          "    SET line_name     =  @line_name,       " +
+                          "     day_target_qty     =  @day_target_qty,       " +
                           "  WHERE line_code     =  @line_code       " ;
 
 

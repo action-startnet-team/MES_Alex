@@ -73,7 +73,7 @@ namespace MES_WATER.Repository
             string sSql = "";
             if (!string.IsNullOrEmpty(pTkCode))
             {
-                sSql = " SELECT ECB04_0100.*,ECB05_0000.ERP_FIELD_NAME from ECB04_0100 " +
+                sSql = " SELECT ECB04_0100.*,ECB05_0000.ERP_FIELD_NAME, ECB05_0000.ERP_FORM_NAME from ECB04_0100 " +
                     " left join ECB05_0000 on ECB04_0100.ERP_FIELD_CODE = ECB05_0000.ERP_FIELD_CODE " +
                 " where ECB04_0100." + foreignKey + "=@" + foreignKey + " order by SERIAL_NUM";
                 //" order by inspect_item_code";
@@ -100,6 +100,7 @@ namespace MES_WATER.Repository
                     data.ERP_FIELD_CODE = comm.sGetString(reader["ERP_FIELD_CODE"].ToString());
                     data.ERP_FIELD_NAME = comm.sGetString(reader["ERP_FIELD_NAME"].ToString());
                     data.EXCEL_CODE = comm.sGetString(reader["EXCEL_CODE"].ToString());
+                    data.ERP_FORM_NAME = comm.sGetString(reader["ERP_FORM_NAME"].ToString());
 
                     string sLimitStr = comm.Get_LimitByUsrCode(pUsrCode, pPrgCode);
                     //檢查授權刪除、修改

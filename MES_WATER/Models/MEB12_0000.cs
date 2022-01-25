@@ -21,6 +21,11 @@ namespace MES_WATER.Models
         [StringLength(50, ErrorMessage = "長度最多{1}個字!")]
         public string line_name { get; set; }
 
+        [DisplayName("日計畫產量")]
+        [Required(ErrorMessage = "請輸入{0}")]
+        [StringLength(14, ErrorMessage = "長度最多{1}個字!")]
+        public decimal day_target_qty { get; set; }
+
         //[DisplayName("區域代號")]
         //[Required(ErrorMessage = "請輸入{0}")]
         //[StringLength(10, ErrorMessage = "長度最多{1}個字!")]

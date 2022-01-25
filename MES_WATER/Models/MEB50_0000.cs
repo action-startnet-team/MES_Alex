@@ -13,12 +13,12 @@ namespace MES_WATER.Models
     public class MEB50_0000
     {
         [Key]
-        [DisplayName("產品別")]
+        [DisplayName("產品代號")]
         [Required(ErrorMessage = "請輸入{0}")]
         [StringLength(10, ErrorMessage = "長度最多{1}個字!")]
         public string ITEM_CODE { get; set; }
 
-        [DisplayName("孔數")]
+        [DisplayName("產品描述")]
         [Required(ErrorMessage = "請輸入{0}")]
         [StringLength(50, ErrorMessage = "長度最多{1}個字!")]
         public string ITEM_SPECIFICATION { get; set; }

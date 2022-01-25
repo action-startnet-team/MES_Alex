@@ -26,7 +26,11 @@ namespace MES_WATER.Models
         [StringLength(10, ErrorMessage = "長度最多{1}個字!")]
         public string ERP_FIELD_CODE { get; set; }
 
-        [DisplayName("中文名稱")]
+        [DisplayName("匯入中文名稱")]
+        [ReadOnly(true)]
+        public string ERP_FORM_NAME { get; set; }
+
+        [DisplayName("匯出中文名稱")]
         [ReadOnly(true)]
         public string ERP_FIELD_NAME { get; set; }
 

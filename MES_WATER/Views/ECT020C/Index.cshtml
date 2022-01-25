@@ -188,6 +188,7 @@ if (ViewBag.respectcode > 0)
         </button>
         <ol>
             <li style="font-size: 20px;">
+                @ViewBag.Message<br />
                 「EXCEL欄位」對應「出貨單設定欄位」有誤，請從新上傳。
             </li>
         </ol>
@@ -253,7 +254,7 @@ if (isDisplay == "Y")
     </div>
 
     <div class="btndiv pull-left" style="margin-left: 10px">
-        <a href="/ECT020C/Download_Data?tmp=@ViewBag.TempTable2&cusname=@ViewBag.cus_name" id="downdata" class="btn-group" role="button">
+        <a href="~/Upload/EC_EXCEL/@ViewBag.fileName" download id="downdata" class="btn-group" role="button">
             <span class='downbtn btn btn-white btn-info btn-bold'>下載</span>
         </a>
         @*<input type="button" id="downdata" name="downdata" value="下載" class="btn btn-white btn-info btn-bold">*@

@@ -49,6 +49,7 @@ namespace MES_WATER.Repository
                         {
                             ERP_FIELD_CODE = comm.sGetString(reader["ERP_FIELD_CODE"].ToString()),
                             ERP_FIELD_NAME = comm.sGetString(reader["ERP_FIELD_NAME"].ToString()),
+                            ERP_FORM_NAME = comm.sGetString(reader["ERP_FORM_NAME"].ToString()),
                             is_edit = comm.sGetString(reader["is_edit"].ToString()),
                         };
                     }
@@ -174,7 +175,10 @@ namespace MES_WATER.Repository
         {
             List<ECB05_0000> list = new List<ECB05_0000>();
 
-            string sSql = " SELECT * from ECB05_0000";
+            string sSql = @" SELECT case ECB05_0000.ERP_FIELD_CODE
+                            when 'DELEVERY_ORDER'   then ERP_FIELD_CODE+'此欄位必須存在' ELSE ERP_FIELD_CODE END as ERP_FIELD_CODE
+                            ,ERP_FIELD_NAME,ERP_FORM_NAME,is_edit 
+                            from ECB05_0000";
 
             // 取得資料
             list = comm.Get_ListByQuery<ECB05_0000>(sSql, pWhere, pUsrCode, pPrgCode);
@@ -185,8 +189,13 @@ namespace MES_WATER.Repository
             for (int i = 0; i < list.Count; i++)
             {
                 //檢查授權刪除、修改
-                list[i].can_delete = sLimitStr.Contains("D") ? "Y" : "N";
+                if(list[i].ERP_FIELD_CODE == "DELEVERY_ORDER此欄位必須存在") { list[i].can_delete = sLimitStr.Contains("D") ? "N" : "N"; }
+                else 
+                {
+                    list[i].can_delete = sLimitStr.Contains("D") ? "Y" : "N";
+                }
                 list[i].can_update = sLimitStr.Contains("M") ? "Y" : "N";
+
             }
 
             return list;
@@ -200,8 +209,8 @@ namespace MES_WATER.Repository
         public void InsertData(ECB05_0000 ECB05_0000)
         {
             string sSql = "INSERT INTO " +
-                          " ECB05_0000 (  ERP_FIELD_CODE,   ERP_FIELD_NAME,  is_edit )  " +
-                          "     VALUES ( @ERP_FIELD_CODE,  @ERP_FIELD_NAME, @is_edit )  ";
+                          " ECB05_0000 (  ERP_FIELD_CODE,   ERP_FIELD_NAME, ERP_FORM_NAME, is_edit )  " +
+                          "     VALUES ( @ERP_FIELD_CODE,  @ERP_FIELD_NAME, @ERP_FORM_NAME, @is_edit )  ";
 
             using (SqlConnection con_db = comm.Set_DBConnection())
             {
@@ -217,6 +226,7 @@ namespace MES_WATER.Repository
         {
             string sSql = " UPDATE ECB05_0000 " +
                           "    SET ERP_FIELD_NAME  = @ERP_FIELD_NAME,    " +
+                          "        ERP_FORM_NAME  = @ERP_FORM_NAME,    " +
                           "        is_edit  = @is_edit    " +
                           "  WHERE ERP_FIELD_CODE= @ERP_FIELD_CODE ";
 
