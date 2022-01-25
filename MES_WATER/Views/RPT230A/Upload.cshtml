@@ -7,7 +7,7 @@
 
     string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
 
-    List<RPT23_0100> notSaveList = ViewBag.notSaveList ?? new List<RPT23_0100>();
+    List<RPT23_0000> notSaveList = ViewBag.notSaveList ?? new List<RPT23_0000>();
 }
 
 @Html.Partial("pPrgName")
@@ -66,7 +66,7 @@
                 <strong>已存在資料:</strong>
             </h4>
             <ol>
-                @foreach (RPT23_0100 item in notSaveList)
+                @foreach (RPT23_0000 item in notSaveList)
                 {
                     <li>訂單單號 @item.DOC_NO 序號 @item.SequenceNumber</li>
                 }

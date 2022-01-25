@@ -143,7 +143,7 @@ namespace MES_WATER.Controllers
                 qty += qty2; 
             }
             //oee = (work_time / (8 * (ts.TotalDays+1)) * 100).ToString("0") + "%";
-            oee = (qty / (13*(ts.TotalDays + 1)*200) * 100).ToString("0") + "%";
+            oee = (qty / (13*(ts.TotalDays + 1)*270) * 100).ToString("0") + "%";
             var data = new
             {
                 oee_data = oee,

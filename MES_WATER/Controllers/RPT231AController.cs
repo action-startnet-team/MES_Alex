@@ -160,7 +160,7 @@ namespace MES_WATER.Controllers
             if (!string.IsNullOrEmpty(sPLAN_ARRIVAL_DATE_E)) { sSql += " AND Convert(varchar,PURCHASE_ORDER_SD.PLAN_ARRIVAL_DATE,111) <='" + sPLAN_ARRIVAL_DATE_E + "'"; }
             if (!string.IsNullOrEmpty(sFEATURE_GROUP_CODE_S)) { sSql += " AND FEATURE_GROUP.FEATURE_GROUP_CODE >='" + sFEATURE_GROUP_CODE_S + "'"; }
             if (!string.IsNullOrEmpty(sFEATURE_GROUP_CODE_E)) { sSql += " AND FEATURE_GROUP.FEATURE_GROUP_CODE <='" + sFEATURE_GROUP_CODE_E + "'"; }
-            sSql += " order by PURCHASE_ORDER_SD.PLAN_ARRIVAL_DATE";
+
 
             dtTmp = comm.Get_AlexDataTable(sSql);
             comm.Ins_BDP20_0000("admin", "RPT231A", "RPT", sSql);
@@ -195,7 +195,7 @@ namespace MES_WATER.Controllers
         {
             string sReturn = "";
             string sSql = "";
-            sSql = "select buy_reply,store_reply from MBA_E30 where DOC_NO='" + pDOC_NO + "' and SequenceNumber='" + pSequenceNumber + "'";
+            sSql = "select distinct buy_reply,store_reply from MBA_E30 where DOC_NO='" + pDOC_NO + "' and SequenceNumber='" + pSequenceNumber + "'";
             DataTable dtTmp = comm.Get_DataTable(sSql);
             if (dtTmp.Rows.Count > 0)
             {

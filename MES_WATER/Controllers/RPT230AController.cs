@@ -211,7 +211,7 @@ namespace MES_WATER.Controllers
         {
             string sReturn = "";
             string sSql = "";
-            sSql = "select bussiness_reply,Production_reply,shipment_reply from MBA_E20 where DOC_NO='"+ pDOC_NO + "' and SequenceNumber='"+ pSequenceNumber + "'";
+            sSql = "select distinct bussiness_reply,Production_reply,shipment_reply from MBA_E20 where DOC_NO='"+ pDOC_NO + "' and SequenceNumber='"+ pSequenceNumber + "'";
             DataTable dtTmp = comm.Get_DataTable(sSql);
             if (dtTmp.Rows.Count > 0)
             {
