@@ -15,7 +15,7 @@ namespace MES_WATER.Controllers
     public class DSB111BController : JsonNetController
     {
         Comm comm = new Comm();
-
+        string sPrgCode = "DSB111B";
         // GET: DSB100a
         public ActionResult Index()
         {
@@ -134,10 +134,10 @@ namespace MES_WATER.Controllers
             string sql = "Select MEB15_0000.mac_code,MEB15_0000.mac_name from MEB15_0000  where MEB15_0000.mac_code <> '1001-M1' and MEB15_0000.mac_code <> '1001-M2' ";
             if (line_code != "") sql += " and line_code= '" + line_code + "' ";
             DataTable dt = comm.Get_DataTable(sql, "line_code", line_code);
+            comm.Ins_BDP20_0000(User.Identity.Name, sPrgCode, "select", "", "");
             return Json(dt, JsonRequestBehavior.AllowGet);
         }
-       
-        
+
 
 
         /// <summary>
@@ -368,6 +368,7 @@ namespace MES_WATER.Controllers
             public double utilization { get; set; }
             public double stop_time { get; set; }
             public double work_time { get; set; }
+            public double Oee_2 { get; set; }
         }
 
 
@@ -400,7 +401,10 @@ namespace MES_WATER.Controllers
         {
             
             List<int> range = new List<int>();
-            string sSql = @" select TOP(1) *
+            //當天的資料
+            string sSql = @" select TOP(1) *, 
+                            DATEDIFF(minute, (select MIN(update_at) from MEA_E01 where Convert(varchar,update_at,23) like  Convert(varchar,GETDATE(),23) + '%'), 
+                                    (select MAX(update_at) from MEA_E01 where Convert(varchar,update_at,23) like  Convert(varchar,GETDATE(),23) + '%')) AS OEE 
                             from MEA_E01  
                             where update_at between convert(varchar(10),GETDATE(),120)+' 00:00:01.000' 
                             and convert(varchar(10),GETDATE(),120)+' 23:59:59.999'
@@ -415,6 +419,10 @@ namespace MES_WATER.Controllers
                     result.pro_qty = comm.sGetDouble(dr[(key + 1).ToString()].ToString());
                     result.utilization = comm.sGetDouble(dr[(key + 2).ToString()].ToString());
                     result.stop_time = comm.sGetDouble(dr[(key + 3).ToString()].ToString());
+                    //計算公式(E01.末筆時間 - E01.首筆時間 - E01.停機時間)/ (E01.末筆時間 - E01.首筆時間)
+                    result.Oee_2 = ((comm.sGetDouble(dr[("Oee").ToString()].ToString()) - comm.sGetDouble(dr[(key + 3).ToString()].ToString())) / comm.sGetDouble(dr[("Oee").ToString()].ToString()))*100;
+                    //小數點第一位
+                    result.work_time = Math.Round(result.Oee_2, 1, MidpointRounding.AwayFromZero);
                 }
                 return result;
             }

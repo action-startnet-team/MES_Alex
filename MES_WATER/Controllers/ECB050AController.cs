@@ -77,7 +77,8 @@ namespace MES_WATER.Controllers
             {
                 ECB05_0000 data = new ECB05_0000();
                 data.ERP_FIELD_CODE = dr["ERP欄位代碼"].ToString();
-                data.ERP_FIELD_NAME = dr["中文名稱"].ToString();
+                data.ERP_FIELD_NAME = dr["匯出中文名稱"].ToString();
+                data.ERP_FORM_NAME = dr["匯入中文名稱"].ToString();
                 data.is_edit = "Y";
 
                 if (comm.Chk_RelData("ECB05_0000", "ERP_FIELD_CODE", data.ERP_FIELD_CODE))

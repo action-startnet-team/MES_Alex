@@ -115,43 +115,43 @@
                             </div>
                         </div>
                         @*<br />
-                        <div class="row">
-                            <div class="col-sm-12">
-                                @CustomHelper.Get_Label(Model, sPrgCode, "std_qty", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
-                                <div class="col-md-8  col-xs-7">
-                                    <div>
-                                        @Html.EditorFor(model => model.std_qty, new { htmlAttributes = new { @class = " col-xs-12" } })
-                                    </div>
-                                    <div style="clear:both;"></div>
-                                    @Html.ValidationMessageFor(model => model.std_qty, "", new { @class = "text-danger" })
-                                </div>
-                            </div>
-                        </div>*@
+        <div class="row">
+            <div class="col-sm-12">
+                @CustomHelper.Get_Label(Model, sPrgCode, "std_qty", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                <div class="col-md-8  col-xs-7">
+                    <div>
+                        @Html.EditorFor(model => model.std_qty, new { htmlAttributes = new { @class = " col-xs-12" } })
+                    </div>
+                    <div style="clear:both;"></div>
+                    @Html.ValidationMessageFor(model => model.std_qty, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>*@
                         @*<br />
-                        <div class="row">
-                            <div class="col-sm-12">
-                                @CustomHelper.Get_Label(Model, sPrgCode, "std_time", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
-                                <div class="col-md-8  col-xs-7">
-                                    <div>
-                                        @Html.EditorFor(model => model.std_time, new { htmlAttributes = new { @class = " col-xs-12" } })
-                                    </div>
-                                    <div style="clear:both;"></div>
-                                    @Html.ValidationMessageFor(model => model.std_time, "", new { @class = "text-danger" })
-                                </div>
-                            </div>
-                        </div>*@
+        <div class="row">
+            <div class="col-sm-12">
+                @CustomHelper.Get_Label(Model, sPrgCode, "std_time", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                <div class="col-md-8  col-xs-7">
+                    <div>
+                        @Html.EditorFor(model => model.std_time, new { htmlAttributes = new { @class = " col-xs-12" } })
+                    </div>
+                    <div style="clear:both;"></div>
+                    @Html.ValidationMessageFor(model => model.std_time, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>*@
                         @*<br />
-                        <div class="row">
-                            <div class="col-sm-12">
-                                @CustomHelper.Get_Label(Model, sPrgCode, "mac_type_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
-                                <div class="col-sm-8 col-xs-6">
-                                    <select class="chosen-select" id="mac_type_code" name="mac_type_code">
-                                        @CustomHelper.Get_Option(mac_type_code_list, Model.mac_type_code, true)
-                                    </select>
-                                    @Html.ValidationMessageFor(model => model.mac_type_code, "", new { @class = "text-danger" })
-                                </div>
-                            </div>
-                        </div>*@
+        <div class="row">
+            <div class="col-sm-12">
+                @CustomHelper.Get_Label(Model, sPrgCode, "mac_type_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                <div class="col-sm-8 col-xs-6">
+                    <select class="chosen-select" id="mac_type_code" name="mac_type_code">
+                        @CustomHelper.Get_Option(mac_type_code_list, Model.mac_type_code, true)
+                    </select>
+                    @Html.ValidationMessageFor(model => model.mac_type_code, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>*@
                         <br />
                         <div class="row">
                             <div class="col-sm-12">
@@ -164,45 +164,59 @@
                                 </div>
                             </div>
                         </div>
-                        @*<br />
+                        <br />
                         <div class="row">
                             <div class="col-sm-12">
-                                @CustomHelper.Get_Label(Model, sPrgCode, "ip_type", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
-                                <div class="col-sm-8 col-xs-5">
-                                    <select class="chosen-select" id="ip_type" name="ip_type">
-                                        @CustomHelper.Get_Option(ip_type_list, Model.ip_type, true)
-                                    </select>
-                                    @Html.ValidationMessageFor(model => model.ip_type, "", new { @class = "text-danger" })
+                                @CustomHelper.Get_Label(Model, sPrgCode, "address_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.address_code, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.address_code, "", new { @class = "text-danger" })
                                 </div>
                             </div>
                         </div>
                         <br />
-                        <div class="row">
-                            <div class="col-sm-12">
-                                @CustomHelper.Get_Label(Model, sPrgCode, "mac_ip", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
-                                <div class="col-md-8 col-xs-7">
-                                    <div>
-                                        @Html.EditorFor(model => model.mac_ip, new { htmlAttributes = new { @class = " col-xs-12" } })
-                                    </div>
+                        @*<br />
+        <div class="row">
+            <div class="col-sm-12">
+                @CustomHelper.Get_Label(Model, sPrgCode, "ip_type", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                <div class="col-sm-8 col-xs-5">
+                    <select class="chosen-select" id="ip_type" name="ip_type">
+                        @CustomHelper.Get_Option(ip_type_list, Model.ip_type, true)
+                    </select>
+                    @Html.ValidationMessageFor(model => model.ip_type, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-sm-12">
+                @CustomHelper.Get_Label(Model, sPrgCode, "mac_ip", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                <div class="col-md-8 col-xs-7">
+                    <div>
+                        @Html.EditorFor(model => model.mac_ip, new { htmlAttributes = new { @class = " col-xs-12" } })
+                    </div>
 
-                                    <div style="clear:both;"></div>
-                                    @Html.ValidationMessageFor(model => model.mac_ip, "", new { @class = "text-danger" })
-                                </div>
-                            </div>
-                        </div>*@
+                    <div style="clear:both;"></div>
+                    @Html.ValidationMessageFor(model => model.mac_ip, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>*@
                         <br />
                         @*<div class="row">
-                            <div class="col-sm-12">
-                                @CustomHelper.Get_Label(Model, sPrgCode, "cmemo", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
-                                <div class="col-md-8 col-xs-7">
-                                    <div>
-                                        <textarea id="cmemo" name="cmemo" class="col-xs-12" form="validation_form">@Model.cmemo</textarea>
-                                    </div>
-                                    <div style="clear:both;"></div>
-                                    @Html.ValidationMessageFor(model => model.cmemo, "", new { @class = "text-danger" })
-                                </div>
-                            </div>
-                        </div>*@
+            <div class="col-sm-12">
+                @CustomHelper.Get_Label(Model, sPrgCode, "cmemo", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                <div class="col-md-8 col-xs-7">
+                    <div>
+                        <textarea id="cmemo" name="cmemo" class="col-xs-12" form="validation_form">@Model.cmemo</textarea>
+                    </div>
+                    <div style="clear:both;"></div>
+                    @Html.ValidationMessageFor(model => model.cmemo, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>*@
                     </div>
                 </div>
                 @*修改點 向上 主檔輸入畫面編排*@

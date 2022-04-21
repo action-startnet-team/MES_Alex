@@ -141,7 +141,7 @@ namespace MES_WATER.Repository
         {
             string sSql = " UPDATE BDP20_0000 " +
                           "    SET usr_code = @usr_code, " +
-                          "        prg_code = @prg_code, " +         
+                          "        prg_code = @prg_code, " +
                           "        usr_date = @usr_date, " +
                           "        usr_time = @usr_time, " +
                           "        usr_type = @usr_type, " +

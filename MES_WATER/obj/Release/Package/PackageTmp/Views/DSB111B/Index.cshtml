@@ -144,6 +144,10 @@
 
             <span style="font-size:20px ;color: #fff; padding-left:50px;">設備清單</span>
             <select name="MacCodeList" id="MacCodeList" class="multiselect" multiple></select>
+            <div class="pull-right" style="margin-left: 10px">
+                <span style="font-size:15px ;color: #fff; padding-left:50px;">最後更新時間</span>
+                <span style="font-size:15px ;color: #fff;" id="last_time"></span>
+            </div>
         </div>
 
     </div>
@@ -158,10 +162,10 @@
 </div>
 @section footer_plugin{
     <script src="/Scripts/assets/js/bootstrap-multiselect.min.js"></script>
-}
+    
+    }
 <script>
     jQuery(function ($) {
-        //--------global----------//
         let $macCode = $('#MacCodeList');
         $(document).ready(function (){
             Set_multiSelectItem();
@@ -175,7 +179,9 @@
 
         // 點擊更新按鈕
         $('#refresh').click(function () {
-            immediateUpdate()
+
+            immediateUpdate();
+            getdate();
         })
         //-------function-even-end---------//
 
@@ -220,6 +226,19 @@
             });
         }
 
+        function getdate() {
+
+            var d = new Date(); //獲取當前時間
+            var year = d.getFullYear(); //獲取當前年份
+            var month = d.getMonth() + 1; //獲取當前月份，注意加1
+            var date = d.getDate(); //獲取當前日期
+            var hour = d.getHours(); //獲取小時
+            var min = d.getMinutes(); //獲取分鐘
+            var sec = d.getSeconds(); //獲取秒
+            var today = year + '/' + month + '/' + date +'  ' + hour +':'+ min + ':' + sec +'';
+            last_time.innerHTML = today;
+        }
+
         function Set_multiSelectItem(){
             const selectLists = $("#MacCodeList");
             let line_code = $('#lineList').val();
@@ -259,6 +278,7 @@
 
             // 重設timer
             currentTimer = setTimerUpdate()
+            getdate();
         }
 
         // 定時更新
@@ -476,7 +496,7 @@
             $pro_qty.text(data.pro_qty)  // 產量
             $utilization.text(data.utilization)
             $stop_time.text(data.stop_time + '分')  // 停機
-            $work_time.text(data.work_time + '分')  // 工時
+            $work_time.text(data.work_time + '%')  // 工時
         }
 
 

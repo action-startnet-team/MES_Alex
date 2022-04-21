@@ -16,7 +16,7 @@ namespace MES_WATER.Controllers
     public class DSB110BController : JsonNetController
     {
         Comm comm = new Comm();
-
+        string sPrgCode = "DSB110B";
         // GET: DSB100a
         public ActionResult Index()
         {
@@ -136,7 +136,7 @@ namespace MES_WATER.Controllers
             {
                 line_code_list = con_db.Query<string>(sSql).ToList();
             }
-
+            comm.Ins_BDP20_0000(User.Identity.Name, sPrgCode, "select", "", "");
             return Json(line_code_list, JsonRequestBehavior.AllowGet);
         }
 

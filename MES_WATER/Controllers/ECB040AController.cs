@@ -376,11 +376,21 @@ namespace MES_WATER.Controllers
             string message = "";
 
             //重複值檢查
-            //if (!comm.Chk_RelData("ECB04_0100", "loc_code", form["loc_code"]))
-            //{
-            //    bIsOK = false;
-            //    message += "<p> 儲位編號重複! </p> ";
-            //}
+            if (!comm.Chk_RelData("ECB04_0100", "where sales_customer_code_edition = @sales_customer_code_edition and serial_num = @serial_num", "sales_customer_code_edition,serial_num", form["sales_customer_code_edition"] + "," + form["serial_num"]))
+            {
+                bIsOK = false;
+                message += "<p> 目標欄位順序重複! </p> ";
+            }
+            if (!comm.Chk_RelData("ECB04_0100", "where sales_customer_code_edition = @sales_customer_code_edition and erp_field_code = @erp_field_code", "sales_customer_code_edition,erp_field_code", form["sales_customer_code_edition"] + "," + form["erp_field_code"]))
+            {
+                bIsOK = false;
+                message += "<p> ERP欄位代碼重複! </p> ";
+            }
+            if (!comm.Chk_RelData("ECB04_0100", "where sales_customer_code_edition = @sales_customer_code_edition and EXCEL_CODE = @EXCEL_CODE", "sales_customer_code_edition,EXCEL_CODE", form["sales_customer_code_edition"] + "," + form["EXCEL_CODE"]))
+            {
+                bIsOK = false;
+                message += "<p> 來源欄位代碼重複! </p> ";
+            }
             //檢查結果回傳
             var result = new
             {
@@ -419,6 +429,29 @@ namespace MES_WATER.Controllers
         public CheckDataResult Chk_Upd_D1(FormCollection form)
         {
             CheckDataResult result = new CheckDataResult();
+
+            if (!comm.Chk_RelData("ECB04_0100", "where sales_customer_code_edition = @sales_customer_code_edition and serial_num = @serial_num", "sales_customer_code_edition,serial_num", form["sales_customer_code_edition"] + "," + form["serial_num"]))
+            {
+                result.bIsOK = false;
+                result.message += "<p> 目標欄位順序重複! </p> ";
+            }
+
+            //if (!comm.Chk_RelData("ECB04_0100", "where sales_customer_code_edition = @sales_customer_code_edition and serial_num = @serial_num and erp_field_code = @erp_field_code and EXCEL_CODE = @EXCEL_CODE", "sales_customer_code_edition,serial_num,erp_field_code,EXCEL_CODE", form["sales_customer_code_edition"] + "," + form["serial_num"] + "," + form["erp_field_code"] + "," + form["EXCEL_CODE"]))
+            //{
+            //    result.bIsOK = false;
+            //    result.message += "<p> 目標欄位順序重複! </p> ";
+            //}
+
+            //if (!comm.Chk_RelData("ECB04_0100", "where ecb04_0100 = @ecb04_0100 and erp_field_code = @erp_field_code", "ecb04_0100,erp_field_code", form["ecb04_0100"] + "," + form["erp_field_code"]))
+            //{
+            //    result.bIsOK = false;
+            //    result.message += "<p> ERP欄位代碼重複! </p> ";
+            //}
+            //if (!comm.Chk_RelData("ECB04_0100", "where ecb04_0100 = @ecb04_0100 and EXCEL_CODE = @EXCEL_CODE", "ecb04_0100,EXCEL_CODE", form["ecb04_0100"] + "," + form["EXCEL_CODE"]))
+            //{
+            //    result.bIsOK = false;
+            //    result.message += "<p> 來源欄位代碼重複! </p> ";
+            //}
             //** 依作業不同有不同的檢查點 向下
             //if (comm.sGetInt32(form["pro_price"]) == 0)
             //{

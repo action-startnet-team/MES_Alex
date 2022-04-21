@@ -241,6 +241,7 @@
     <Compile Include="Controllers\MET100AController.cs" />
     <Compile Include="Controllers\RPT210AController.cs" />
     <Compile Include="Controllers\RPT220AController.cs" />
+    <Compile Include="Controllers\RPT231AController.cs" />
     <Compile Include="Controllers\RPT230AController.cs" />
     <Compile Include="Controllers\WMB220AController.cs" />
     <Compile Include="Controllers\WMB230AController.cs" />
@@ -708,6 +709,8 @@
     <Compile Include="Models\Review.cs" />
     <Compile Include="Models\RPT16_0000.cs" />
     <Compile Include="Models\RPT19_0000.cs" />
+    <Compile Include="Models\RPT23_0100.cs" />
+    <Compile Include="Models\RPT23_0000.cs" />
     <Compile Include="Models\RSS01_0000.cs" />
     <Compile Include="Models\RSS01_0100.cs" />
     <Compile Include="Models\RSS02_0000.cs" />
@@ -805,9 +808,11 @@
     <Compile Include="Repository\RPT16_0000Repository.cs" />
     <Compile Include="Repository\RPT20_0000Repository.cs" />
     <Compile Include="Repository\RPT19_0000Repository.cs" />
+    <Compile Include="Repository\RPT23_0100Repository.cs" />
     <Compile Include="Repository\RSS03_0000Repository.cs" />
     <Compile Include="Repository\RSS03_0100Repository.cs" />
     <Compile Include="Repository\test.cs" />
+    <Compile Include="Repository\RPT23_0000Repository.cs" />
     <Compile Include="Repository\WMB10_0000Repository.cs" />
     <Compile Include="Repository\WMB11_0000Repository.cs" />
     <Compile Include="Repository\WMB17_0000Repository.cs" />
@@ -1616,6 +1621,7 @@
     <Content Include="Views\BDP080B\Update.cshtml" />
     <Content Include="Views\LoginTimeOut\css\googleapis-family.css" />
     <Content Include="Views\UnderTake\STT02.cshtml" />
+    <Content Include="Views\WMB010B\Upload.cshtml" />
     <Content Include="Web References\WebReference\Reference.map">
       <Generator>MSDiscoCodeGenerator</Generator>
       <LastGenOutput>Reference.cs</LastGenOutput>
@@ -2015,7 +2021,6 @@
     <Content Include="Views\MEB290B\Insert.cshtml" />
     <Content Include="Views\BDP100A\Upload.cshtml" />
     <Content Include="Views\BDP080A\Upload.cshtml" />
-    <Content Include="Views\WMB010B\Upload.cshtml" />
     <Content Include="Views\WMB020A\Upload.cshtml" />
     <Content Include="Views\WMB030A\Upload.cshtml" />
     <Content Include="Upload\Sample\部門匯入範本.csv" />
@@ -2282,6 +2287,9 @@
     <Content Include="Views\DSB111B\Index.cshtml" />
     <Content Include="Views\DSB111B\Index_test.cshtml" />
     <Content Include="Views\DSB111B\MacItem.cshtml" />
+    <Content Include="Views\RPT231A\Index.cshtml" />
+    <Content Include="Views\RPT230A\Upload.cshtml" />
+    <Content Include="Views\RPT231A\Upload.cshtml" />
     <None Include="Web References\WebReference\wmsapi.disco" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>

@@ -122,6 +122,7 @@ namespace MES_WATER.Controllers
             string sMacCode_E = query_data.find("mac_code", "E");//設備編號_止
             string sStopCode_S = query_data.find("stop_code", "S");//停機原因代號_起
             string sStopCode_E = query_data.find("stop_code", "E");//停機原因代號_止
+            string sStopType = query_data.find("stop_type");//停機原因代號_止
             string sSql = "";
             int i;
             DataTable dtTmp = comm.Get_DataTable(sSql);
@@ -142,6 +143,7 @@ namespace MES_WATER.Controllers
             if (!string.IsNullOrEmpty(sMacCode_E)) { sSql += " AND MED04_0000.mac_code <='" + sMacCode_E + "'"; }
             if (!string.IsNullOrEmpty(sStopCode_S)) { sSql += " AND MED04_0000.stop_code >='" + sStopCode_S + "'"; }
             if (!string.IsNullOrEmpty(sStopCode_E)) { sSql += " AND MED04_0000.stop_code <='" + sStopCode_E + "'"; }
+            if (!string.IsNullOrEmpty(sStopType)) { sSql += " AND MEB45_0000.stop_type <='" + sStopType + "'"; }
 
             dtTmp = comm.Get_DataTable(sSql);
             comm.Ins_BDP20_0000("admin", "RPT020A", "RPT", sSql);

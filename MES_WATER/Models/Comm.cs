@@ -42,6 +42,17 @@ namespace MES_WATER.Models
             return connStr;
         }
 
+        public string Get_AlexConnStr()
+        {
+            string defaultDB = "alex_ori";
+            string chosenDB = HttpContext.Current.Session["ChosenDB"] != null ? HttpContext.Current.Session["ChosenDB"].ToString() : "";
+            string dbName = chosenDB != "" ? chosenDB : defaultDB;
+
+            string connStr = WebConfigurationManager.ConnectionStrings[dbName].ConnectionString;
+
+            return connStr;
+        }
+
         /// <summary>
         /// 自定義
         /// </summary>
@@ -70,6 +81,14 @@ namespace MES_WATER.Models
         {
             SqlConnection Connection_Db;
             Connection_Db = new SqlConnection(Get_ConnStr());
+            Connection_Db.Open();
+            return Connection_Db;
+        }
+
+        public SqlConnection Set_AlexDBConnection()
+        {
+            SqlConnection Connection_Db;
+            Connection_Db = new SqlConnection(Get_AlexConnStr());
             Connection_Db.Open();
             return Connection_Db;
         }

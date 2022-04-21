@@ -23,7 +23,6 @@ namespace MES_WATER.Models
 
         [DisplayName("日計畫產量")]
         [Required(ErrorMessage = "請輸入{0}")]
-        [StringLength(14, ErrorMessage = "長度最多{1}個字!")]
         public decimal day_target_qty { get; set; }
 
         //[DisplayName("區域代號")]

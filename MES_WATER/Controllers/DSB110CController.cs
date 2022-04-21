@@ -150,6 +150,7 @@ namespace MES_WATER.Controllers
                 qty_data = qty,
             };
             list.Add(data);
+
             return Json(list, JsonRequestBehavior.AllowGet);
         }
 
@@ -194,6 +195,7 @@ namespace MES_WATER.Controllers
                 };
                 list.Add(obj);
             }
+            comm.Ins_BDP20_0000(User.Identity.Name, sPrgCode, "select", "", "");
             return Json(list, JsonRequestBehavior.AllowGet);
         }
     

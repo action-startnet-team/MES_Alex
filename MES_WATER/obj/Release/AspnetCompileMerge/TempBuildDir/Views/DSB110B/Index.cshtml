@@ -507,9 +507,11 @@ display:inline-block;
 
             let mac_code = oMacData.mac_code
             let mac_name = oMacData.mac_name
+            let sor_code = oMacData.sor_code
 
             $newDiv.attr('data-mac_code', mac_code)
             $newDiv.find('.mac_name').text(mac_code + ' ' + mac_name)
+            $newDiv.find('.sor_code').text(sor_code)
 
             return $newDiv
         }
@@ -604,6 +606,7 @@ display:inline-block;
             //
             let $mac_name = $el.find('.mac_name')
             let $mo_code = $el.find('.mo_code')
+            let $sor_code = $el.find('.sor_code')
             let $scr_no = $el.find('.scr_no')
 
             let $status = $el.find('.status')
@@ -619,7 +622,7 @@ display:inline-block;
             if (data.mac_name) {
                 $mac_name.val(data.mac_name) // 機台名稱
             }
-            //$mo_code.text(data.mo_code)  // 製令
+            $mo_code.text(data.mo_code)  // 製令
             $scr_no.text(data.scr_no)  // 順序
 
             // 狀態(中文 + 背景顏色)

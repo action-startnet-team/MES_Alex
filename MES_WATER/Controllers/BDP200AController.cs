@@ -62,13 +62,13 @@ namespace MES_WATER.Controllers
 
             if (!string.IsNullOrEmpty(sUsrDateStart))
             {
-                SubWhere += " and usr_date >= @usr_date_start";
+                SubWhere += " and convert (datetime, usr_date,111) >= @usr_date_start";
                 sqlParams.Add("@usr_date_start", sUsrDateStart);
             }
 
             if (!string.IsNullOrEmpty(sUsrDateEnd))
             {
-                SubWhere += " and usr_date <= @usr_date_end";
+                SubWhere += " and convert (datetime, usr_date,111)  <= @usr_date_end";
                 sqlParams.Add("@usr_date_end", sUsrDateEnd);
             }
 
@@ -122,5 +122,25 @@ namespace MES_WATER.Controllers
         }
 
 
+        public JsonResult Chk_Sql_btn(string prg_code)
+        {
+            List<BDP20_0000> returnList = new List<BDP20_0000>();
+
+            DynamicParameters sqlParams = new DynamicParameters();
+
+            string sUsrCode = User.Identity.Name;
+            string sPrg_code = prg_code;
+
+            string sSql = "select top 1 cmemo from BDP20_0000 " +
+                        "where usr_code = '" + sUsrCode + "' and prg_code = '" + sPrg_code + "'" +
+                        "and usr_type = 'Select' order by  bdp20_0000 desc";
+
+            using (SqlConnection con_db = comm.Set_DBConnection())
+            {
+                returnList = con_db.Query<BDP20_0000>(sSql, sqlParams).ToList();
+            }
+
+            return Json(returnList, JsonRequestBehavior.AllowGet);
+        }
     }
 }

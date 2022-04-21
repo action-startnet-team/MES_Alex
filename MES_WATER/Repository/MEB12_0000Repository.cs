@@ -266,7 +266,7 @@ namespace MES_WATER.Repository
         {
             string sSql = " UPDATE MEB12_0000                        " +
                           "    SET line_name     =  @line_name,       " +
-                          "     day_target_qty     =  @day_target_qty,       " +
+                          "     day_target_qty     =  @day_target_qty       " +
                           "  WHERE line_code     =  @line_code       " ;
 
 
@@ -289,8 +289,7 @@ namespace MES_WATER.Repository
         /// <param name="pTkCode">資料鍵值</param>
         public void DeleteData(string pTkCode)
         {
-            string sSql = "DELETE FROM MEB12_0000 WHERE line_code = @line_code;" +
-                               " DELETE FROM MEB12_0100 WHERE line_code = @line_code; ";
+            string sSql = "DELETE FROM MEB12_0000 WHERE line_code = @line_code";
             //sSql += " Delete from BDP09_0100 where line_code = @line_code; ";
             using (SqlConnection con_db = comm.Set_DBConnection())
             {

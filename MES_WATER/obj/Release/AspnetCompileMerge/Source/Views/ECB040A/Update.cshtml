@@ -55,6 +55,22 @@
         data.show_type = "B";
         excel_code_list.Add(data);
     }
+    for (int I = 0; I <= 25; I++)
+    {
+        DDLList data = new DDLList();
+        data.field_code = "B" + Convert.ToChar(65 + I).ToString();
+        data.field_name = "";
+        data.show_type = "B";
+        excel_code_list.Add(data);
+    }
+    for (int I = 0; I <= 25; I++)
+    {
+        DDLList data = new DDLList();
+        data.field_code = "C" + Convert.ToChar(65 + I).ToString();
+        data.field_name = "";
+        data.show_type = "B";
+        excel_code_list.Add(data);
+    }
     //修改點 向上//
 }
 
@@ -158,6 +174,7 @@
     </div>
 </div>
 <br />
+<div class="alert alert-danger" ><p style="text-align: center; ">ERP欄位代碼缺少 : 	DELEVERY_ORDER !</p></div>
 <br />
 <!-- jqGrid begin -->
 <table id="grid-table"></table>
@@ -207,6 +224,12 @@
 }
 
 <script type="text/javascript">
+    Jqgrid_CheckInlineUpdate = function (rowData, e) {
+        messages.push('my back')
+        return {
+            messages: messages
+        }
+    };
     jQuery(function ($) {
         $(document).ready(function () {
             $('#add_grid-table').click(function () {
@@ -223,15 +246,15 @@
         @*修改點 向下 控制項輸入控制參考*@
 
         //$("input[name=pur_date]").datepicker( { language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true } ).attr('autocomplete','off');
-        $("input[name=dev_check_date]").datepicker( { language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true } ).attr('autocomplete','off');
+        $("input[name=dev_check_date]").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr('autocomplete', 'off');
 
         @*修改點 向上 控制項輸入控制參考*@
 
 
         // checkbox value ( Y/N )
-        $('form').find($('input[type="checkbox"]')).each(function(){
+        $('form').find($('input[type="checkbox"]')).each(function () {
             // default
-            if ($(this).prop('checked')){
+            if ($(this).prop('checked')) {
                 // set checked value
                 $(this).val('Y')
             } else {
@@ -239,17 +262,23 @@
                 $(this).before($('<input type="hidden" value="N" name="' + $(this).attr('name') + '" />'))
             }
             // change state
-            $(this).change(function(){
-                if (this.checked){
+            $(this).change(function () {
+                if (this.checked) {
                     // set checked value and remove hidden input for unchecked value
                     $(this).val('Y')
                     $(this).prev('input[type="hidden"]').remove()
-                }else{
+                } else {
                     // set unchecked value
                     $(this).before($('<input type="hidden" value="N" name="' + $(this).attr('name') + '" />'))
                 }
             })
         })
+        setInterval(() => {
+            if ($('#grid-table').find('[title="DELEVERY_ORDER"]').length == 1) {
+                $('.alert').css({ 'display': 'none' });
+            };
+        }, 250);
+
 
         // form validate, show error msg
         $("#validation_form").bind("invalid-form.validate", function () {

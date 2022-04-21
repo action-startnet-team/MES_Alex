@@ -160,7 +160,7 @@ namespace MES_WATER.Controllers
                 // 新增紀錄資料
                 comm.Ins_BDP20_0000ForMdy(User.Identity.Name, sPrgCode, "insert", "", data);
 
-                return RedirectToAction("Update", sPrgCode, new { pTkCode = data.line_code });
+                return RedirectToAction("Index");
             }
             ViewBag.showErrMsg = true;
             return View(model);

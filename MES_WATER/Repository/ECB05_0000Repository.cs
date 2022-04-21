@@ -176,7 +176,7 @@ namespace MES_WATER.Repository
             List<ECB05_0000> list = new List<ECB05_0000>();
 
             string sSql = @" SELECT case ECB05_0000.ERP_FIELD_CODE
-                            when 'DELEVERY_ORDER'   then ERP_FIELD_CODE+'此欄位必須存在' ELSE ERP_FIELD_CODE END as ERP_FIELD_CODE
+                            when 'DELEVERY_ORDER'   then ERP_FIELD_CODE+'  此欄位必須存在' ELSE ERP_FIELD_CODE END as ERP_FIELD_CODE
                             ,ERP_FIELD_NAME,ERP_FORM_NAME,is_edit 
                             from ECB05_0000";
 
@@ -189,7 +189,7 @@ namespace MES_WATER.Repository
             for (int i = 0; i < list.Count; i++)
             {
                 //檢查授權刪除、修改
-                if(list[i].ERP_FIELD_CODE == "DELEVERY_ORDER此欄位必須存在") { list[i].can_delete = sLimitStr.Contains("D") ? "N" : "N"; }
+                if(list[i].ERP_FIELD_CODE == "DELEVERY_ORDER  此欄位必須存在") { list[i].can_delete = sLimitStr.Contains("D") ? "N" : "N"; }
                 else 
                 {
                     list[i].can_delete = sLimitStr.Contains("D") ? "Y" : "N";

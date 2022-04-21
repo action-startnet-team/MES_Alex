@@ -97,43 +97,56 @@ List<DDLList> factory_chosen_list = comm.Get_DDLOption("MEB10_0000", "factory_co
                                 </div>
                             </div>
                         </div>
-                        @*<br />
-                        <div class="row">
-                            <div class="col-sm-12">
-                                <label class="col-sm-3 control-label no-padding-right" for="form-field-1">工廠代號</label>
-                                <div class="col-sm-8 col-xs-6">
-                                    <select class="chosen-select" id="factory_chosen" name="factory_chosen">
-                                        @CustomHelper.Get_Option(factory_chosen_list, "", true)
-                                    </select>
-                                </div>
-                            </div>
-                        </div>
                         <br />
                         <div class="row">
                             <div class="col-sm-12">
-                                @CustomHelper.Get_Label(Model, sPrgCode, "area_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
-                                <div class="col-sm-8 col-xs-6">
-                                    <select class="chosen-select" id="area_code" name="area_code">
-                                        <option value="">--請選擇--</option>
-                                        @CustomHelper.Get_Option(area_code_list, Model.area_code, true)
-                                    </select>
-                                    @Html.ValidationMessageFor(model => model.area_code, "", new { @class = "text-danger" })
-                                </div>
-                            </div>
-                        </div>
-                        <br />
-                        <div class="row">
-                            <div class="col-sm-12">
-                                @CustomHelper.Get_Label(Model, sPrgCode, "cmemo", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                                @CustomHelper.Get_Label(Model, sPrgCode, "day_target_qty", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
                                 <div class="col-md-8 col-xs-8">
                                     <div>
-                                        <textarea id="cmemo" name="cmemo" class="col-xs-12" form="validation_form">@Model.cmemo</textarea>
+                                        @Html.EditorFor(model => model.day_target_qty, new { htmlAttributes = new { @class = " col-xs-12" } })
                                     </div>
                                     <div style="clear:both;"></div>
-                                    @Html.ValidationMessageFor(model => model.cmemo, "", new { @class = "text-danger" })
+                                    @Html.ValidationMessageFor(model => model.day_target_qty, "", new { @class = "text-danger" })
                                 </div>
                             </div>
-                        </div>*@
+                        </div>
+                        @*<br />
+        <div class="row">
+            <div class="col-sm-12">
+                <label class="col-sm-3 control-label no-padding-right" for="form-field-1">工廠代號</label>
+                <div class="col-sm-8 col-xs-6">
+                    <select class="chosen-select" id="factory_chosen" name="factory_chosen">
+                        @CustomHelper.Get_Option(factory_chosen_list, "", true)
+                    </select>
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-sm-12">
+                @CustomHelper.Get_Label(Model, sPrgCode, "area_code", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                <div class="col-sm-8 col-xs-6">
+                    <select class="chosen-select" id="area_code" name="area_code">
+                        <option value="">--請選擇--</option>
+                        @CustomHelper.Get_Option(area_code_list, Model.area_code, true)
+                    </select>
+                    @Html.ValidationMessageFor(model => model.area_code, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>
+        <br />
+        <div class="row">
+            <div class="col-sm-12">
+                @CustomHelper.Get_Label(Model, sPrgCode, "cmemo", htmlAttributes: new { @class = "col-sm-3 control-label no-padding-right" })
+                <div class="col-md-8 col-xs-8">
+                    <div>
+                        <textarea id="cmemo" name="cmemo" class="col-xs-12" form="validation_form">@Model.cmemo</textarea>
+                    </div>
+                    <div style="clear:both;"></div>
+                    @Html.ValidationMessageFor(model => model.cmemo, "", new { @class = "text-danger" })
+                </div>
+            </div>
+        </div>*@
                     </div>
                 </div>
                 @*修改點 向上 輸入畫面編排*@

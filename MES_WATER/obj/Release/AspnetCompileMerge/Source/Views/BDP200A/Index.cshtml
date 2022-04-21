@@ -5,16 +5,17 @@
     ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
-    // 
+    //
     Comm comm = new Comm();
 
     //
     string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
 
+
 }
 
 
-@{ 
+@{
     //下拉選單
     // usr_code
     List<DDLList> usr_code_DDL = comm.Get_DDLOption("BDP08_0000", "usr_code", "usr_name");
@@ -31,40 +32,26 @@
 <link rel="stylesheet" href="~/Content/assets/css/bootstrap-multiselect.min.css" />
 
 @*<div class="page-header">
-    <h1>
-        時間線
-        <small>
-            <i class="ace-icon fa fa-angle-double-right"></i>
-            test
-        </small>
-    </h1>
-</div>*@
+        <h1>
+            時間線
+            <small>
+                <i class="ace-icon fa fa-angle-double-right"></i>
+                test
+            </small>
+        </h1>
+    </div>*@
 
 @Html.Partial("pPrgName")
+
 <br />
 
 
-<div id = "timeline-query">
+<div id="timeline-query">
     <form class="form-horizontal" role="form" id="timeline-queryForm">
+
+        <!--日期起訖-->
         <div class="form-group">
-            <label class="col-sm-3 control-label no-padding-right" for="usr_code">
-                使用者
-            </label>
-
-            <div class="col-sm-9">
-                <div class="col-xs-10 col-sm-5 no-padding-right no-padding-left">
-                    @*<select id="usr_code" name="usr_code" class="chosen-select">*@
-                    <select id="usr_code" name="usr_code" class="multiselect" multiple="">
-                        @*@CustomHelper.Get_Option(usr_code_DDL, "", true)*@
-                        @CustomHelper.Get_MutiOption(usr_code_DDL, "", false)
-
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label class="col-sm-3 control-label no-padding-right" for=""> 
+            <label class="col-sm-3 control-label no-padding-right" for="">
                 日期起訖
             </label>
 
@@ -72,22 +59,28 @@
                 <input type="text" id="usr_date_start" name="usr_date_start" value="" placeholder=" yyyy/MM/dd " class=" col-xs-2">
                 <div class="col-xs-1 text " style="display: flex; justify-content: space-around; align-items: center; font-size: 24px">
                     ~
-                </div> 
+                </div>
                 <input type="text" id="usr_date_end" name="usr_date_end" value="" placeholder=" yyyy/MM/dd " class="col-xs-2">
                 @*<input type="text" id="usr_date_start" name="usr_date_start" value="" placeholder=" yyyy/MM/dd " class="col-xs-10 col-sm-5">*@
             </div>
         </div>
-
-        @*<div class="form-group">
-            <label class="col-sm-3 control-label no-padding-right" for="usr_date_end">
-                日期訖
+        <!--時間起訖-->
+        <div class="form-group">
+            <label class="col-sm-3 control-label no-padding-right" for="">
+                時間起訖
             </label>
 
             <div class="col-sm-9">
-                <input type="text" id="usr_date_end" name="usr_date_end" value="" placeholder=" yyyy/MM/dd " class="col-xs-10 col-sm-5">
+                <input type="text" id="usr_time_start" name="usr_time_start" placeholder=" HH:mm:ss " class="col-xs-2 timepicker1">
+                <div class="col-xs-1  text  " style="display: flex; justify-content: space-around; align-items: center; font-size: 24px">
+                    ~
+                </div>
+                <input type="text" id="usr_time_end" name="usr_time_end" placeholder=" HH:mm:ss " class="col-xs-2 timepicker1">
+                @*<input type="text" id="usr_time_start" name="usr_time_start" placeholder=" HH:mm:ss " class="col-xs-10 col-sm-5 timepicker1">*@
             </div>
-        </div>*@
 
+        </div>
+        <!--程式代號-->
         <div class="form-group">
             <label class="col-sm-3 control-label no-padding-right" for="prg_code">
                 程式代號
@@ -101,47 +94,36 @@
                 </div>
             </div>
         </div>
+        <!--使用者-->
         <div class="form-group">
-            <label class="col-sm-3 control-label no-padding-right" for="">
-                時間起訖
+            <label class="col-sm-3 control-label no-padding-right" for="usr_code">
+                使用者
             </label>
-
             <div class="col-sm-9">
-                <input type="text" id="usr_time_start" name="usr_time_start" placeholder=" HH:mm:ss " class="col-xs-2 timepicker1">
-                <div class="col-xs-1  text  " style="display: flex; justify-content: space-around; align-items: center; font-size: 24px">
-                    ~
-                </div> 
-                <input type="text" id="usr_time_end" name="usr_time_end" placeholder=" HH:mm:ss " class="col-xs-2 timepicker1">
-                @*<input type="text" id="usr_time_start" name="usr_time_start" placeholder=" HH:mm:ss " class="col-xs-10 col-sm-5 timepicker1">*@
-            </div>
+                <div class="col-xs-10 col-sm-5 no-padding-right no-padding-left">
+                    @*<select id="usr_code" name="usr_code" class="chosen-select">*@
+                    <select id="usr_code" name="usr_code" class="multiselect" multiple="">
+                        @*@CustomHelper.Get_Option(usr_code_DDL, "", true)*@
+                        @CustomHelper.Get_MutiOption(usr_code_DDL, "", false)
 
+                    </select>
+                </div>
+            </div>
         </div>
-        @*<div class="form-group">
-            <label class="col-sm-3 control-label no-padding-right" for="usr_time_end">
-                時間訖
-            </label>
-
-            <div class="col-sm-9">
-                <input type="text" id="usr_time_end" name="usr_time_end" placeholder=" HH:mm:ss " class="col-xs-10 col-sm-5 timepicker1">
-            </div>
-        </div>*@
-        
+        <!--訊息類型-->
         <div class="form-group">
             <label class="col-sm-3 control-label no-padding-right" for="usr_type">
                 訊息類型
             </label>
-
             <div class="col-sm-9">
                 <div class="col-xs-10 col-sm-5 no-padding-right no-padding-left">
-                    @*<select id="usr_type" name="usr_type" class="chosen-select">
-                        @CustomHelper.Get_Option(usr_type_DDL, "", true)
-                    </select>*@
                     <select id="usr_type" name="usr_type" class="multiselect" multiple="">
                         @CustomHelper.Get_MutiOption(usr_type_DDL, "", false)
                     </select>
                 </div>
             </div>
         </div>
+        <!--訊息內容-->
         <div class="form-group">
             <label class="col-sm-3 control-label no-padding-right" for="cmemo">
                 訊息內容
@@ -188,7 +170,7 @@
                 @*<h4 class="blue bigger">Please fill the following form fields</h4>*@
             </div>
 
-            <div class="modal-body" >
+            <div class="modal-body">
                 <div class="row" style="font-size: 14px">
                     <b id="updateBefore-label" class="col-sm-2" style="text-align: right; ">
                     </b>
@@ -267,7 +249,7 @@
                 </button>
             </div>
 
-            
+
         </div>
     </div>
 </div><!-- PAGE CONTENT ENDS -->
@@ -296,13 +278,13 @@
     <!-- multiselect-->
 
     <script src="~/Scripts/assets/js/bootstrap-multiselect.min.js"></script>
-    
+
 }
 
 
 <style>
     .highlight {
-      background-color: yellow;
+        background-color: yellow;
     }
 </style>
 
@@ -353,7 +335,7 @@
 
                 //
                 let $wrapper = $(this).find('#' + TimeLineId + '-wrapper')
-                
+
                 // DateRow class
                 function DateRow(pDate) {
                     this.container = $(`
@@ -381,7 +363,7 @@
 
                             <div class ="widget-box transparent">
                                 <div class ="widget-body">
-                                    <div class ="timeline-message widget-main no-padding" style="display: flex; align-items: baseline" >
+                                    <div class ="timeline-message widget-main no-padding" style="display: flex; align-items: baseDateTimeateTimeateTimeimerine" >
                                         ${pMsg}
                                     </div>
                                 </div>
@@ -418,7 +400,7 @@
                             if (list[i].usr_date === groupValue) {
                                 //usr_code = `<span class="h5 bolder blue">${(list[i].usr_code || '*空字串*')}</span>`
                                 usr_code = `<div style="margin-right: 10px"><big><b class=blue>${(list[i].usr_code || '*空字串*')}</b></big></div>`
-                                prg_code = `<div style="margin-right: 10px"><span class="h5 bolder purple no-margin">${list[i].prg_code}</span></div>`                               
+                                prg_code = `<div style="margin-right: 10px"><span class="h5 bolder purple no-margin">${list[i].prg_code}</span></div>`
                                 if (list[i].usr_type === 'Mdy') {
                                     let cmemoObj = JSON.parse(list[i].cmemo)
                                     let paragraphs = "";
@@ -457,7 +439,7 @@
                                             ${list[i].cmemo}
                                         </div>`
                                 }
-                                
+
                                 msg = `${usr_code}  ${prg_code}  ${usr_type}  ${cmemo} `
                                 //msg = `${usr_code} &nbsp; ${prg_code} &nbsp; ${usr_type} &nbsp; ${cmemo} `
 
@@ -490,7 +472,7 @@
                     //    $('#timeline-2-wrapper').append(timeline.container)
                     //}
 
-                    
+
                 }
 
                 //
@@ -550,7 +532,7 @@
                     setDateRow(GetDate(), [{ time: GetTime(), message: "請選擇查詢條件! " }])
                     defaultOptions.firstShow = true
                 }
-                
+
                 //
                 function getInitData() {
                     let data = $thisTimeLine.data(TimeLineId + '-initData')
@@ -598,7 +580,7 @@
 
                 function reload(postData, callback) {
                     AjaxData(function (data) {
-                        // 
+                        //
                         clearAll()
 
                         // Render TimeLine-wrapper
@@ -609,7 +591,7 @@
                             callback()
                         }
                     },  { data: postData })
-                    
+
                 }
 
                 function setDateRow(pDate, pItems) {
@@ -621,7 +603,7 @@
                     pItems.forEach(function (item, index) {
                         if (typeof item.time === 'undefined' || typeof item.message === 'undefined') {
                             alert('Item not have "time" and "messsage" property! ')
-                            return 
+                            return
                         }
                         newDateRow.setItem(item.time, item.message)
                     })
@@ -674,19 +656,19 @@
             }
 
             // 預設查詢欄位
-            $('[name=usr_date_start]').val('2020/03/03')
-            $('[name=usr_date_end]').val('2020/03/03')
+            $('[name=usr_date_start]').val('@DateTime.Now.ToString("yyyy/MM/dd")');
+            $('[name=usr_date_end]').val('@DateTime.Now.ToString("yyyy/MM/dd")');
             //$('[name=usr_date]').val(GetDate())
             //$('[name=usr_date]').val('2020/02/21')
             //$('[name=usr_type]').val('Mdy')
-            
+
             //if (GetQueryData()) {
             //    let data = JSON.parse(GetQueryData())
 
             //    data.forEach(function (item, index) {
-                    
+
             //        $(`[name="${item.name}"]`).val(item.value)
-                    
+
             //    })
 
             //} else {
@@ -698,6 +680,7 @@
 
                 e.preventDefault()
                 // 輸入資料
+
                 let sUsrCode = $('#usr_code').val()
                 let sUsrDateStart = $('#usr_date_start').val()
                 let sUsrDateEnd = $('#usr_date_end').val()
@@ -736,13 +719,13 @@
 
                 //if (!(sUsrDateStart && sUsrDateEnd)) {
                 //    alert('請選擇日期! ')
-                //    return 
+                //    return
                 //}
                 //if (!sUsrType) {
                 //    alert('請選擇訊息類型! ')
-                //    return 
+                //    return
                 //}
-                
+
 
                 // This formData is array
                 // multiselect的value 無法正確套用到 jQuery 的serializeArray()
@@ -781,7 +764,7 @@
                     })
                 })
 
-                
+
                 //// 輸入資料
                 //let sUsrCode = $('#usr_code').val()
                 //let sUsrDate = $('#usr_date').val()
@@ -819,11 +802,11 @@
                 //    filteredData = filteredData.filter(x => x.cmemo.includes(sCMemo))
                 //}
 
-                //// 
+                ////
                 //timeline.clearAll()
                 //timeline.render(filteredData)
 
-                
+
 
             })
 
@@ -843,7 +826,7 @@
                 // refresh multiselect
                 $('#timeline-queryForm').find('select[class*="multiselect"]').multiselect("refresh")
             })
-            
+
             // modal box
 
             //
@@ -851,7 +834,7 @@
                 //let current = $('#timeline-2').data('timeline-2-currentData', data)
             }
 
-            // 
+            //
             function reRender() {
 
             }
@@ -981,7 +964,7 @@
                 //    $(this).prev().focus();
                 //});
             }
-                
+
 
             // timepicker
             //$('.timepicker1').timepicker({

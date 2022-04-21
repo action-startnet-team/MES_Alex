@@ -44,7 +44,6 @@ namespace MES_WATER.Models
        
 
         [DisplayName("線別")]
-        [Required(ErrorMessage = "請輸入{0}")]
         public string _pro_type { get; set; }
 
         //[DisplayName("線別名稱")]

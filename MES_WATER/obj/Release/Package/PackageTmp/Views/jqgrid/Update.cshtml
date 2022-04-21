@@ -995,11 +995,13 @@
                 data: postdata,
                 datatype: 'json',
                 success: function (bool) {
-                    if (bool) {
-                        result = [true, ""]
-                    } else {
-                        result = [false, "欄位代碼: " + postdata.field_code + " 已存在!"]
-                    }
+                    result = [bool.bIsOK, bool.message]
+                    //if (bool.bIsOK) {
+                    //    result = [true, ""]
+                    //} else {
+                    //    alert("明細新增檢查失敗!");
+                    //    //result = [false, "欄位: " + postdata.field_code + " 已存在!"]
+                    //}
                 },
                 error: function () {
                     alert("明細新增檢查失敗!");
@@ -2140,6 +2142,27 @@
         {
             @Html.Raw(customJs_bottom)
         }
+
+       // 點擊儲存按鈕
+       document.addEventListener('click', function (e) {
+           if (e.target.className.includes('ui-icon-disk')) {
+               let rowData = {}
+               let $tr = $(e.target).closest('tr.jqgrow')
+               $tr.find('input,select').each(function () {
+                   let name = $(this).attr('name')
+                   let value = $(this).val()
+                   rowData[name] = value
+               })
+
+               let messages = Jqgrid_CheckInlineUpdate(rowData).messages
+               if (messages.length > 0) {
+                   alert(messages.join('\n'))
+
+                   //
+                   e.stopPropagation()
+               }
+           }
+       }, true)
 
     }) // jQuery(function(){ ... }) end
     </script>

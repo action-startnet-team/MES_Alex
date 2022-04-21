@@ -138,41 +138,14 @@ namespace MES_WATER.Controllers
                 //製作預覽表格
                 DataTable TempTable = new DataTable();
                 //TempTable.Columns.Add("客戶編號");
-                TempTable.Columns.Add("線別");
-                int x = 0;
 
                 foreach (DataRow dr2 in dt2.Rows)
                 {
                     var n = dr2["ERP_FIELD_NAME"] == null ? "" : dr2["ERP_FIELD_NAME"];
-                    x += 1;
+
 
                     TempTable.Columns.Add(n.ToString(), System.Type.GetType("System.String"));
-                    if (x == 3)
-                    {
-                        TempTable.Columns.Add("JIT號碼");
-                        TempTable.Columns.Add("批次");
-                        TempTable.Columns.Add("JIT數量");
-                        TempTable.Columns.Add("預計交貨");
-                    }
-                    if(x == 6)
-                    {
-                        TempTable.Columns.Add("車種名稱");
-                        TempTable.Columns.Add("廠別");
-                        TempTable.Columns.Add("訂單下單");
-                        TempTable.Columns.Add("廠商料號");
-                        TempTable.Columns.Add("裝箱內容");
-                        TempTable.Columns.Add("每箱裝數");
-                        TempTable.Columns.Add("淨重");
-                        TempTable.Columns.Add("毛重");
-                        TempTable.Columns.Add("發票日期");
-                        TempTable.Columns.Add("入廠日期");
-                    }
-                    if (x == 9)
-                    {
-                        TempTable.Columns.Add("重量單位");
-                        TempTable.Columns.Add("國家名稱");
-                        TempTable.Columns.Add("原廠國家");
-                    }
+
                 }
                
                 int save_count = 0;
@@ -216,38 +189,12 @@ namespace MES_WATER.Controllers
                     //建立TempTable新資料行
                     DataRow drow = TempTable.NewRow();
                     //drow["客戶編號"] = customer_code;
-                    drow["線別"] = "";
-                    int z = 0;
+
                     foreach (DataRow dr2 in dt2.Rows)
                     {
-                        z += 1;
+
                         drow[dr2["ERP_FIELD_NAME"].ToString()] = dr[dr2["EXCEL_CODE"].ToString()].ToString();
-                        if (z == 3)
-                        {
-                            drow["JIT號碼"] = "";
-                            drow["批次"] = "";
-                            drow["JIT數量"] = "";
-                            drow["預計交貨"] = "";
-                        }
-                        if (z == 6)
-                        {
-                            drow["車種名稱"] = "";
-                            drow["廠別"] = "";
-                            drow["訂單下單"] = "";
-                            drow["廠商料號"] = "";
-                            drow["裝箱內容"] = "";
-                            drow["每箱裝數"] = "";
-                            drow["淨重"] = "";
-                            drow["毛重"] = "";
-                            drow["發票日期"] = "";
-                            drow["入廠日期"] = "";
-                        }
-                        if (z == 9)
-                        {
-                            drow["重量單位"] = "";
-                            drow["國家名稱"] = "";
-                            drow["原廠國家"] = "";
-                        }
+
 
                     }
                     TempTable.Rows.Add(drow);
@@ -309,49 +256,52 @@ namespace MES_WATER.Controllers
                 ViewBag.TempTable2 = JsonConvert.SerializeObject(TempTable).ToString();
                 ViewBag.cus_name = comm.Get_QueryData("ECB01_0000", customer_code, "CUSTOMER_CODE", "CUSTOMER_NAME");
                 ViewBag.cus_fullname = comm.Get_QueryData("ECB01_0000", customer_code, "CUSTOMER_CODE", "CUSTOMER_FULL_NAME");
+                ViewBag.fileName = ViewBag.cus_name + "_" + DateTime.Now.ToString("yyyyMMdd_HHmm") + ".xls";
+                Save_FilesExcel(ViewBag.TempTable2, ViewBag.cus_name);
             }
             catch (Exception e)
             {
                 ViewBag.respectcode = 1;
                 Console.WriteLine("error: " + e.Message);
+                ViewBag.Message = e.Message;
             }
             return View();
         }
 
-        public ActionResult Download_Data(string tmp, string cusname)
-        {
-            string tmp2 = tmp.Replace("&quot;", @"""");
-            DataTable tmp3 = (DataTable)JsonConvert.DeserializeObject(tmp2, (typeof(DataTable)));
+        //public ActionResult Download_Data(string tmp, string cusname)
+        //{
+        //    //string tmp2 = tmp.Replace("&quot;", @"""");
+        //    //DataTable tmp3 = (DataTable)JsonConvert.DeserializeObject(tmp2, (typeof(DataTable)));
 
-            DataTable exdt = new DataTable();
-            foreach (DataColumn column in tmp3.Columns)
-            {
-                exdt.Columns.Add(column.ColumnName);
-            }
-            for (int i = 0; i < tmp3.Rows.Count; i++)
-            {
-                DataRow drow = exdt.NewRow();
-                for (int j = 0; j < exdt.Columns.Count; j++)
-                {
-                    drow[j] = tmp3.Rows[i][j].ToString();
-                }
-                exdt.Rows.Add(drow);
-            }
+        //    //DataTable exdt = new DataTable();
+        //    //foreach (DataColumn column in tmp3.Columns)
+        //    //{
+        //    //    exdt.Columns.Add(column.ColumnName);
+        //    //}
+        //    //for (int i = 0; i < tmp3.Rows.Count; i++)
+        //    //{
+        //    //    DataRow drow = exdt.NewRow();
+        //    //    for (int j = 0; j < exdt.Columns.Count; j++)
+        //    //    {
+        //    //        drow[j] = tmp3.Rows[i][j].ToString();
+        //    //    }
+        //    //    exdt.Rows.Add(drow);
+        //    //}
 
 
-            string odate = DateTime.Now.ToString("yyyyMMdd");
-            string filename = cusname + "_" + odate + ".xls";
+        //    string odate = DateTime.Now.ToString("yyyyMMdd");
+        //    string filename = cusname + "_" + odate + ".xls";
 
-            var originalDirectory = new DirectoryInfo(string.Format("{0}Upload\\EC_EXCEL\\", Server.MapPath(@"\")));
-            string pathString = System.IO.Path.Combine(originalDirectory.ToString());
-            System.IO.Directory.CreateDirectory(pathString);
+        //    var originalDirectory = new DirectoryInfo(string.Format("{0}Upload\\EC_EXCEL\\", Server.MapPath(@"\")));
+        //    string pathString = System.IO.Path.Combine(originalDirectory.ToString());
+        //    //System.IO.Directory.CreateDirectory(pathString);
 
-            var path = pathString + filename;
+        //    var path = pathString + filename;
+        //    Download(path, filename);
+        //    //Download(TableToExcel(exdt, path), filename);
 
-            Download(TableToExcel(exdt, path), filename);
-
-            return Json("", JsonRequestBehavior.AllowGet);
-        }
+        //    return Json("", JsonRequestBehavior.AllowGet);
+        //}
 
 
         public static IWorkbook TableToExcel(DataTable dt, string file)
@@ -393,23 +343,39 @@ namespace MES_WATER.Controllers
             }
             return workbook;
         }
-        public void Download(IWorkbook excel, string pRptName)
-        {
-            using (MemoryStream ms = new MemoryStream())
-            {
-                excel.Write(ms);
-                byte[] byt = ms.ToArray();
-                ms.Flush();
-                ms.Close();
-                Response.Clear();
-                Response.AddHeader("Content-Disposition", "attachment;filename=" + pRptName);
-                Response.AddHeader("Content-Length", byt.Length.ToString());
-                Response.ContentType = "application/octet-stream";
-                Response.BinaryWrite(byt);
-                byt = null;
-            }
-        }
-
+        //public void Download(IWorkbook excel, string pRptName)
+        //{
+        //    using (MemoryStream ms = new MemoryStream())
+        //    {
+        //        excel.Write(ms);
+        //        byte[] byt = ms.ToArray();
+        //        ms.Flush();
+        //        ms.Close();
+        //        Response.Clear();
+        //        Response.AddHeader("Content-Disposition", "attachment;filename=" + pRptName);
+        //        Response.AddHeader("Content-Length", byt.Length.ToString());
+        //        Response.ContentType = "application/octet-stream";
+        //        Response.BinaryWrite(byt);
+        //        byt = null;
+        //    }
+        //}
+        //public void Download(string path, string pRptName)
+        //{
+        //    FileStream stream = new FileStream(path,FileMode.Open);
+        //    using (MemoryStream ms = new MemoryStream())
+        //    {
+        //        stream.Write(ms.ToArray(), 0, ms.ToArray().Length);
+        //        byte[] byt = ms.ToArray();
+        //        stream.Flush();
+        //        stream.Close();
+        //        Response.Clear();
+        //        Response.AddHeader("Content-Disposition", "attachment;filename=" + pRptName);
+        //        Response.AddHeader("Content-Length", byt.Length.ToString());
+        //        Response.ContentType = "application/octet-stream";
+        //        Response.BinaryWrite(byt);
+        //        byt = null;
+        //    }
+        //}
 
         //public List<T> DataTableToList<T>(DataTable dt) where T : class, new()
         //{
@@ -715,6 +681,40 @@ namespace MES_WATER.Controllers
             DataTable dtTmp = comm.Get_DataTable(sSql, "sup_code", sup_code);
 
             return Json(dtTmp, JsonRequestBehavior.AllowGet);
+        }
+
+        public void Save_FilesExcel(string sTemp, string sCusName)
+        {
+            string tmp2 = sTemp.Replace("&quot;", @"""");
+            DataTable tmp3 = (DataTable)JsonConvert.DeserializeObject(tmp2, (typeof(DataTable)));
+
+            DataTable exdt = new DataTable();
+            foreach (DataColumn column in tmp3.Columns)
+            {
+                exdt.Columns.Add(column.ColumnName);
+            }
+            for (int i = 0; i < tmp3.Rows.Count; i++)
+            {
+                DataRow drow = exdt.NewRow();
+                for (int j = 0; j < exdt.Columns.Count; j++)
+                {
+                    drow[j] = tmp3.Rows[i][j].ToString();
+                }
+                exdt.Rows.Add(drow);
+            }
+
+
+            string odate = DateTime.Now.ToString("yyyyMMdd_HHmm");
+            string filename = sCusName + "_" + odate + ".xls";
+
+            //創建資料夾
+            var originalDirectory = new DirectoryInfo(string.Format("{0}Upload\\EC_EXCEL\\", Server.MapPath(@"\")));
+            string pathString = System.IO.Path.Combine(originalDirectory.ToString());
+            System.IO.Directory.CreateDirectory(pathString);
+
+            var path = pathString + filename;
+            TableToExcel(exdt, path);
+
         }
     }
 }
