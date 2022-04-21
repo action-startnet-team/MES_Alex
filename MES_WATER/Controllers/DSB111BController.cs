@@ -387,7 +387,7 @@ namespace MES_WATER.Controllers
             //DSB10_0000 data = Get_One_DSB10_0000_ByMacCode(pMacCode);
 
             string sql = @"SELECT a.COLUMN_NAME as 'key' FROM MEB15_0000 m 
-                       LEFT JOIN INFORMATION_SCHEMA.COLUMNS a  on a.TABLE_NAME = 'MEA_E01' and a.COLUMN_NAME = m.address_code
+                       LEFT JOIN INFORMATION_SCHEMA.COLUMNS a  on a.TABLE_NAME = 'MEA_E02' and a.COLUMN_NAME = m.address_code
                        where m.mac_code = @mac_code ";
             DataTable dtKey = comm.Get_DataTable(sql,new { mac_code = pMacCode });
             int key = comm.sGetInt32(dtKey.Rows[0]["key"].ToString());
@@ -403,9 +403,9 @@ namespace MES_WATER.Controllers
             List<int> range = new List<int>();
             //當天的資料
             string sSql = @" select TOP(1) *, 
-                            DATEDIFF(minute, (select MIN(update_at) from MEA_E01 where Convert(varchar,update_at,23) like  Convert(varchar,GETDATE(),23) + '%'), 
-                                    (select MAX(update_at) from MEA_E01 where Convert(varchar,update_at,23) like  Convert(varchar,GETDATE(),23) + '%')) AS OEE 
-                            from MEA_E01  
+                            DATEDIFF(minute, (select MIN(update_at) from MEA_E02 where Convert(varchar,update_at,23) like  Convert(varchar,GETDATE(),23) + '%'), 
+                                    (select MAX(update_at) from MEA_E02 where Convert(varchar,update_at,23) like  Convert(varchar,GETDATE(),23) + '%')) AS OEE 
+                            from MEA_E02  
                             where update_at between convert(varchar(10),GETDATE(),120)+' 00:00:01.000' 
                             and convert(varchar(10),GETDATE(),120)+' 23:59:59.999'
                             order by update_at desc";
