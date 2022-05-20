@@ -1,0 +1,505 @@
+﻿@using MES_WATER.Models;
+@model System.Data.DataTable
+@using System.Data;
+@{
+    //主檔頁面
+    ViewBag.Title = "Index";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+
+    Comm comm = new Comm();
+    GetModelValidation gmv = new GetModelValidation();
+
+    string today = DateTime.Now.ToString("yyyy/MM/dd");
+
+    //string[] columnList = { "製令單號", "產品品號", "OK數量", "NG數量", "生產時間" };
+    //DataTable TempTable = ViewBag.TempTable;
+    List<ECT02_0000> notSaveList = ViewBag.notSaveList ?? new List<ECT02_0000>();
+    //List<DDLList> mac_code_list = comm.Get_DDLOption("MEB15_0000", "mac_code", "mac_name");
+
+    List<DDLList> mac_code_list = comm.Get_DDLOptionBySql("SELECT mac_code as field_code, mac_name as field_name FROM MEB15_0000 where mac_code='1001-M1' or mac_code='1001-M2' ");
+}
+
+@*<style>
+        .no-search {
+            display: none !important;
+        }
+
+        .chosen-search:after .chosen-search:before {
+            /*display:none !important;*/
+            position: relative;
+            z-index: 1010;
+            margin: 0;
+            padding: 3px 4px;
+            white-space: nowrap;
+            box-sizing: border-box;
+            display: block;
+        }
+    </style>*@
+
+
+
+@Html.Partial("pPrgName")
+
+@if (ViewBag.count > 0)
+{
+    <div class="alert alert-block alert-success">
+        <button type="button" class="close" data-dismiss="alert">
+            <i class="ace-icon fa fa-times"></i>
+        </button>
+
+        <p>
+            <strong>
+                <i class="ace-icon fa fa-check"></i>
+                上傳成功!
+            </strong>
+
+        </p>
+        <p>資料筆數: @ViewBag.count</p>
+    </div>
+}
+<div id="custom_btns">
+    <div class="clearfix">
+        <div class="pull-left" style="margin-left: 10px">
+            <a id="refresh" class="btn btn-white btn-success btn-bold" role="button">
+                <i class="fa fa-refresh green" aria-hidden="true"></i>
+                <span class=''>更新</span>
+            </a>
+        </div>
+        <label class="col-sm-1 control-label no-padding-right" for="cal_date" style="font-size:20px;">設備名稱</label>
+            <div class="col-sm-3 chosen-search">
+                <div class="col-sm-10 no-padding-right no-padding-left">
+                    <select id="mac_code" name="mac_code" class="chosen-select" value="" style="width: 200px;">
+                        @CustomHelper.Get_Option(mac_code_list, "", true)
+                    </select>
+                </div>
+            </div>
+
+    </div>
+</div>
+@using (Html.BeginForm("Index", sPrgCode, null, FormMethod.Post, new { @class = "form-horizontal", id = "validation_form", role = "form", enctype = "multipart/form-data" }))
+{
+    @*@Html.AntiForgeryToken()*@
+    @Html.ValidationSummary()
+    <p>&nbsp;</p>
+    <div class="line_chart" style="height: 60vh"></div>
+    <p>&nbsp;</p>
+
+}
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-multiselect.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/jquery-ui.custom.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+
+}
+@section footer_plugin{
+    <script src="~/Scripts/echarts 5/echarts.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.jqGrid.min.js"></script>
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="~/Scripts/assets/js/colResizable-1.6.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+}
+@*@{
+        <script src="~/Scripts/assets/js/colResizable-1.6.js"></script>
+        <script src="~/Scripts/assets/js/jquery-1.8.0.min.js"></script>
+    }*@
+@section footer_script {
+    <script>
+        jQuery(function ($) {
+            $("input[name=query_date_s]").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr('autocomplete', 'off');
+            $("input[name=query_date_e]").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr('autocomplete', 'off');
+
+            //display_table();
+            display_chart();
+
+            // 點擊更新按鈕
+            $('#refresh').click(function () {
+
+                display_chart();
+                $("#grid-table").jqGrid('setGridParam', { datatype: 'json', }).trigger('reloadGrid')
+            })
+
+            $("#mac_code").change(function () {
+                //display_table();
+                display_chart();
+                $("#grid-table").jqGrid('setGridParam', { datatype: 'json', }).trigger('reloadGrid')
+            })
+            $("#query_date_s").change(function () {
+                //display_table();
+                display_chart();
+                $("#grid-table").jqGrid('setGridParam', { datatype: 'json', }).trigger('reloadGrid')
+            })
+            $("#query_date_e").change(function () {
+               // display_table();
+                display_chart();
+                $("#grid-table").jqGrid('setGridParam', { datatype: 'json', }).trigger('reloadGrid')
+            })
+        })
+
+
+
+        //function display_table() {
+        //    $.ajax({
+        //        async: false,
+        //        method: 'post',
+        //        url: '/DSB110C/Get_Info',
+        //        data: {
+        //            query_date_s: $("#query_date_s").val(),
+        //            query_date_e: $("#query_date_e").val(),
+        //            mac_code: $('#mac_code').val(),
+        //        },
+        //        datatype: 'json',
+        //        success: function (data) {
+        //            $("#oee").val(data[0].oee_data)
+        //            $("#all_qty").val(data[0].qty_data)
+        //            //$("#oee").val();
+        //            //$("#all_qty").val();
+        //        },
+        //        error: function (xhr) {
+        //            alert("抓資料失敗");
+        //        }
+        //    })
+        //}
+
+        function display_chart() {
+            $.ajax({
+                method: 'post',
+                async: false,
+                url: '@Url.Action("GetData")',
+                data: {
+                    //query_date_s: $('#query_date_s').val(),
+                    //query_date_e: $('#query_date_e').val(),
+                    mac_code: $('#mac_code').val(),
+                },
+                success: function (data) {
+                    var obj1 = []
+                    var obj2 = []
+                    var obj3 = []
+                    var obj4 = []
+                    var obj5 = []
+                    $.each(data, function (i, v) {
+                        obj1[i] = v.ins_date
+                        obj2[i] = v.totalqty
+                        obj3[i] = v.totalqty2
+                        obj4[i] = v.totalqty3
+                        obj5[i] = v.totalqty4
+                    })
+                    console.log("日期:" + obj1)
+                    console.log("M1電流:" + obj2)
+                    console.log("M2電流:" + obj3)
+                    console.log("M3電流:" + obj4)
+                    console.log("M4電流:" + obj5)
+                    var mychart = echarts.init(document.getElementsByClassName("line_chart")[0]);
+
+                    var option = {
+                        title: {
+                            text: '電流資訊圖',
+                            x: 'center',
+                            textStyle: {
+                                "fontSize": 25,
+                                color: "#62B4BB"
+                            }
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'shadow'
+                            },
+                            textStyle: {
+                                "fontSize": 20
+                            }
+                        },
+                        legend: {
+                            data: ["M1電流", "M2電流", "M3電流", "M4電流"],
+                            padding: [10, 200, 0, 0],
+                            x: 'right',
+                            orient: "horizontal",
+                            textStyle: {
+                                "fontSize": 15,
+                                color: "#62B4BB"
+                            }
+                        },
+                        xAxis: {
+                            data: obj1,
+                            axisLabel: {
+                                textStyle: {
+                                    fontSize: 18,
+                                    color:"#62B4BB"
+                                }
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            axisLabel: {
+                                textStyle: {
+                                    fontSize: 18,
+                                    color: "#62B4BB"
+                                }
+                            }
+                        },
+                        series: [{
+                            name: 'M1電流',
+                            type: 'line',
+                            data: obj2,
+                            symbolSize: 15,
+                            symbol: 'circle',
+                            itemStyle: {
+                                normal: {
+                                    label: {
+                                        show: true,
+                                        fontSize: 18,
+                                        color: "#62B4BB"
+                                    },
+                                    lineStyle: {
+                                        width:5
+                                    }
+                                }
+                            }
+                        },
+                            {
+                            name: 'M2電流',
+                            type: 'line',
+                            data: obj3,
+                            symbolSize: 15,
+                            symbol: 'circle',
+                            itemStyle: {
+                                normal: {
+                                    label: {
+                                        show: true,
+                                        fontSize: 18,
+                                        color: "#91cc75"
+                                    },
+                                    lineStyle: {
+                                        width: 5
+                                    }
+                                }
+                            }
+                            }, {
+                                name: 'M3電流',
+                                type: 'line',
+                                data: obj4,
+                                symbolSize: 15,
+                                symbol: 'circle',
+                                itemStyle: {
+                                    normal: {
+                                        label: {
+                                            show: true,
+                                            fontSize: 18,
+                                            color: "#fac858"
+                                        },
+                                        lineStyle: {
+                                            width: 5
+                                        }
+                                    }
+                                }
+                            },{
+                            name: 'M4電流',
+                            type: 'line',
+                            data: obj5,
+                            symbolSize: 15,
+                            symbol: 'circle',
+                            itemStyle: {
+                                normal: {
+                                    label: {
+                                        show: true,
+                                        fontSize: 18,
+                                        color: "#ee6666"
+                                    },
+                                    lineStyle: {
+                                        width: 5
+                                    }
+                                }
+                            }
+                        }],
+                      
+                    };
+                    mychart.setOption(option);
+                },
+                error: function () {
+                    alert(88)
+                }
+            })
+        }
+
+        $('form').submit(function () {
+            if ($("#cus_code").val() == "") {
+                alert("請選擇客戶編號")
+                return false
+            } else if ($("#edition").val() == "") {
+                alert("請選擇客戶版次")
+                return false
+            }else {
+                $('form input:submit').attr('disabled', 'disabled');
+            }
+        });
+
+        // 初始 - 定時更新
+        let currentTimer = setTimerUpdate()
+
+        function setTimerUpdate() {
+            let timer = Timer({
+                initSeconds: 60,
+                tick: 60000,
+                launch: {
+                    callback: function () {
+                        display_chart();
+                    }
+                }
+            })
+
+            return timer
+        }
+
+        function Timer(options) {
+            let initSeconds = options.initSeconds // seconds // 初始總時間
+            let interval = options.interval || 1  // seconds // 發動一次的間隔
+            let tick = options.tick || 1000  // ms  // 每單位時間發動一次
+            let launch = options.launch  // callback函數和發動時間
+
+            launch.restTime = launch.restTime || 0  // 預設0秒callback
+
+            let count = initSeconds
+            $('#update_count').text(count)
+
+            let timer = setInterval(function () {
+                count -= interval
+                if (count <= launch.restTime) {
+                    if (typeof launch.callback === 'function') {
+                        launch.callback()
+                    }
+                    count = initSeconds
+                }
+                $('#update_count').text(count)
+            }, tick)
+
+            return timer
+        }
+
+        // chosen select
+        if (!ace.vars['touch']) {
+            $('.chosen-select').chosen({ allow_single_deselect: true });
+            //resize the chosen on window resize
+
+            $(window)
+            .off('resize.chosen')
+            .on('resize.chosen', function () {
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            }).trigger('resize.chosen');
+            //resize chosen on sidebar collapse/expand
+            $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                if (event_name != 'sidebar_collapsed') return;
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            });
+
+            $('#chosen-multiple-style .btn').on('click', function (e) {
+                var target = $(this).find('input[type=radio]');
+                var which = parseInt(target.val());
+                if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                else $('#form-field-select-4').removeClass('tag-input-style');
+            });
+        }
+
+
+    </script>
+
+    @*<style>
+            /*滾動條*/
+            .table thead, .table thead tr, .table thead th {
+                position: sticky;
+                top: -1px;
+                /*background: #343A40;*/
+                z-index: 1000;
+                height: 50px;
+                border: none;
+            }
+
+            .skin-1 .table thead, .skin-1 .table thead tr, .skin-1 .table thead th {
+                background: #343A40;
+            }
+
+            .table-body {
+                /*border-top:#fff solid 2px;*/
+                max-height: 60vh;
+                overflow-y: scroll;
+            }
+
+            /*按鈕樣式*/
+            .downbtn{
+                border-radius: 20px;
+                font-weight:bolder;
+                width: 60px;
+                height: 38px;
+                padding-top: 8px;
+            }
+            .btndiv{
+                    padding-bottom: 15px;
+            }
+
+            /*表格樣式*/
+            tbody{
+                background-color:lightgray;
+            }
+            tbody td{
+                color:#000000;
+
+            }
+            .table-bordered > tbody > tr > td, .table-bordered > tbody > tr > td{
+            border-color:gray;
+            }
+            .table-bordered > thead > tr > td, .table-bordered > thead > tr > th {
+            border-color:lightgray;
+            }
+            .skin-3 .table tbody,
+            .skin-3 .table tbody tr,
+            .skin-3 .table tbody td {
+            background-color: #E9E9E9 ;
+            }
+            .skin-3 .table thead tr,
+            .skin-3 .table thead th {
+            border-color:gray;
+            }
+        </style>*@
+}
+
+@{
+    //if (isDisplay == "Y")
+    //{
+    //    // 改對應的class
+    //    Html.RenderAction("pJqgrid_A", "jqgrid", new
+    //    {
+    //        pModelType = new ECT02_0000().GetType(),
+    //        pPrgCode = sPrgCode,
+    //        pCustomHtml_header = sHeaderBtns,
+    //    });
+
+    //}
+}
+
+@* 修改點 以下 *@
+@{
+    // 在抓資料時另外傳參數
+    //string addPostData = ",pMacCode:()=>$('#mac_code').val(),pStartDate:()=>$('#query_date_s').val(),pEndDate:()=>$('#query_date_e').val() ";
+
+    //    // 改對應的class
+    //    Html.RenderAction("pJqgrid_A", "jqgrid", new
+    //    {
+    //        pModelType = new DSB11_0200().GetType(),
+    //        pPrgCode = sPrgCode,
+    //        pAddPostDataJs = addPostData,
+    //    });
+
+}
+@* 修改點 以上 *@
+
+

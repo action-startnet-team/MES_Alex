@@ -405,7 +405,7 @@ namespace MES_WATER.Controllers
             string sSql = @" select TOP(1) *, 
                             DATEDIFF(minute, (select MIN(update_at) from MEA_E02 where Convert(varchar,update_at,23) like  Convert(varchar,GETDATE(),23) + '%'), 
                                     (select MAX(update_at) from MEA_E02 where Convert(varchar,update_at,23) like  Convert(varchar,GETDATE(),23) + '%')) AS OEE 
-                            from MEA_E02  
+                            from MEA_E02 
                             where update_at between convert(varchar(10),GETDATE(),120)+' 00:00:01.000' 
                             and convert(varchar(10),GETDATE(),120)+' 23:59:59.999'
                             order by update_at desc";

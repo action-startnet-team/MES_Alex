@@ -218,6 +218,7 @@
     <Compile Include="App_Start\RouteConfig.cs" />
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\AjaxFunctionController.cs" />
+    <Compile Include="Controllers\DSB111CController.cs" />
     <Compile Include="Controllers\DSB111BController.cs" />
     <Compile Include="Controllers\DSB110BController.cs" />
     <Compile Include="Controllers\ECB050AController.cs" />
@@ -241,6 +242,7 @@
     <Compile Include="Controllers\MET100AController.cs" />
     <Compile Include="Controllers\RPT210AController.cs" />
     <Compile Include="Controllers\RPT220AController.cs" />
+    <Compile Include="Controllers\RPT240AController.cs" />
     <Compile Include="Controllers\RPT231AController.cs" />
     <Compile Include="Controllers\RPT230AController.cs" />
     <Compile Include="Controllers\WMB220AController.cs" />
@@ -709,6 +711,7 @@
     <Compile Include="Models\Review.cs" />
     <Compile Include="Models\RPT16_0000.cs" />
     <Compile Include="Models\RPT19_0000.cs" />
+    <Compile Include="Models\RPT24_0000.cs" />
     <Compile Include="Models\RPT23_0100.cs" />
     <Compile Include="Models\RPT23_0000.cs" />
     <Compile Include="Models\RSS01_0000.cs" />
@@ -808,6 +811,7 @@
     <Compile Include="Repository\RPT16_0000Repository.cs" />
     <Compile Include="Repository\RPT20_0000Repository.cs" />
     <Compile Include="Repository\RPT19_0000Repository.cs" />
+    <Compile Include="Repository\RPT24_0000Repository.cs" />
     <Compile Include="Repository\RPT23_0100Repository.cs" />
     <Compile Include="Repository\RSS03_0000Repository.cs" />
     <Compile Include="Repository\RSS03_0100Repository.cs" />
@@ -2290,6 +2294,9 @@
     <Content Include="Views\RPT231A\Index.cshtml" />
     <Content Include="Views\RPT230A\Upload.cshtml" />
     <Content Include="Views\RPT231A\Upload.cshtml" />
+    <Content Include="Views\DSB111C\Index.cshtml" />
+    <Content Include="Views\RPT240A\Index.cshtml" />
+    <Content Include="Views\RPT240A\Upload.cshtml" />
     <None Include="Web References\WebReference\wmsapi.disco" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>

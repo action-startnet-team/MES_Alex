@@ -801,7 +801,7 @@ namespace MES_WATER.Repository
                           ) t
                           pivot(
                               MAX(FEATURE_VALUE)
-                              FOR FEATURE_CODE IN([A01 - 01],[A01 - 03],[A01 - 091])
+                              FOR FEATURE_CODE IN([A01-01],[A01-03],[A01-091])
                           ) p
                           ) t1
                           left join(
@@ -822,7 +822,7 @@ namespace MES_WATER.Repository
                           ) t
                           pivot(
                               MAX(FEATURE_VALUE_DESC)
-                              FOR FEATURE_NAME IN([3 - 車圈型號],[6 - 車圈尺寸],[D - 車圈 / 花鼓孔數])
+                              FOR FEATURE_NAME IN([3-車圈型號],[6-車圈尺寸],[D-車圈/花鼓孔數])
                           ) p
                           ) t2 on t1.ITEM_CODE = t2.ITEM_CODE ";
 
@@ -843,8 +843,8 @@ namespace MES_WATER.Repository
                 string spec_8 = dt2.Rows[i]["D-車圈/花鼓孔數"].ToString();
 
                 string sSql = " INSERT INTO " +
-                              " MEB50_0000 (  ITEM_CODE,  ITEM_NAME,  ITEM_SPECIFICATION,   spec_1 ,   spec_2,   spec_3,  spec_4,  spec_5,  spec_6,  spec_7,  spec_8 ) " +
-                              "     VALUES ( @ITEM_CODE, @ITEM_NAME, @ITEM_SPECIFICATION,  @spec_1 ,  @spec_2,  @spec_3, @spec_4, @spec_5, @spec_6, @spec_7, @spec_8 ) ";
+                              " MEB50_0000 (  ITEM_CODE,  ITEM_NAME,  ITEM_SPECIFICATION,   spec_1 ,   spec_2,   spec_3,  spec_4,  spec_5,  spec_6,  spec_7,  spec_8, pro_uph ) " +
+                              "     VALUES ( @ITEM_CODE, @ITEM_NAME, @ITEM_SPECIFICATION,  @spec_1 ,  @spec_2,  @spec_3, @spec_4, @spec_5, @spec_6, @spec_7, @spec_8 , 0) ";
 
                 using (SqlConnection con_db = comm.Set_DBConnection())
                 {

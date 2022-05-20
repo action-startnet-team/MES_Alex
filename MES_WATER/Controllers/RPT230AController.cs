@@ -195,7 +195,7 @@ namespace MES_WATER.Controllers
                 data.X_CHECK_SHIP_DATE = dtTmp.Rows[i]["X_CHECK_SHIP_DATE"].ToString();
                 data.CUSTOMER_ORDER_NO = " "+dtTmp.Rows[i]["CUSTOMER_ORDER_NO"].ToString();
                 data.CUSTOMER_ITEM_CODE = dtTmp.Rows[i]["CUSTOMER_ITEM_CODE"].ToString();
-                data.bussiness_reply = Get_Data(data.DOC_NO, data.SequenceNumber, "bussiness_reply");
+                data.bussiness_reply = Get_Data(data.DOC_NO, data.SequenceNumber, "bussiness_reply");//抓取MBA_E20相同單號的資料
                 data.production_reply = Get_Data(data.DOC_NO, data.SequenceNumber, "production_reply");
                 data.shipment_reply = Get_Data(data.DOC_NO, data.SequenceNumber, "shipment_reply");
                 //data.bussiness_reply = dtTmp.Rows[i]["bussiness_reply"].ToString();
