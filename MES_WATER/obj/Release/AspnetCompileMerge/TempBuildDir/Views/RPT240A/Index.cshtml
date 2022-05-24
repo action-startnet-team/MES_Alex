@@ -106,7 +106,6 @@
             <span class=''>查詢</span>
         </a>
     </div>
-
     <div class="pull-left" style="margin-left: 10px">
         <div class="btn-group">
             <button data-toggle="dropdown" class="btn btn-white btn-bold btn-success  dropdown-toggle" aria-expanded="false">
@@ -136,7 +135,6 @@
             <span class=''>匯入</span>
         </a>
     </div>
-
 </div>
 <!-- Modal Content -->
 <div id="modal-form" class="modal" tabindex="-1">
@@ -279,6 +277,7 @@
     <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
 
     <script src="~/Scripts/assets/jQuery-BlockUI/jquery.blockUI.js"></script>
+
 
 }
 
@@ -575,8 +574,8 @@
                 var temp_str_start_date = "";
                 var temp_str_end_date = "";
                 var temp_regular = "^([0-9]{4})[./]{1}([0-9]{1,2})[./]{1}([0-9]{1,2})$";
-                temp_str_start_date = $("input[class='call_datepicker']")[0].value;
-                temp_str_end_date = $("input[class='call_datepicker']")[1].value;
+                //temp_str_start_date = $("input[class='call_datepicker']")[0].value;
+                //temp_str_end_date = $("input[class='call_datepicker']")[1].value;
                 if (temp_str_start_date == "" && temp_str_end_date == "") { }
                 else if ((temp_str_start_date == "" && temp_str_end_date != "") || (temp_str_start_date != "" && temp_str_end_date == "")) {
                     alert('查詢生產日期的起訖必須同時存在');
@@ -730,6 +729,47 @@
                 $(myTable.row(index).node()).find('input:checkbox').prop('checked', false);
             }
         });
+
+        /////////////////////////////////
+        //table checkboxes
+        $('th input[type=checkbox], td input[type=checkbox]').prop('checked', false);
+
+        //select/deselect all rows according to table header checkbox
+        $('#dynamic-table > thead > tr > th input[type=checkbox], #dynamic-table_wrapper input[type=checkbox]').eq(0).on('click', function () {
+            var th_checked = this.checked;//checkbox inside "TH" table header
+
+            $('#dynamic-table').find('tbody > tr').each(function () {
+                var row = this;
+                if (th_checked) myTable.row(row).select();
+                else myTable.row(row).deselect();
+            });
+        });
+
+        //select/deselect a row when the checkbox is checked/unchecked
+        $('#dynamic-table').on('click', 'td input[type=checkbox]', function () {
+            var row = $(this).closest('tr').get(0);
+            if (this.checked) myTable.row(row).deselect();
+            else myTable.row(row).select();
+        });
+
+        $(document).on('click', '#dynamic-table .dropdown-toggle', function (e) {
+            e.stopImmediatePropagation();
+            e.stopPropagation();
+            e.preventDefault();
+        });
+        //And for the first simple table, which doesn't have TableTools or dataTables
+        //select/deselect all rows according to table header checkbox
+        var active_class = 'active';
+        $('#simple-table > thead > tr > th input[type=checkbox]').eq(0).on('click', function () {
+            var th_checked = this.checked;//checkbox inside "TH" table header
+
+            $(this).closest('table').find('tbody > tr').each(function () {
+                var row = this;
+                if (th_checked) $(row).addClass(active_class).find('input[type=checkbox]').eq(0).prop('checked', true);
+                else $(row).removeClass(active_class).find('input[type=checkbox]').eq(0).prop('checked', false);
+            });
+        });
+
             var table_width_key = window.location.pathname + '_dynamic-table_width'
 
             $('#100PercentWidth').click(function () {
@@ -793,45 +833,6 @@
                 // reload page
                 history.go(0)
             })
-        /////////////////////////////////
-        //table checkboxes
-        $('th input[type=checkbox], td input[type=checkbox]').prop('checked', false);
-
-        //select/deselect all rows according to table header checkbox
-        $('#dynamic-table > thead > tr > th input[type=checkbox], #dynamic-table_wrapper input[type=checkbox]').eq(0).on('click', function () {
-            var th_checked = this.checked;//checkbox inside "TH" table header
-
-            $('#dynamic-table').find('tbody > tr').each(function () {
-                var row = this;
-                if (th_checked) myTable.row(row).select();
-                else myTable.row(row).deselect();
-            });
-        });
-
-        //select/deselect a row when the checkbox is checked/unchecked
-        $('#dynamic-table').on('click', 'td input[type=checkbox]', function () {
-            var row = $(this).closest('tr').get(0);
-            if (this.checked) myTable.row(row).deselect();
-            else myTable.row(row).select();
-        });
-
-        $(document).on('click', '#dynamic-table .dropdown-toggle', function (e) {
-            e.stopImmediatePropagation();
-            e.stopPropagation();
-            e.preventDefault();
-        });
-        //And for the first simple table, which doesn't have TableTools or dataTables
-        //select/deselect all rows according to table header checkbox
-        var active_class = 'active';
-        $('#simple-table > thead > tr > th input[type=checkbox]').eq(0).on('click', function () {
-            var th_checked = this.checked;//checkbox inside "TH" table header
-
-            $(this).closest('table').find('tbody > tr').each(function () {
-                var row = this;
-                if (th_checked) $(row).addClass(active_class).find('input[type=checkbox]').eq(0).prop('checked', true);
-                else $(row).removeClass(active_class).find('input[type=checkbox]').eq(0).prop('checked', false);
-            });
-        });
 
         //select/deselect a row when the checkbox is checked/unchecked
         $('#simple-table').on('click', 'td input[type=checkbox]', function () {

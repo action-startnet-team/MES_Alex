@@ -164,7 +164,7 @@ namespace MES_WATER.Controllers
             //DataTable dtKey = comm.Get_DataTable(sql);
             //int key = comm.sGetInt32(dtKey.Rows[0]["key"].ToString());
             //sql += " group by CONVERT(varchar, TRANSACTION_DATE, 23) order by CONVERT(varchar, TRANSACTION_DATE, 23)";
-            string sSql = @" select *  from (select TOP 20 * From MEA_E02";
+            string sSql = @" select *  from (select TOP 1 * From MEA_E02";
             if (!string.IsNullOrEmpty(mac_code)) { sSql += " Where MACHINE_CODE='" + mac_code + "' "; }
             sSql += @"  order by update_at DESC) V order by update_at";
             DataTable dt = comm.Get_DataTable(sSql);
@@ -177,7 +177,7 @@ namespace MES_WATER.Controllers
 
             int j = 0;
             List<Object> list = new List<Object>();
-            for (int i = 0; i <= 19; i++)
+            for (int i = 0; i <= 0; i++)
             {
                 //string date = dt1.AddDays(i).ToString("MM月dd日");
                 //string date2 = dt1.AddDays(i).ToString("yyyy-MM-dd");
@@ -185,45 +185,50 @@ namespace MES_WATER.Controllers
                 decimal qty2 = 0;
                 decimal qty3 = 0;
                 decimal qty4 = 0;
+                decimal qty5 = 0;
                 string date = "";
+                decimal second = 1;
                 if (dt.Rows.Count>0) {
 
-                    date = Convert.ToDateTime(dt.Rows[j]["update_at"]).ToString("HH:mm");
+                    date = Convert.ToDateTime(dt.Rows[j]["update_at"]).ToString("HH:mm"+"\n"+"ss");
                     qty = comm.sGetDecimal(dt.Rows[j][(300345).ToString()].ToString());
-                    qty += comm.sGetDecimal(dt.Rows[j][(300353).ToString()].ToString());
-                    qty += comm.sGetDecimal(dt.Rows[j][(300361).ToString()].ToString());
-                    qty += comm.sGetDecimal(dt.Rows[j][(300369).ToString()].ToString());
-                    qty += comm.sGetDecimal(dt.Rows[j][(300377).ToString()].ToString());
-                    qty += comm.sGetDecimal(dt.Rows[j][(300385).ToString()].ToString());
-                    qty += comm.sGetDecimal(dt.Rows[j][(300393).ToString()].ToString());
-                    qty += comm.sGetDecimal(dt.Rows[j][(300401).ToString()].ToString());
+
+                    //date = Convert.ToDateTime(dt.Rows[j]["update_at"]).ToString("HH:mm" + "\n" + "ss" + second);
+                    //qty5 = comm.sGetDecimal(dt.Rows[j][(300353).ToString()].ToString());
+
+                    //qty += comm.sGetDecimal(dt.Rows[j][(300361).ToString()].ToString());
+                    //qty += comm.sGetDecimal(dt.Rows[j][(300369).ToString()].ToString());
+                    //qty += comm.sGetDecimal(dt.Rows[j][(300377).ToString()].ToString());
+                    //qty += comm.sGetDecimal(dt.Rows[j][(300385).ToString()].ToString());
+                    //qty += comm.sGetDecimal(dt.Rows[j][(300393).ToString()].ToString());
+                    //qty += comm.sGetDecimal(dt.Rows[j][(300401).ToString()].ToString());
 
                     qty2 = comm.sGetDecimal(dt.Rows[j][(300347).ToString()].ToString());
-                    qty2 += comm.sGetDecimal(dt.Rows[j][(300355).ToString()].ToString());
-                    qty2 += comm.sGetDecimal(dt.Rows[j][(300361).ToString()].ToString());
-                    qty2 += comm.sGetDecimal(dt.Rows[j][(300371).ToString()].ToString());
-                    qty2 += comm.sGetDecimal(dt.Rows[j][(300379).ToString()].ToString());
-                    qty2 += comm.sGetDecimal(dt.Rows[j][(300387).ToString()].ToString());
-                    qty2 += comm.sGetDecimal(dt.Rows[j][(300395).ToString()].ToString());
-                    qty2 += comm.sGetDecimal(dt.Rows[j][(300403).ToString()].ToString());
+                    //qty2 += comm.sGetDecimal(dt.Rows[j][(300355).ToString()].ToString());
+                    //qty2 += comm.sGetDecimal(dt.Rows[j][(300361).ToString()].ToString());
+                    //qty2 += comm.sGetDecimal(dt.Rows[j][(300371).ToString()].ToString());
+                    //qty2 += comm.sGetDecimal(dt.Rows[j][(300379).ToString()].ToString());
+                    //qty2 += comm.sGetDecimal(dt.Rows[j][(300387).ToString()].ToString());
+                    //qty2 += comm.sGetDecimal(dt.Rows[j][(300395).ToString()].ToString());
+                    //qty2 += comm.sGetDecimal(dt.Rows[j][(300403).ToString()].ToString());
 
                     qty3 = comm.sGetDecimal(dt.Rows[j][(300349).ToString()].ToString());
-                    qty3 += comm.sGetDecimal(dt.Rows[j][(300357).ToString()].ToString());
-                    qty3 += comm.sGetDecimal(dt.Rows[j][(300363).ToString()].ToString());
-                    qty3 += comm.sGetDecimal(dt.Rows[j][(300373).ToString()].ToString());
-                    qty3 += comm.sGetDecimal(dt.Rows[j][(300381).ToString()].ToString());
-                    qty3 += comm.sGetDecimal(dt.Rows[j][(300389).ToString()].ToString());
-                    qty3 += comm.sGetDecimal(dt.Rows[j][(300397).ToString()].ToString());
-                    qty3 += comm.sGetDecimal(dt.Rows[j][(300405).ToString()].ToString());
+                    //qty3 += comm.sGetDecimal(dt.Rows[j][(300357).ToString()].ToString());
+                    //qty3 += comm.sGetDecimal(dt.Rows[j][(300363).ToString()].ToString());
+                    //qty3 += comm.sGetDecimal(dt.Rows[j][(300373).ToString()].ToString());
+                    //qty3 += comm.sGetDecimal(dt.Rows[j][(300381).ToString()].ToString());
+                    //qty3 += comm.sGetDecimal(dt.Rows[j][(300389).ToString()].ToString());
+                    //qty3 += comm.sGetDecimal(dt.Rows[j][(300397).ToString()].ToString());
+                    //qty3 += comm.sGetDecimal(dt.Rows[j][(300405).ToString()].ToString());
 
                     qty4 = comm.sGetDecimal(dt.Rows[j][(300351).ToString()].ToString());
-                    qty4 += comm.sGetDecimal(dt.Rows[j][(300359).ToString()].ToString());
-                    qty4 += comm.sGetDecimal(dt.Rows[j][(300365).ToString()].ToString());
-                    qty4 += comm.sGetDecimal(dt.Rows[j][(300375).ToString()].ToString());
-                    qty4 += comm.sGetDecimal(dt.Rows[j][(300383).ToString()].ToString());
-                    qty4 += comm.sGetDecimal(dt.Rows[j][(300391).ToString()].ToString());
-                    qty4 += comm.sGetDecimal(dt.Rows[j][(300399).ToString()].ToString());
-                    qty4 += comm.sGetDecimal(dt.Rows[j][(300407).ToString()].ToString());
+                    //qty4 += comm.sGetDecimal(dt.Rows[j][(300359).ToString()].ToString());
+                    //qty4 += comm.sGetDecimal(dt.Rows[j][(300365).ToString()].ToString());
+                    //qty4 += comm.sGetDecimal(dt.Rows[j][(300375).ToString()].ToString());
+                    //qty4 += comm.sGetDecimal(dt.Rows[j][(300383).ToString()].ToString());
+                    //qty4 += comm.sGetDecimal(dt.Rows[j][(300391).ToString()].ToString());
+                    //qty4 += comm.sGetDecimal(dt.Rows[j][(300399).ToString()].ToString());
+                    //qty4 += comm.sGetDecimal(dt.Rows[j][(300407).ToString()].ToString());
                     j++;
                     
                 }
@@ -234,7 +239,8 @@ namespace MES_WATER.Controllers
                     totalqty = qty,
                     totalqty2 = qty2,
                     totalqty3 = qty3,
-                    totalqty4 = qty4
+                    totalqty4 = qty4,
+                    totalqty5 = qty5,
                 };
                 list.Add(obj);
             }

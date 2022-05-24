@@ -68,7 +68,7 @@
                 <span class=''>更新</span>
             </a>
         </div>
-        <label class="col-sm-1 control-label no-padding-right" for="cal_date" style="font-size:20px;">設備名稱</label>
+        <label class="col-sm-1 control-label no-padding-right" for="cal_date" style="font-size:20px; width:150px;">設備名稱</label>
             <div class="col-sm-3 chosen-search">
                 <div class="col-sm-10 no-padding-right no-padding-left">
                     <select id="mac_code" name="mac_code" class="chosen-select" value="" style="width: 200px;">
@@ -182,12 +182,14 @@
                     var obj3 = []
                     var obj4 = []
                     var obj5 = []
+                    var obj6 = []
                     $.each(data, function (i, v) {
                         obj1[i] = v.ins_date
                         obj2[i] = v.totalqty
                         obj3[i] = v.totalqty2
                         obj4[i] = v.totalqty3
                         obj5[i] = v.totalqty4
+                        obj6[i] = v.ins_sec
                     })
                     console.log("日期:" + obj1)
                     console.log("M1電流:" + obj2)
@@ -199,7 +201,8 @@
                     var option = {
                         title: {
                             text: '電流資訊圖',
-                            x: 'center',
+                            x: 'left',
+                            padding: [10, 0, 0, 100],
                             textStyle: {
                                 "fontSize": 25,
                                 color: "#62B4BB"
@@ -225,10 +228,12 @@
                             }
                         },
                         xAxis: {
-                            data: obj1,
+                            data: obj1 ,
                             axisLabel: {
                                 textStyle: {
-                                    fontSize: 18,
+                                    fontSize: 10,
+                                    interval: 0,
+                                    rotate: 30,
                                     color:"#62B4BB"
                                 }
                             }
@@ -252,7 +257,7 @@
                                 normal: {
                                     label: {
                                         show: true,
-                                        fontSize: 18,
+                                        fontSize: 10,
                                         color: "#62B4BB"
                                     },
                                     lineStyle: {
@@ -271,7 +276,7 @@
                                 normal: {
                                     label: {
                                         show: true,
-                                        fontSize: 18,
+                                        fontSize: 10,
                                         color: "#91cc75"
                                     },
                                     lineStyle: {
@@ -289,7 +294,7 @@
                                     normal: {
                                         label: {
                                             show: true,
-                                            fontSize: 18,
+                                            fontSize: 10,
                                             color: "#fac858"
                                         },
                                         lineStyle: {
@@ -307,7 +312,7 @@
                                 normal: {
                                     label: {
                                         show: true,
-                                        fontSize: 18,
+                                        fontSize: 10,
                                         color: "#ee6666"
                                     },
                                     lineStyle: {
@@ -321,9 +326,10 @@
                     mychart.setOption(option);
                 },
                 error: function () {
-                    alert(88)
+                    alert("err")
                 }
             })
+            immediateUpdate();
         }
 
         $('form').submit(function () {
@@ -343,8 +349,8 @@
 
         function setTimerUpdate() {
             let timer = Timer({
-                initSeconds: 60,
-                tick: 60000,
+                initSeconds: 30,
+                tick: 30000,
                 launch: {
                     callback: function () {
                         display_chart();
@@ -353,6 +359,17 @@
             })
 
             return timer
+        }
+
+
+        function immediateUpdate() {
+
+
+            // 清除timer
+            clearTimeout(currentTimer)
+
+            // 重設timer
+            currentTimer = setTimerUpdate()
         }
 
         function Timer(options) {

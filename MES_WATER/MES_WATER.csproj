@@ -242,6 +242,8 @@
     <Compile Include="Controllers\MET100AController.cs" />
     <Compile Include="Controllers\RPT210AController.cs" />
     <Compile Include="Controllers\RPT220AController.cs" />
+    <Compile Include="Controllers\RPT232AController.cs" />
+    <Compile Include="Controllers\RPT250AController.cs" />
     <Compile Include="Controllers\RPT240AController.cs" />
     <Compile Include="Controllers\RPT231AController.cs" />
     <Compile Include="Controllers\RPT230AController.cs" />
@@ -2297,6 +2299,8 @@
     <Content Include="Views\DSB111C\Index.cshtml" />
     <Content Include="Views\RPT240A\Index.cshtml" />
     <Content Include="Views\RPT240A\Upload.cshtml" />
+    <Content Include="Views\RPT250A\Index.cshtml" />
+    <Content Include="Views\RPT232A\Index.cshtml" />
     <None Include="Web References\WebReference\wmsapi.disco" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
