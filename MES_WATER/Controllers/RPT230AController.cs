@@ -169,11 +169,13 @@ namespace MES_WATER.Controllers
             if (!string.IsNullOrEmpty(sDOC_NO_E)) { sSql += " AND SALES_ORDER_DOC.DOC_NO <='" + sDOC_NO_E + "'"; }
             if (!string.IsNullOrEmpty(sPLAN_DELIVERY_DATE_S)) { sSql += " AND Convert(varchar,SALES_ORDER_DOC_SD.PLAN_DELIVERY_DATE,111) >='" + sPLAN_DELIVERY_DATE_S + "'"; }
             if (!string.IsNullOrEmpty(sPLAN_DELIVERY_DATE_E)) { sSql += " AND Convert(varchar,SALES_ORDER_DOC_SD.PLAN_DELIVERY_DATE,111) <='" + sPLAN_DELIVERY_DATE_E + "'"; }
+            if (string.IsNullOrEmpty(sPLAN_DELIVERY_DATE_E)) { sSql += " AND Convert(varchar,SALES_ORDER_DOC_SD.PLAN_DELIVERY_DATE,111) <=GETDATE()"; }
             if (!string.IsNullOrEmpty(sCUSTOMER_ORDER_NO_S)) { sSql += " AND SALES_ORDER_DOC.CUSTOMER_ORDER_NO >='" + sCUSTOMER_ORDER_NO_S + "'"; }
             if (!string.IsNullOrEmpty(sCUSTOMER_ORDER_NO_E)) { sSql += " AND SALES_ORDER_DOC.CUSTOMER_ORDER_NO <='" + sCUSTOMER_ORDER_NO_E + "'"; }
             if (!string.IsNullOrEmpty(sCUSTOMER_CODE)) { sSql += " AND CUSTOMER.CUSTOMER_CODE ='" + sCUSTOMER_CODE + "'"; }
             if (!string.IsNullOrEmpty(sCUSTOMER_ITEM_CODE_S)) { sSql += " AND CUSTOMER_ITEM.CUSTOMER_ITEM_CODE >='" + sCUSTOMER_ITEM_CODE_S + "'"; }
             if (!string.IsNullOrEmpty(sCUSTOMER_ITEM_CODE_E)) { sSql += " AND CUSTOMER_ITEM.CUSTOMER_ITEM_CODE <='" + sCUSTOMER_ITEM_CODE_E + "'"; }
+
             
             dtTmp = comm.Get_AlexDataTable(sSql);
             comm.Ins_BDP20_0000("admin", "RPT230A", "RPT", sSql);
@@ -191,7 +193,10 @@ namespace MES_WATER.Controllers
                 data.DELIVERED_BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["DELIVERED_BUSINESS_QTY"].ToString());
                 data.NON_QTY = comm.sGetDecimal(dtTmp.Rows[i]["NON_QTY"].ToString());
                 data.X_PACK_BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["X_PACK_BUSINESS_QTY"].ToString());
-                data.PLAN_DELIVERY_DATE = dtTmp.Rows[i]["PLAN_DELIVERY_DATE"].ToString();
+
+                string PLAN_DELIVERY_DATE2 = Get_Data(data.DOC_NO, data.SequenceNumber, "PLAN_DELIVERY_DATE");
+                if (PLAN_DELIVERY_DATE2 != "") { data.PLAN_DELIVERY_DATE = PLAN_DELIVERY_DATE2; } //預計交期如果有修改就顯示
+                else { data.PLAN_DELIVERY_DATE = dtTmp.Rows[i]["PLAN_DELIVERY_DATE"].ToString(); } //沒有修改就顯示ERP原本的值
                 data.X_CHECK_SHIP_DATE = dtTmp.Rows[i]["X_CHECK_SHIP_DATE"].ToString();
                 data.CUSTOMER_ORDER_NO = " "+dtTmp.Rows[i]["CUSTOMER_ORDER_NO"].ToString();
                 data.CUSTOMER_ITEM_CODE = dtTmp.Rows[i]["CUSTOMER_ITEM_CODE"].ToString();
@@ -211,7 +216,7 @@ namespace MES_WATER.Controllers
         {
             string sReturn = "";
             string sSql = "";
-            sSql = "select distinct bussiness_reply,Production_reply,shipment_reply from MBA_E20 where DOC_NO='"+ pDOC_NO + "' and SequenceNumber='"+ pSequenceNumber + "'";
+            sSql = "select distinct bussiness_reply,Production_reply,shipment_reply,PLAN_DELIVERY_DATE from MBA_E20 where DOC_NO='" + pDOC_NO + "' and SequenceNumber='"+ pSequenceNumber + "'";
             DataTable dtTmp = comm.Get_DataTable(sSql);
             if (dtTmp.Rows.Count > 0)
             {
@@ -236,6 +241,7 @@ namespace MES_WATER.Controllers
                 RPT23_0000 data = new RPT23_0000();
                 data.DOC_NO = dr["訂單單號"].ToString();
                 data.SequenceNumber = dr["序號"].ToString();
+                data.PLAN_DELIVERY_DATE = dr["預計交貨日"].ToString();
                 data.bussiness_reply = dr["業務回覆"].ToString();
                 data.production_reply = dr["生管回覆"].ToString();
                 data.shipment_reply = dr["出貨回覆"].ToString();
@@ -244,30 +250,21 @@ namespace MES_WATER.Controllers
 
                 //repoRPT23_0000.UpdateData(data);
                 //save_count += 1;
-                if (comm.Chk_RelData("MBA_E20", "DOC_NO", data.DOC_NO))
+                if (comm.Chk_RelData1("MBA_E20", "DOC_NO", "SequenceNumber", data.DOC_NO, data.SequenceNumber))
                 {
-
                     repoRPT23_0000.InsertData(data);
                     save_count += 1;
                 }
                 else
                 {
-                    if (comm.Chk_RelData("MBA_E20", "SequenceNumber", data.SequenceNumber))
+                    if (isUpdate)
                     {
-                        repoRPT23_0000.InsertData(data);
+                        repoRPT23_0000.UpdateData(data);
                         save_count += 1;
                     }
                     else
                     {
-                        if (isUpdate)
-                        {
-                            repoRPT23_0000.UpdateData(data);
-                            save_count += 1;
-                        }
-                        else
-                        {
-                            notSaveList.Add(data);
-                        }
+                        notSaveList.Add(data);
                     }
                 }
             }

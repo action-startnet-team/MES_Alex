@@ -107,6 +107,19 @@ List<DDLList> is_edit_list = comm.Get_DDLOption("is_edit");
                         <br />
                         <div class="row">
                             <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "ERP_FIELD_VALUE", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.ERP_FIELD_VALUE, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.ERP_FIELD_VALUE, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
                                 @CustomHelper.Get_Label(Model, sPrgCode, "is_edit", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
                                 <div class="col-sm-8 col-xs-6">
                                     <select class="chosen-select" name="is_edit" id="is_edit">

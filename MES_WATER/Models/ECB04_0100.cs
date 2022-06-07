@@ -34,6 +34,10 @@ namespace MES_WATER.Models
         [ReadOnly(true)]
         public string ERP_FIELD_NAME { get; set; }
 
+        [DisplayName("匯出固定內容")]
+        [ReadOnly(true)]
+        public string ERP_FIELD_VALUE { get; set; }
+
         [DisplayName("來源欄位代碼")]
         [Required(ErrorMessage = "請輸入{0}")]
         [StringLength(10, ErrorMessage = "長度最多{1}個字!")]

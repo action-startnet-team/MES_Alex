@@ -41,10 +41,12 @@ namespace MES_WATER.Repository
         /// <param name="RPT23_0100">DTO</param>
         public void UpdateData(RPT23_0100 RPT23_0100)
         {
-            string sSql = " UPDATE MBA_E20               " +
+            string sSql = " UPDATE MBA_E30               " +
                           "    SET buy_reply =  @buy_reply,     " +
                           "        store_reply  =  @store_reply,      " +
-                          "  WHERE DOC_NO =  @DOC_NO      "+
+                        "        update_at  =  @update_at,      " +
+                        "        usr_code  =  @usr_code      " +
+                          "  WHERE DOC_NO =  @DOC_NO      " +
                             "  and SequenceNumber =  @SequenceNumber      ";
             using (SqlConnection con_db = comm.Set_DBConnection())
             {

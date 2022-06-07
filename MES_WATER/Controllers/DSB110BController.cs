@@ -103,7 +103,7 @@ namespace MES_WATER.Controllers
             string sSql = @"
                 SELECT  top " + count + @"
 		            ROW_NUMBER() OVER(ORDER BY a.seq_no  ) AS #,
-		            a.mo_code as '工單號',c.day_target_qty AS '計畫',		
+		            a.mo_code as '工單單號',c.day_target_qty AS '計畫',		
                     (case a.MO_STATUS 
                         when 'W' then '待排程'
 			            when '0' then '待生產'
@@ -112,10 +112,10 @@ namespace MES_WATER.Controllers
 			            when '3' then '強制結案'
 			            END)  as '狀態' ,
 						(case 
-						when a.MO_STATUS ='1' then (SELECT TOP (1) SUM(m.QTY) AS QTY  FROM mba_e10 m   WHERE Convert(varchar,m.TRANSACTION_DATE,23) = Convert(varchar,GETDATE(),23) and XMACHINE_CODE = @MACHINE_CODE) 
+						when a.MO_STATUS ='1' then (SELECT TOP (1) SUM(m.QTY) AS QTY  FROM mba_e10 m   WHERE Convert(varchar,m.TRANSACTION_DATE,23) = Convert(varchar,GETDATE(),23) and  XMACHINE_CODE = @MACHINE_CODE) 
 						when a.MO_STATUS ='0' then '0'
 						END) as '產量'
-
+--Convert(varchar,m.TRANSACTION_DATE,23) = Convert(varchar,GETDATE(),23) and
                     /*,ISNULL(a.QTY,0) AS '產量' */
                     /*,case f.mac_code when '' then e.mac_code else f.mac_code end   as '機台'*/   /*以 mem01 實際進站開工為優先, 若無才取met03 */
                 FROM MET02_0000 a
@@ -175,14 +175,52 @@ namespace MES_WATER.Controllers
                     string sUsrName = "";
                     string sWorkTime = Get_DataByStationCode(mac_code, "ins_date");
 
-                    DataTable dt = comm.Get_DataTable("select top 1 * from MBA_E00 where MO_DOC_NO='" + sMoCode + "' order by TRANSACTION_DATE");
-                    if (dt.Rows.Count>0)
+                DataTable dt = comm.Get_DataTable("select top 1 * from MBA_E00 where MO_DOC_NO='" + sMoCode + "' order by TRANSACTION_DATE");
+                if (dt.Rows.Count > 0)
+                {
+                    sWorkTime = dt.Rows[0]["TRANSACTION_DATE"].ToString();
+                }
+                //sUsrName = comm.Get_QueryData("BDP08_0000", sUsrName, "usr_code", "usr_name") + "(" + Get_UserCodeByMacCodeCount(work_code) + ")";
+                double stop_time = 0;
+                string key = "";
+                //DataTable dt2 = comm.Get_DataTable(@"SELECT a.COLUMN_NAME+3 as 'key' FROM MEB15_0000 m 
+                //       LEFT JOIN INFORMATION_SCHEMA.COLUMNS a  on a.TABLE_NAME = 'MEA_E02' and a.COLUMN_NAME = m.address_code
+                //       where m.mac_code ='" + mac_code + "'");
+                //if (dt2.Rows.Count>0)
+                //{
+                //    key = dt2.Rows[0]["key"].ToString();
+                //}
+                if (mac_code== "1001-M1" || mac_code == "1001-M1") { 
+                    DataTable dt3 = comm.Get_DataTable(@"select TOP 1 * from MEA_E02 Where MACHINE_CODE='"+ mac_code + "' order by update_at DESC");
+                    if (dt3.Rows.Count > 0 )
                     {
-                        sWorkTime = dt.Rows[0]["TRANSACTION_DATE"].ToString();
+                        stop_time += comm.sGetDouble(dt3.Rows[0]["300185"].ToString());
+                        stop_time += comm.sGetDouble(dt3.Rows[0]["300195"].ToString());
+                        stop_time += comm.sGetDouble(dt3.Rows[0]["300205"].ToString());
+                        stop_time += comm.sGetDouble(dt3.Rows[0]["300215"].ToString());
+                        stop_time += comm.sGetDouble(dt3.Rows[0]["300225"].ToString());
+                        stop_time += comm.sGetDouble(dt3.Rows[0]["300235"].ToString());
+                        stop_time += comm.sGetDouble(dt3.Rows[0]["300245"].ToString());
+                        stop_time += comm.sGetDouble(dt3.Rows[0]["300255"].ToString());
                     }
-                    //sUsrName = comm.Get_QueryData("BDP08_0000", sUsrName, "usr_code", "usr_name") + "(" + Get_UserCodeByMacCodeCount(work_code) + ")";
+                }
 
-                    double completeRate = 0;
+                double OEE = 0;
+                DataTable dt4 = comm.Get_DataTable(@"select TOP(1) *, 
+                            DATEDIFF(minute, (select MIN(TRANSACTION_DATE) from MBA_E10 where Convert(varchar, TRANSACTION_DATE, 23) like  Convert(varchar, GETDATE(), 23) + '%'),
+                                    (select MAX(TRANSACTION_DATE) from MBA_E10 where Convert(varchar, TRANSACTION_DATE, 23) like  Convert(varchar, GETDATE(), 23) + '%')) AS OEE
+                            from MBA_E10
+                            where TRANSACTION_DATE between convert(varchar(10),GETDATE(),120)+' 00:00:01.000'
+                            and convert(varchar(10),GETDATE(),120)+' 23:59:59.999'
+                            and XMACHINE_CODE='"+ mac_code + "'order by TRANSACTION_DATE desc");
+                if (dt4.Rows.Count > 0)
+                {
+                    OEE = comm.sGetDouble(dt4.Rows[0]["OEE"].ToString());
+                }
+
+                Double Oee_2 = ((OEE - stop_time) / OEE);
+
+                double completeRate = 0;
                     double iplan_qty = 0;
                     double iok_qty = 0;
                     iok_qty = QTY;
@@ -239,8 +277,8 @@ namespace MES_WATER.Controllers
                     items.Add(new { name = "iplan_qty", value = iplan_qty.ToString("0.##%"), label = "OEE" });
                     //items.Add(new { name = "sor_code", value = sor_code.ToString(), label = "工單型號" });
                     //items.Add(new { name = "ing_qty", value = ing_qty.ToString(), label = "不良品" });
-                    items.Add(new { name = "spec_c", value = spec_c.ToString(), label = "" });
-                    items.Add(new { name = "spec_a", value = spec_a.ToString(), label = "" });
+                    items.Add(new { name = "Oee_2", value = Oee_2.ToString("0.##%"), label = "稼動率" });
+                    items.Add(new { name = "stop_time", value = stop_time.ToString(), label = "停機時間" });
                     items.Add(new { name = "work_time", value = sWorkTime, label = "工單開始時間" });
                     //items.Add(new { name = "sEfficiency", value = sEfficiency.ToString("0.##%"), label = "效率" });
 

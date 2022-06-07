@@ -167,53 +167,64 @@ namespace MES_WATER.Controllers
             }
             return sReturn;
         }
-        [HttpPost]
-        //[ValidateAntiForgeryToken]
-        public ActionResult Upload(HttpPostedFileBase upload, FormCollection form)
+        //[HttpPost]
+        ////[ValidateAntiForgeryToken]
+        //public ActionResult Upload(HttpPostedFileBase upload, FormCollection form)
+        //{
+        //    bool isUpdate = form.AllKeys.Contains("isUpdate") ? true : false;
+
+        //    DataTable dt = comm.CsvToDataTable(upload);
+
+        //    var dtCols = dt.Columns;
+        //    int save_count = 0;
+        //    List<RPT24_0000> notSaveList = new List<RPT24_0000>();
+
+        //    foreach (DataRow dr in dt.Rows)
+        //    {
+        //        RPT24_0000 data = new RPT24_0000();
+        //        data.ITEM_CODE = dr["品號"].ToString();
+        //        data.ITEM_NAME = dr["品名"].ToString();
+        //        data.ITEM_SPECIFICATION = dr["規格"].ToString();
+        //        data.LAST_RECEIPT_DATE = dr["最後入庫日"].ToString();
+        //        data.update_at = DateTime.Now.ToString("yyyy/MM/dd");
+        //        data.usr_code = User.Identity.Name;
+
+        //        //repoRPT23_0000.UpdateData(data);
+        //        //save_count += 1;
+        //        if (comm.Chk_RelData("MBA_E30", "DOC_NO", data.ITEM_CODE))
+        //        {
+
+        //            repoRPT24_0000.InsertData(data);
+        //            save_count += 1;
+        //        }
+        //        else
+        //        {
+        //            if (isUpdate)
+        //            {
+        //                repoRPT24_0000.UpdateData(data);
+        //                save_count += 1;
+        //            }
+        //            else
+        //            {
+        //                notSaveList.Add(data);
+        //            }
+        //        }
+        //    }
+
+        //    ViewBag.count = save_count;
+        //    ViewBag.notSaveList = notSaveList;
+        //    return View();
+        //}
+
+        public string Get_ProjectCode(string cus_code)
         {
-            bool isUpdate = form.AllKeys.Contains("isUpdate") ? true : false;
+            string sSql = @"SELECT  WAREHOUSE.WAREHOUSE_CODE, WAREHOUSE.WAREHOUSE_NAME
+                            FROM PLANT 
+                            INNER JOIN WAREHOUSE ON PLANT.PLANT_ID = WAREHOUSE.Owner_Org_ROid
+                            WHERE PLANT.PLANT_CODE = '" + cus_code + "' and WAREHOUSE.ApproveStatus='Y'";
 
-            DataTable dt = comm.CsvToDataTable(upload);
-
-            var dtCols = dt.Columns;
-            int save_count = 0;
-            List<RPT24_0000> notSaveList = new List<RPT24_0000>();
-
-            foreach (DataRow dr in dt.Rows)
-            {
-                RPT24_0000 data = new RPT24_0000();
-                data.ITEM_CODE = dr["品號"].ToString();
-                data.ITEM_NAME = dr["品名"].ToString();
-                data.ITEM_SPECIFICATION = dr["規格"].ToString();
-                data.LAST_RECEIPT_DATE = dr["最後入庫日"].ToString();
-                data.update_at = DateTime.Now.ToString("yyyy/MM/dd");
-                data.usr_code = User.Identity.Name;
-
-                //repoRPT23_0000.UpdateData(data);
-                //save_count += 1;
-                if (comm.Chk_RelData("MBA_E30", "DOC_NO", data.ITEM_CODE))
-                {
-
-                    repoRPT24_0000.InsertData(data);
-                    save_count += 1;
-                }
-                else
-                {
-                    if (isUpdate)
-                    {
-                        repoRPT24_0000.UpdateData(data);
-                        save_count += 1;
-                    }
-                    else
-                    {
-                        notSaveList.Add(data);
-                    }
-                }
-            }
-
-            ViewBag.count = save_count;
-            ViewBag.notSaveList = notSaveList;
-            return View();
+            return JsonConvert.SerializeObject(comm.Get_AlexDataTable(sSql), Formatting.None);
         }
+
     }
 }

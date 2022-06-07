@@ -169,3 +169,5 @@ C:\Users\GE72\Documents\GitHub\MES_Alex\MES_WATER\obj\Release\MES_WATER.csproj.C
 C:\Users\GE72\Documents\GitHub\MES_Alex\MES_WATER\obj\Release\MES_WATER.dll
 C:\Users\GE72\Documents\GitHub\MES_Alex\MES_WATER\obj\Release\MES_WATER.pdb
 C:\Users\GE72\Documents\GitHub\MES_Alex\MES_WATER\obj\Release\MES_WATER.XmlSerializers.dll
+C:\Users\GE72\Documents\GitHub\MES_Alex\MES_WATER\bin\BouncyCastle.Crypto.xml
+C:\Users\GE72\Documents\GitHub\MES_Alex\MES_WATER\bin\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.xml

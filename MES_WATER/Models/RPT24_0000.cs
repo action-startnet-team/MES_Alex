@@ -12,6 +12,9 @@ namespace MES_WATER.Models
 {
     public class RPT24_0000
     {
+        [DisplayName("倉庫")]
+        public string PLANT_CODE { get; set; }
+
         [DisplayName("品號")]
         public string ITEM_CODE { get; set; }
 

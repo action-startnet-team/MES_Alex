@@ -158,6 +158,7 @@ namespace MES_WATER.Controllers
             if (!string.IsNullOrEmpty(sPLANT_CODE)) { sSql += " AND PLANT.PLANT_CODE ='" + sPLANT_CODE + "'"; }
             if (!string.IsNullOrEmpty(sPLAN_ARRIVAL_DATE_S)) { sSql += " AND Convert(varchar,PURCHASE_ORDER_SD.PLAN_ARRIVAL_DATE,111) >='" + sPLAN_ARRIVAL_DATE_S + "'"; }
             if (!string.IsNullOrEmpty(sPLAN_ARRIVAL_DATE_E)) { sSql += " AND Convert(varchar,PURCHASE_ORDER_SD.PLAN_ARRIVAL_DATE,111) <='" + sPLAN_ARRIVAL_DATE_E + "'"; }
+            if (string.IsNullOrEmpty(sPLAN_ARRIVAL_DATE_E)) { sSql += " AND Convert(varchar,PURCHASE_ORDER_SD.PLAN_ARRIVAL_DATE,111) <=GETDATE()"; }
             if (!string.IsNullOrEmpty(sFEATURE_GROUP_CODE_S)) { sSql += " AND FEATURE_GROUP.FEATURE_GROUP_CODE >='" + sFEATURE_GROUP_CODE_S + "'"; }
             if (!string.IsNullOrEmpty(sFEATURE_GROUP_CODE_E)) { sSql += " AND FEATURE_GROUP.FEATURE_GROUP_CODE <='" + sFEATURE_GROUP_CODE_E + "'"; }
 
@@ -227,7 +228,7 @@ namespace MES_WATER.Controllers
 
                 //repoRPT23_0000.UpdateData(data);
                 //save_count += 1;
-                if (comm.Chk_RelData("MBA_E30", "DOC_NO", data.DOC_NO))
+                if (comm.Chk_RelData1("MBA_E30", "DOC_NO", "SequenceNumber", data.DOC_NO, data.SequenceNumber))
                 {
 
                     repoRPT23_0100.InsertData(data);
@@ -235,22 +236,14 @@ namespace MES_WATER.Controllers
                 }
                 else
                 {
-                    if (comm.Chk_RelData("MBA_E30", "SequenceNumber", data.SequenceNumber))
+                    if (isUpdate)
                     {
-                        repoRPT23_0100.InsertData(data);
+                        repoRPT23_0100.UpdateData(data);
                         save_count += 1;
                     }
                     else
                     {
-                        if (isUpdate)
-                        {
-                            repoRPT23_0100.UpdateData(data);
-                            save_count += 1;
-                        }
-                        else
-                        {
-                            notSaveList.Add(data);
-                        }
+                        notSaveList.Add(data);
                     }
                 }
             }

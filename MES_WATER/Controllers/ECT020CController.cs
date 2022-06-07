@@ -158,6 +158,7 @@ namespace MES_WATER.Controllers
                     data.SALES_ORDER_NO_ID = Guid.NewGuid().ToString();
                     data.SALES_CUSTOMER_CODE_EDITION = dt2.Rows[0]["SALES_CUSTOMER_CODE_EDITION"].ToString();
                     data.SALES_ORDER_NO = "";
+
                     //找出出貨單號
                     int n = 0;
                     foreach (DataRow dr2 in dt2.Rows)
@@ -171,6 +172,11 @@ namespace MES_WATER.Controllers
                         {
                             n++;
                         }
+
+                        //if (dr2["ERP_FIELD_VALUE"].ToString() != "")
+                        //{
+                        //    dr2["EXCEL_CODE"].ToString() = dr2["ERP_FIELD_VALUE"].ToString();
+                        //}
                     }
 
                     //跳過EXCEL中的空行
@@ -193,7 +199,12 @@ namespace MES_WATER.Controllers
                     foreach (DataRow dr2 in dt2.Rows)
                     {
 
-                        drow[dr2["ERP_FIELD_NAME"].ToString()] = dr[dr2["EXCEL_CODE"].ToString()].ToString();
+                        if (dr2["ERP_FIELD_VALUE"].ToString() != "")
+                        {
+                            drow[dr2["ERP_FIELD_NAME"].ToString()] = dr2["ERP_FIELD_VALUE"].ToString();
+                        }
+                        else { drow[dr2["ERP_FIELD_NAME"].ToString()] = dr[dr2["EXCEL_CODE"].ToString()].ToString(); }
+
 
 
                     }

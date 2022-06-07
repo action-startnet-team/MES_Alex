@@ -1,4 +1,5 @@
 ﻿@using MES_WATER.Models;
+@model MES_WATER.Models.RPT24_0000
 @using MES_WATER.Controllers;
 @{
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -172,7 +173,7 @@
                     {
                         <div class="">
                             <label>@qColList[i].field_name</label>
-                            <input type="hidden" name="field_code" value="@qColList[i].field_code" />
+                            <input type="hidden" name="field_code" id="@qColList[i].field_code" value="@qColList[i].field_code" />
                             @switch (qColList[i].ctr_type.ToUpper())
                             {
                                 case "T":
@@ -185,7 +186,7 @@
 
                                     break;
                                 case "S":
-                                    <select name="field_value" class="chosen-select">
+                                    <select name="field_value" class="chosen-select" id="@qColList[i].field_code">
                                         @(CustomHelper.Get_Option(comm.Get_AlexDDLOption(qColList[i].data_source, "A"), qColList[i].default_value, true))
                                     </select>
                                     if (qColList[i].field_type.ToUpper() == "B")
@@ -289,6 +290,29 @@
 
 @section footer_script{
     <script type="text/javascript">
+
+        $("select[id=PLANT_CODE]").change(function () {
+
+            $.get("RPT240A/Get_ProjectCode?cus_code=" + $(this).val(), function (data) {
+                $('select[id=WAREHOUSE_CODE]').empty()
+                $('select[id=WAREHOUSE_CODE]').trigger("chosen:updated")
+
+                let json = JSON.parse(data);
+                if (json.length > 0) {
+                    for (let i = 0; i < json.length; i++) {
+                        let option = $('<option value="' + json[i].WAREHOUSE_CODE + '">' + json[i].WAREHOUSE_CODE + " - " + json[i].WAREHOUSE_NAME + '</option>')
+                        $('select[id=WAREHOUSE_CODE]').append(option)
+
+                        $('select[id=WAREHOUSE_CODE]').trigger("chosen:updated")
+                    }
+                } else {
+
+                    $('select[id=WAREHOUSE_CODE]').append($('<option value="">沒有專案!</option>'))
+                }
+
+            });
+        })
+
 
         jQuery(function ($) {
 

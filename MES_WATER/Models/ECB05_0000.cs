@@ -22,6 +22,11 @@ namespace MES_WATER.Models
         [StringLength(20, ErrorMessage = "長度最多{1}個字!")]
         public string ERP_FIELD_NAME { get; set; }
 
+        [DisplayName("匯出固定內容")]
+        [Required(ErrorMessage = "請輸入{0}")]
+        [StringLength(20, ErrorMessage = "長度最多{1}個字!")]
+        public string ERP_FIELD_VALUE { get; set; }
+
         [DisplayName("自行編輯資料內容")]
         [Required(ErrorMessage = "請輸入{0}")]
         public string is_edit { get; set; }

@@ -27,8 +27,8 @@ namespace MES_WATER.Repository
         public void InsertData(RPT23_0000 RPT23_0000)
         {
             string sSql = @" INSERT INTO 
-                           MBA_E20 (  DOC_NO, SequenceNumber, bussiness_reply,  Production_reply,  shipment_reply, update_at, usr_code ) 
-                               VALUES ( @DOC_NO, @SequenceNumber, @bussiness_reply, @Production_reply, @shipment_reply, @update_at, @usr_code  ) ";
+                           MBA_E20 (  DOC_NO, SequenceNumber, PLAN_DELIVERY_DATE, bussiness_reply,  Production_reply,  shipment_reply, update_at, usr_code ) 
+                               VALUES ( @DOC_NO, @SequenceNumber, @PLAN_DELIVERY_DATE, @bussiness_reply, @Production_reply, @shipment_reply, @update_at, @usr_code  ) ";
             using (SqlConnection con_db = comm.Set_DBConnection())
             {
                 con_db.Execute(sSql, RPT23_0000);
@@ -43,9 +43,12 @@ namespace MES_WATER.Repository
         {
             string sSql = " UPDATE MBA_E20               " +
                           "    SET bussiness_reply =  @bussiness_reply,     " +
+                        "        PLAN_DELIVERY_DATE  =  @PLAN_DELIVERY_DATE,      " +
                           "        Production_reply  =  @Production_reply,      " +
-                          "        shipment_reply =  @shipment_reply      " +
-                          "  WHERE DOC_NO =  @DOC_NO      "+
+                          "        shipment_reply =  @shipment_reply,      " +
+                        "        update_at  =  @update_at,      " +
+                        "        usr_code  =  @usr_code      " +
+                          "  WHERE DOC_NO =  @DOC_NO      " +
                             "  and SequenceNumber =  @SequenceNumber      ";
             using (SqlConnection con_db = comm.Set_DBConnection())
             {

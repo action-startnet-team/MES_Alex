@@ -18,6 +18,10 @@ namespace MES_WATER.Models
         [DisplayName("序號")]
         public string SequenceNumber { get; set; }
 
+
+        [DisplayName("預計交貨日")]
+        public string PLAN_DELIVERY_DATE { get; set; }
+
         [DisplayName("業務回覆")]
         public string bussiness_reply { get; set; }
 
