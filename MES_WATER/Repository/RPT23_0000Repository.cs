@@ -61,7 +61,23 @@ namespace MES_WATER.Repository
                 //sqlCommand.ExecuteNonQuery();
             }
         }
-
+        public void UpdateAlexData(RPT23_0000 RPT23_0000)
+        {
+            string sSql = " UPDATE MBA_E20               " +
+                        "        PLAN_DELIVERY_DATE  =  @PLAN_DELIVERY_DATE      " +
+                          "  WHERE DOC_NO =  @DOC_NO      " +
+                            "  and SequenceNumber =  @SequenceNumber      ";
+            using (SqlConnection con_db = comm.Set_AlexDBConnection())
+            {
+                con_db.Execute(sSql, RPT23_0000);
+                //SqlCommand sqlCommand = new SqlCommand(sSql);
+                //sqlCommand.Connection = con_db;
+                //sqlCommand.Parameters.Add(new SqlParameter("@sto_code", WMB01_0000.sto_code));
+                //sqlCommand.Parameters.Add(new SqlParameter("@sto_code", WMB01_0000.sto_code));
+                //sqlCommand.Parameters.Add(new SqlParameter("@sto_name", WMB01_0000.sto_name));
+                //sqlCommand.ExecuteNonQuery();
+            }
+        }
         /// <summary>
         /// 傳入一個鍵值，刪除、一次刪除一筆
         /// </summary>

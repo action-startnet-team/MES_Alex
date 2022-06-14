@@ -25,7 +25,7 @@ ECB05_0000 obj = new ECB05_0000();
 
 //取得畫面上下拉選單的選項值
 List<DDLList> is_edit_list = comm.Get_DDLOption("is_edit");
-
+List<DDLList> is_null_list = comm.Get_DDLOption("is_null");
 
     @*修改點 向上*@
 }
@@ -120,6 +120,31 @@ List<DDLList> is_edit_list = comm.Get_DDLOption("is_edit");
                         <br />
                         <div class="row">
                             <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "is_null", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-sm-8 col-xs-6">
+                                    <select class="chosen-select" name="is_null" id="is_null">
+                                        @CustomHelper.Get_Option(is_null_list, Model.is_null, false)
+                                    </select>
+                                    @Html.ValidationMessageFor(model => model.is_null, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
+                                @CustomHelper.Get_Label(Model, sPrgCode, "BACK_VALUE", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
+                                <div class="col-md-8 col-xs-7">
+                                    <div>
+                                        @Html.EditorFor(model => model.BACK_VALUE, new { htmlAttributes = new { @class = " col-xs-12" } })
+                                    </div>
+                                    <div style="clear:both;"></div>
+                                    @Html.ValidationMessageFor(model => model.BACK_VALUE, "", new { @class = "text-danger" })
+                                </div>
+                            </div>
+                        </div>
+                        <br />
+                        <div class="row">
+                            <div class="col-sm-12">
                                 @CustomHelper.Get_Label(Model, sPrgCode, "is_edit", htmlAttributes: new { @class = "col-sm-4 col-xs-5 control-label no-padding-right" })
                                 <div class="col-sm-8 col-xs-6">
                                     <select class="chosen-select" name="is_edit" id="is_edit">
@@ -129,7 +154,6 @@ List<DDLList> is_edit_list = comm.Get_DDLOption("is_edit");
                                 </div>
                             </div>
                         </div>
-                        <br />
                     </div>
                 </div>
 

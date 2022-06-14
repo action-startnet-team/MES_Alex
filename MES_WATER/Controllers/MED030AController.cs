@@ -135,6 +135,9 @@ namespace MES_WATER.Controllers
                 //執行存檔
 
                 MED03_0000 data = new MED03_0000();
+                data.ins_date = DateTime.Now.ToString("yyyy/MM/dd");
+                data.ins_time = DateTime.Now.ToString("HH:mm:ss");
+                data.usr_code = User.Identity.Name;
                 comm.Set_ModelValue(data, form);
 
                 //在取完畫面上的值後，如果有一些別名欄位要變更值，可以在這邊2次加工

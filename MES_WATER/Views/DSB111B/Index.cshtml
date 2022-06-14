@@ -10,14 +10,14 @@
     Comm comm = new Comm();
 
 
-    string sSql = "SELECT mac_code ,mac_name FROM MEB15_0000 ";
+    string sSql = "SELECT mac_code ,mac_name FROM MEB15_0000 where MEB15_0000.mac_code <> '1001-M1' and MEB15_0000.mac_code <> '1001-M2' ";
     DataTable dtTmp = comm.Get_DataTable(sSql);
     List<DDLList> mac_code_list = comm.Get_DDLOption("MEB15_0000", "mac_code", "mac_name");
 
-    string sSql_2 = "SELECT line_code ,line_name FROM MEB12_0000 ";
+    string sSql_2 = "SELECT line_code ,line_name FROM MEB12_0000 where line_code <> '1001-M1' and line_code <> '1001-M2'  ";
     DataTable dtTmp_2 = comm.Get_DataTable(sSql_2);
 
-    List<DDLList> line_code_list = comm.Get_DDLOption("MEB12_0000", "line_code", "line_name");
+    List<DDLList> line_code_list = comm.Get_DDLOptionBySql("SELECT line_code as field_code, line_name as field_name FROM MEB12_0000 where line_code <> '1001-M1' and line_code <> '1001-M2'");
 }
 
 <style>
@@ -162,8 +162,8 @@
 </div>
 @section footer_plugin{
     <script src="/Scripts/assets/js/bootstrap-multiselect.min.js"></script>
-    
-    }
+
+}
 <script>
     jQuery(function ($) {
         let $macCode = $('#MacCodeList');
@@ -465,6 +465,7 @@
             // 狀態(中文 + 背景顏色)
             $status.attr('data-status_code', data.status)
             if (data.status) {
+                console.log(data.status)
                 switch (data.status.toUpperCase()) {
                     case '1':
                         $status.text('生產')

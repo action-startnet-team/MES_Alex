@@ -160,7 +160,11 @@ namespace MES_WATER.Controllers
                     LEFT OUTER JOIN CUSTOMER_ITEM ON SALES_ORDER_DOC_D.CUSTOMER_ITEM_ID = CUSTOMER_ITEM.CUSTOMER_ITEM_ID 
                     INNER JOIN PLANT ON SALES_ORDER_DOC_SD.DELIVERY_PLANT_ID = PLANT.PLANT_ID 
                     INNER JOIN SALES_CENTER ON SALES_ORDER_DOC.Owner_Org_ROid = SALES_CENTER.SALES_CENTER_ID
-                    WHERE   SALES_ORDER_DOC_SD.[CLOSE]=0 and Convert(varchar,SALES_ORDER_DOC_SD.PLAN_DELIVERY_DATE,111) >= '2022/01/01'";
+                    WHERE   SALES_ORDER_DOC_SD.[CLOSE]=0 and (DATEDIFF(day, SALES_ORDER_DOC_SD.PLAN_DELIVERY_DATE, GETDATE())>7 and DELIVER_BUSINESS_QTY=0) and
+					(DATEDIFF(day, SALES_ORDER_DOC_SD.PLAN_DELIVERY_DATE, GETDATE())>7 and (DELIVER_BUSINESS_QTY-SALES_ORDER_DOC_D.BUSINESS_QTY)<0) and
+					(DATEDIFF(day, SALES_ORDER_DOC_SD.PLAN_DELIVERY_DATE, GETDATE())>1 and (X_PACK_BUSINESS_QTY-SALES_ORDER_DOC_D.BUSINESS_QTY)<0) and
+					(DATEDIFF(day, SALES_ORDER_DOC_SD.PLAN_DELIVERY_DATE, GETDATE())>0 and (X_PACK_BUSINESS_QTY-SALES_ORDER_DOC_D.BUSINESS_QTY)<=0) 
+                    and Convert(varchar,SALES_ORDER_DOC_SD.PLAN_DELIVERY_DATE,111) >= '2022/01/01'";
 
             if (!string.IsNullOrEmpty(sSALES_CENTER_CODE)) { sSql += " AND SALES_CENTER.SALES_CENTER_CODE ='" + sSALES_CENTER_CODE + "'"; }
             if (!string.IsNullOrEmpty(sPLANT_CODE_S)) { sSql += " AND PLANT.PLANT_CODE >='" + sPLANT_CODE_S + "'"; }
@@ -214,10 +218,28 @@ namespace MES_WATER.Controllers
         }
         public string  Get_Data(string pDOC_NO,string pSequenceNumber,string sFieldName)
         {
+            //抓取MBA_E20的回應資料
             string sReturn = "";
             string sSql = "";
             sSql = "select distinct bussiness_reply,Production_reply,shipment_reply,PLAN_DELIVERY_DATE from MBA_E20 where DOC_NO='" + pDOC_NO + "' and SequenceNumber='"+ pSequenceNumber + "'";
             DataTable dtTmp = comm.Get_DataTable(sSql);
+            if (dtTmp.Rows.Count > 0)
+            {
+                sReturn = comm.sGetString(dtTmp.Rows[0][sFieldName].ToString());
+            }
+            return sReturn;
+        }
+
+        public string Get_AlexData(string pDOC_NO,  string sFieldName)
+        {
+            string sReturn = "";
+            string sSql = "";
+            sSql = @"SELECT SALES_ORDER_DOC_SD.SALES_ORDER_DOC_D_ID
+                     FROM    SALES_ORDER_DOC
+                    INNER JOIN SALES_ORDER_DOC_D ON SALES_ORDER_DOC.SALES_ORDER_DOC_ID = SALES_ORDER_DOC_D.SALES_ORDER_DOC_ID
+                    INNER JOIN SALES_ORDER_DOC_SD ON SALES_ORDER_DOC_D.SALES_ORDER_DOC_D_ID = SALES_ORDER_DOC_SD.SALES_ORDER_DOC_D_ID
+                    where DOC_NO='"+ pDOC_NO + "'";
+            DataTable dtTmp = comm.Get_AlexDataTable(sSql);
             if (dtTmp.Rows.Count > 0)
             {
                 sReturn = comm.sGetString(dtTmp.Rows[0][sFieldName].ToString());
@@ -241,13 +263,14 @@ namespace MES_WATER.Controllers
                 RPT23_0000 data = new RPT23_0000();
                 data.DOC_NO = dr["訂單單號"].ToString();
                 data.SequenceNumber = dr["序號"].ToString();
-                data.PLAN_DELIVERY_DATE = dr["預計交貨日"].ToString();
+                data.PLAN_DELIVERY_DATE = DateTime.Parse(dr["預計交貨日"].ToString()).ToString("yyyy/MM/dd");
                 data.bussiness_reply = dr["業務回覆"].ToString();
                 data.production_reply = dr["生管回覆"].ToString();
                 data.shipment_reply = dr["出貨回覆"].ToString();
                 data.update_at = DateTime.Now.ToString("yyyy/MM/dd");
                 data.usr_code = User.Identity.Name;
-
+                //透過DOC_NO取得iot的SALES_ORDER_DOC_D_ID
+                String ID = Get_AlexData(data.DOC_NO, "SALES_ORDER_DOC_D_ID");
                 //repoRPT23_0000.UpdateData(data);
                 //save_count += 1;
                 if (comm.Chk_RelData1("MBA_E20", "DOC_NO", "SequenceNumber", data.DOC_NO, data.SequenceNumber))
@@ -260,6 +283,13 @@ namespace MES_WATER.Controllers
                     if (isUpdate)
                     {
                         repoRPT23_0000.UpdateData(data);
+                        //更新IOT的PLAN_DELIVERY_DATE
+                        string sSql = @" UPDATE SALES_ORDER_DOC_SD   set  PLAN_DELIVERY_DATE='" + data.PLAN_DELIVERY_DATE + "'"+
+                                         "WHERE SALES_ORDER_DOC_D_ID ='" + ID +  "'";
+                        using (SqlConnection con_db = comm.Set_AlexDBConnection())
+                        {
+                            con_db.Execute(sSql);
+                        }
                         save_count += 1;
                     }
                     else

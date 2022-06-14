@@ -141,9 +141,16 @@ namespace MES_WATER.Controllers
             //抓取資料
             sSql = @" SELECT distinct TOP(1000) ITEM.ITEM_CODE, Convert(varchar,PURCHASE_ORDER_SD.PLAN_ARRIVAL_DATE,111) AS PLAN_ARRIVAL_DATE, PURCHASE_ORDER.DOC_NO, --品號、預計到貨日、採購單號
                         SUPPLIER.SUPPLIER_CODE, SUPPLIER.SUPPLIER_NAME, PURCHASE_ORDER_D.SequenceNumber, --供應商代號、名稱、序號
+                        DATEDIFF(day,  MAX(MO.PLAN_START_DATE), GETDATE()) AS DATEDIFF,
                         PURCHASE_ORDER_D.X_PURCHASE_REMARK, ITEM.ITEM_NAME, ITEM.ITEM_SPECIFICATION, --採購備註、品名、規格
                         PURCHASE_ORDER_D.BUSINESS_QTY, UNIT.UNIT_NAME, PURCHASE_ORDER_SD.ARRIVED_BUSINESS_QTY, --數量、單位、到貨量
-                        PURCHASE_ORDER_SD.RECEIPTED_BUSINESS_QTY --入庫量
+                        PURCHASE_ORDER_SD.RECEIPTED_BUSINESS_QTY, --入庫量
+						  SUM(MO_D.REQUIRED_QTY) AS TOTAL_REQUIRED_QTY, --工單物料總需求量
+						SUM(MO_D.ISSUED_QTY) AS TOTAL_ISSUED_QTY, --工單物料總領料量
+						ISNULL((SELECT  SUM(TRANSACTION_LINE.INVENTORY_QTY* TRANSACTION_LINE.STOCK_ACTION)
+							FROM    TRANSACTION_LINE 
+							INNER JOIN ITEM a ON TRANSACTION_LINE.ITEM_ID = ITEM.ITEM_BUSINESS_ID AND a.ITEM_BUSINESS_ID=ITEM.ITEM_BUSINESS_ID),0) AS WAREHOUSE_QTY --對應品號庫存現量
+
                         FROM    FEATURE_GROUP 
                         INNER JOIN ITEM ON FEATURE_GROUP.FEATURE_GROUP_ID = ITEM.FEATURE_GROUP_ID 
                         INNER JOIN PURCHASE_ORDER 
@@ -153,7 +160,10 @@ namespace MES_WATER.Controllers
                         INNER JOIN PLANT ON PURCHASE_ORDER.PLANT_ID = PLANT.PLANT_ID 
                         INNER JOIN SUPPLIER ON PURCHASE_ORDER.SUPPLIER_ID = SUPPLIER.SUPPLIER_BUSINESS_ID 
                         INNER JOIN UNIT ON ITEM.STOCK_UNIT_ID=UNIT.UNIT_ID
-                        WHERE PURCHASE_ORDER.ApproveStatus='Y' and Convert(varchar,PURCHASE_ORDER_SD.PLAN_ARRIVAL_DATE,111) >= '2022/01/01'";
+						INNER JOIN MO ON MO.Owner_Org_ROid = PLANT.PLANT_ID
+						INNER JOIN MO_D ON MO.MO_ID = MO_D.MO_ID 
+
+                        WHERE PURCHASE_ORDER.ApproveStatus='Y' AND MO.[STATUS]<>'Y' AND MO.[STATUS]<>'y' and PURCHASE_ORDER_D.BUSINESS_QTY<>ARRIVED_BUSINESS_QTY and Convert(varchar,PURCHASE_ORDER_SD.PLAN_ARRIVAL_DATE,111) >= '2022/01/01'";
                     
             if (!string.IsNullOrEmpty(sPLANT_CODE)) { sSql += " AND PLANT.PLANT_CODE ='" + sPLANT_CODE + "'"; }
             if (!string.IsNullOrEmpty(sPLAN_ARRIVAL_DATE_S)) { sSql += " AND Convert(varchar,PURCHASE_ORDER_SD.PLAN_ARRIVAL_DATE,111) >='" + sPLAN_ARRIVAL_DATE_S + "'"; }
@@ -161,7 +171,10 @@ namespace MES_WATER.Controllers
             if (string.IsNullOrEmpty(sPLAN_ARRIVAL_DATE_E)) { sSql += " AND Convert(varchar,PURCHASE_ORDER_SD.PLAN_ARRIVAL_DATE,111) <=GETDATE()"; }
             if (!string.IsNullOrEmpty(sFEATURE_GROUP_CODE_S)) { sSql += " AND FEATURE_GROUP.FEATURE_GROUP_CODE >='" + sFEATURE_GROUP_CODE_S + "'"; }
             if (!string.IsNullOrEmpty(sFEATURE_GROUP_CODE_E)) { sSql += " AND FEATURE_GROUP.FEATURE_GROUP_CODE <='" + sFEATURE_GROUP_CODE_E + "'"; }
-
+            sSql += @"group by ITEM.ITEM_CODE,PURCHASE_ORDER_SD.PLAN_ARRIVAL_DATE, PURCHASE_ORDER.DOC_NO,SUPPLIER.SUPPLIER_CODE, 
+						SUPPLIER.SUPPLIER_NAME, PURCHASE_ORDER_D.SequenceNumber,PURCHASE_ORDER_D.X_PURCHASE_REMARK, 
+						ITEM.ITEM_NAME, ITEM.ITEM_SPECIFICATION,PURCHASE_ORDER_D.BUSINESS_QTY, UNIT.UNIT_NAME, PURCHASE_ORDER_SD.ARRIVED_BUSINESS_QTY,
+						PURCHASE_ORDER_SD.RECEIPTED_BUSINESS_QTY,ITEM.ITEM_BUSINESS_ID";
 
             dtTmp = comm.Get_AlexDataTable(sSql);
             comm.Ins_BDP20_0000("admin", "RPT231A", "RPT", sSql);
@@ -169,25 +182,74 @@ namespace MES_WATER.Controllers
 
             for (i = 0; i < dtTmp.Rows.Count; i++)
             {
-                RPT231A data = new RPT231A();
-                data.ITEM_CODE = dtTmp.Rows[i]["ITEM_CODE"].ToString();
-                data.PLAN_ARRIVAL_DATE = dtTmp.Rows[i]["PLAN_ARRIVAL_DATE"].ToString();
-                data.DOC_NO = dtTmp.Rows[i]["DOC_NO"].ToString();
-                data.SUPPLIER_CODE = dtTmp.Rows[i]["SUPPLIER_CODE"].ToString();
-                data.SUPPLIER_NAME = dtTmp.Rows[i]["SUPPLIER_NAME"].ToString();
-                data.SequenceNumber = dtTmp.Rows[i]["SequenceNumber"].ToString();
-                data.BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["BUSINESS_QTY"].ToString());
-                data.X_PURCHASE_REMARK = dtTmp.Rows[i]["X_PURCHASE_REMARK"].ToString();
-                data.ITEM_NAME = dtTmp.Rows[i]["ITEM_NAME"].ToString();
-                data.ITEM_SPECIFICATION = dtTmp.Rows[i]["ITEM_SPECIFICATION"].ToString();
-                data.BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["BUSINESS_QTY"].ToString());
-                data.UNIT_NAME = dtTmp.Rows[i]["UNIT_NAME"].ToString();
-                data.ARRIVED_BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["ARRIVED_BUSINESS_QTY"].ToString());
-                data.RECEIPTED_BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["RECEIPTED_BUSINESS_QTY"].ToString());
-                data.buy_reply = Get_Data(data.DOC_NO, data.SequenceNumber, "buy_reply");
-                data.store_reply = Get_Data(data.DOC_NO, data.SequenceNumber, "store_reply");
+                int day = comm.sGetInt32(dtTmp.Rows[i]["DATEDIFF"].ToString());
+                int WAREHOUSE_QTY = comm.sGetInt32(dtTmp.Rows[i]["WAREHOUSE_QTY"].ToString());
+                int TOTAL_ISSUED_QTY = comm.sGetInt32(dtTmp.Rows[i]["TOTAL_ISSUED_QTY"].ToString());
+                int TOTAL_REQUIRED_QTY = comm.sGetInt32(dtTmp.Rows[i]["TOTAL_REQUIRED_QTY"].ToString());
+                int ARRIVED_BUSINESS_QTY = comm.sGetInt32(dtTmp.Rows[i]["ARRIVED_BUSINESS_QTY"].ToString());
+                if (day > 1 && ((WAREHOUSE_QTY+ TOTAL_ISSUED_QTY) < TOTAL_REQUIRED_QTY)) {
+                    RPT231A data = new RPT231A();
+                    data.ITEM_CODE = dtTmp.Rows[i]["ITEM_CODE"].ToString();
+                    data.PLAN_ARRIVAL_DATE = dtTmp.Rows[i]["PLAN_ARRIVAL_DATE"].ToString();
+                    data.DOC_NO = dtTmp.Rows[i]["DOC_NO"].ToString();
+                    data.SUPPLIER_CODE = dtTmp.Rows[i]["SUPPLIER_CODE"].ToString();
+                    data.SUPPLIER_NAME = dtTmp.Rows[i]["SUPPLIER_NAME"].ToString();
+                    data.SequenceNumber = dtTmp.Rows[i]["SequenceNumber"].ToString();
+                    data.BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["BUSINESS_QTY"].ToString());
+                    data.X_PURCHASE_REMARK = dtTmp.Rows[i]["X_PURCHASE_REMARK"].ToString();
+                    data.ITEM_NAME = dtTmp.Rows[i]["ITEM_NAME"].ToString();
+                    data.ITEM_SPECIFICATION = dtTmp.Rows[i]["ITEM_SPECIFICATION"].ToString();
+                    data.BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["BUSINESS_QTY"].ToString());
+                    data.UNIT_NAME = dtTmp.Rows[i]["UNIT_NAME"].ToString();
+                    data.ARRIVED_BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["ARRIVED_BUSINESS_QTY"].ToString());
+                    data.RECEIPTED_BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["RECEIPTED_BUSINESS_QTY"].ToString());
+                    data.buy_reply = Get_Data(data.DOC_NO, data.SequenceNumber, "buy_reply");
+                    data.store_reply = Get_Data(data.DOC_NO, data.SequenceNumber, "store_reply");
 
-                result.Add(data);
+                    result.Add(data);
+                }
+                else if (day>0 && (ARRIVED_BUSINESS_QTY < TOTAL_REQUIRED_QTY)){
+                    RPT231A data = new RPT231A();
+                    data.ITEM_CODE = dtTmp.Rows[i]["ITEM_CODE"].ToString();
+                    data.PLAN_ARRIVAL_DATE = dtTmp.Rows[i]["PLAN_ARRIVAL_DATE"].ToString();
+                    data.DOC_NO = dtTmp.Rows[i]["DOC_NO"].ToString();
+                    data.SUPPLIER_CODE = dtTmp.Rows[i]["SUPPLIER_CODE"].ToString();
+                    data.SUPPLIER_NAME = dtTmp.Rows[i]["SUPPLIER_NAME"].ToString();
+                    data.SequenceNumber = dtTmp.Rows[i]["SequenceNumber"].ToString();
+                    data.BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["BUSINESS_QTY"].ToString());
+                    data.X_PURCHASE_REMARK = dtTmp.Rows[i]["X_PURCHASE_REMARK"].ToString();
+                    data.ITEM_NAME = dtTmp.Rows[i]["ITEM_NAME"].ToString();
+                    data.ITEM_SPECIFICATION = dtTmp.Rows[i]["ITEM_SPECIFICATION"].ToString();
+                    data.BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["BUSINESS_QTY"].ToString());
+                    data.UNIT_NAME = dtTmp.Rows[i]["UNIT_NAME"].ToString();
+                    data.ARRIVED_BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["ARRIVED_BUSINESS_QTY"].ToString());
+                    data.RECEIPTED_BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["RECEIPTED_BUSINESS_QTY"].ToString());
+                    data.buy_reply = Get_Data(data.DOC_NO, data.SequenceNumber, "buy_reply");
+                    data.store_reply = Get_Data(data.DOC_NO, data.SequenceNumber, "store_reply");
+
+                    result.Add(data);
+                }
+                else if (day < 4000 && ARRIVED_BUSINESS_QTY < TOTAL_REQUIRED_QTY){
+                    RPT231A data = new RPT231A();
+                    data.ITEM_CODE = dtTmp.Rows[i]["ITEM_CODE"].ToString();
+                    data.PLAN_ARRIVAL_DATE = dtTmp.Rows[i]["PLAN_ARRIVAL_DATE"].ToString();
+                    data.DOC_NO = dtTmp.Rows[i]["DOC_NO"].ToString();
+                    data.SUPPLIER_CODE = dtTmp.Rows[i]["SUPPLIER_CODE"].ToString();
+                    data.SUPPLIER_NAME = dtTmp.Rows[i]["SUPPLIER_NAME"].ToString();
+                    data.SequenceNumber = dtTmp.Rows[i]["SequenceNumber"].ToString();
+                    data.BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["BUSINESS_QTY"].ToString());
+                    data.X_PURCHASE_REMARK = dtTmp.Rows[i]["X_PURCHASE_REMARK"].ToString();
+                    data.ITEM_NAME = dtTmp.Rows[i]["ITEM_NAME"].ToString();
+                    data.ITEM_SPECIFICATION = dtTmp.Rows[i]["ITEM_SPECIFICATION"].ToString();
+                    data.BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["BUSINESS_QTY"].ToString());
+                    data.UNIT_NAME = dtTmp.Rows[i]["UNIT_NAME"].ToString();
+                    data.ARRIVED_BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["ARRIVED_BUSINESS_QTY"].ToString());
+                    data.RECEIPTED_BUSINESS_QTY = comm.sGetDecimal(dtTmp.Rows[i]["RECEIPTED_BUSINESS_QTY"].ToString());
+                    data.buy_reply = Get_Data(data.DOC_NO, data.SequenceNumber, "buy_reply");
+                    data.store_reply = Get_Data(data.DOC_NO, data.SequenceNumber, "store_reply");
+
+                    result.Add(data);
+                }
             }
 
             return result;

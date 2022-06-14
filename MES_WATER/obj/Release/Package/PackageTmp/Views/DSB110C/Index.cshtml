@@ -20,22 +20,25 @@
     List<DDLList> mac_code_list = comm.Get_DDLOption("MEB15_0000", "mac_code", "mac_name");
 }
 
-@*<style>
-    .no-search {
+<style>
+    /*.no-search {
         display: none !important;
     }
 
-    .chosen-search:after .chosen-search:before {
+    .chosen-search:after .chosen-search:before {*/
         /*display:none !important;*/
-        position: relative;
+        /*position: relative;
         z-index: 1010;
         margin: 0;
         padding: 3px 4px;
         white-space: nowrap;
         box-sizing: border-box;
         display: block;
+    }*/
+    #query_btn{
+        display:none;
     }
-</style>*@
+</style>
 
 @Html.Partial("pPrgName")
 

@@ -396,6 +396,26 @@ namespace MES_WATER.Models
             return "";
         }
 
+        public string Get_Alex_QueryData(string pTableCode, string pKeyValue, string pKeyCode, string pFieldCode)
+        {
+            //串SQL字串
+            string sSql = "select " + pFieldCode + " from " + pTableCode + " where " + pKeyCode + " = @" + pKeyCode;
+            using (SqlConnection con_db = Set_AlexDBConnection())
+            {
+                SqlCommand sqlCommand = new SqlCommand(sSql);
+                sqlCommand.Connection = con_db;
+                sqlCommand.Parameters.Add(new SqlParameter(pKeyCode, pKeyValue));
+                SqlDataReader reader = sqlCommand.ExecuteReader();
+
+                if (reader.HasRows)
+                {
+                    reader.Read();
+                    return reader.GetString(reader.GetOrdinal(pFieldCode));
+                }
+            }
+            return "";
+        }
+
         /// <summary>
         /// 取得單一Table明確1對1鍵值資料共用函數
         /// </summary>
@@ -421,6 +441,26 @@ namespace MES_WATER.Models
                 return "";
             }
         }
+
+        public string Get_Alex_QueryData(string pTableCode, string pWhere, string pFieldValue)
+        {
+            //串SQL字串
+            string sSql = "select " + pFieldValue + " from " + pTableCode + "  " + pWhere;
+
+            using (SqlConnection con_db = Set_AlexDBConnection())
+            {
+                SqlCommand sqlCommand = new SqlCommand(sSql);
+                sqlCommand.Connection = con_db;
+                SqlDataReader reader = sqlCommand.ExecuteReader();
+                if (reader.HasRows)
+                {
+                    reader.Read();
+                    return reader.GetString(reader.GetOrdinal(pFieldValue));
+                }
+                return "";
+            }
+        }
+
 
         public T Get_QueryData<T>(string pTableCode, string pWhere, string pFieldValue)
         {

@@ -45,9 +45,9 @@ namespace MES_WATER.Controllers
             //設定資料
             List<MEB15_0000> list = new List<MEB15_0000>();
             //設定SQL
-            string sSql = "Select mac_code from MEB15_0000 with (nolock)";
+            string sSql = "Select mac_code from MEB15_0000 with (nolock) where mac_code='1001-M1' or mac_code='1001-M2'";
             //判斷是否有線別內容
-            if (line_code != "")  sSql += " where line_code=@line_code";
+            if (line_code != "")  sSql += " and line_code=@line_code";
 
             //存入 List
             using (SqlConnection con_db = comm.Set_DBConnection())
@@ -103,7 +103,7 @@ namespace MES_WATER.Controllers
             string sSql = @"
                 SELECT  top " + count + @"
 		            ROW_NUMBER() OVER(ORDER BY a.seq_no  ) AS #,
-		            a.mo_code as '工單單號',c.day_target_qty AS '計畫',		
+		            a.mo_code as '工單單號',a.plan_qty AS '計畫',		
                     (case a.MO_STATUS 
                         when 'W' then '待排程'
 			            when '0' then '待生產'
@@ -112,7 +112,7 @@ namespace MES_WATER.Controllers
 			            when '3' then '強制結案'
 			            END)  as '狀態' ,
 						(case 
-						when a.MO_STATUS ='1' then (SELECT TOP (1) SUM(m.QTY) AS QTY  FROM mba_e10 m   WHERE Convert(varchar,m.TRANSACTION_DATE,23) = Convert(varchar,GETDATE(),23) and  XMACHINE_CODE = @MACHINE_CODE) 
+						when a.MO_STATUS ='1' then (SELECT SUM(m.QTY) AS QTY  FROM mba_e10 m   WHERE Convert(varchar,m.TRANSACTION_DATE,23) = Convert(varchar,GETDATE(),23) and  XMACHINE_CODE = @MACHINE_CODE) 
 						when a.MO_STATUS ='0' then '0'
 						END) as '產量'
 --Convert(varchar,m.TRANSACTION_DATE,23) = Convert(varchar,GETDATE(),23) and
@@ -224,7 +224,7 @@ namespace MES_WATER.Controllers
                     double iplan_qty = 0;
                     double iok_qty = 0;
                     iok_qty = QTY;
-                    iplan_qty = QTY / (hour_count*pro_uph);
+                    iplan_qty = QTY / (hour_count*240); //240的地方應為pro_uph，但實際查詢資料為0，先給預設值
 
                     //double iplan_qty = comm.sGetDouble(Get_DataByStationCode(mac_code, "plan_qty"));
                     //double imo_qty = comm.sGetDouble(Get_DataByStationCode(seq_no, "mo_qty"));
@@ -376,7 +376,7 @@ namespace MES_WATER.Controllers
                        DATEDIFF(HOUR
                         ,(select TOP(1) TRANSACTION_DATE from MBA_E10 where  Convert(varchar,TRANSACTION_DATE,23) = Convert(varchar,GETDATE(),23) and Convert(varchar,TRANSACTION_DATE,108) > '01:00:00' order by  TRANSACTION_DATE )
 	                    ,(select TOP(1) TRANSACTION_DATE from MBA_E10 where  Convert(varchar, TRANSACTION_DATE,23) = Convert(varchar,GETDATE(),23) and Convert(varchar,TRANSACTION_DATE,108) > '01:00:00' order by  TRANSACTION_DATE DESC)) AS hour_count
-                        ,(select TOP(1) mo_code from MET02_0000 where Convert(varchar, TRANSACTION_DATE,23) = Convert(varchar,GETDATE(),23) order by TRANSACTION_DATE) AS mo_code
+                        ,(select TOP(1) mo_code from MET02_0000 where Convert(varchar, TRANSACTION_DATE,23) = Convert(varchar,GETDATE(),23) order by TRANSACTION_DATE DESC) AS mo_code
 	                    , a.day_target_qty AS day_target_qty, c.pro_uph AS pro_uph
                        FROM mba_e10 m
                        left join MEB12_0000 a on a.line_code = m.XMACHINE_CODE 

@@ -74,9 +74,11 @@ namespace MES_WATER.Repository
             string sSql = "";
             if (!string.IsNullOrEmpty(pTkCode))
             {
-                sSql = " SELECT ECB04_0100.*,ECB05_0000.ERP_FIELD_NAME, ECB05_0000.ERP_FORM_NAME, ECB05_0000.ERP_FIELD_VALUE from ECB04_0100 " +
-                    " left join ECB05_0000 on ECB04_0100.ERP_FIELD_CODE = ECB05_0000.ERP_FIELD_CODE " +
-                " where ECB04_0100." + foreignKey + "=@" + foreignKey + " order by SERIAL_NUM";
+                sSql = @" SELECT ECB04_0100.*,ECB05_0000.ERP_FIELD_NAME, ECB05_0000.ERP_FORM_NAME, 
+                        ECB05_0000.ERP_FIELD_VALUE,ECB05_0000.is_null,ECB05_0000.BACK_VALUE 
+                        from ECB04_0100
+                     left join ECB05_0000 on ECB04_0100.ERP_FIELD_CODE = ECB05_0000.ERP_FIELD_CODE 
+                 where ECB04_0100." + foreignKey + "=@" + foreignKey + " order by SERIAL_NUM";
                 //" order by inspect_item_code";
             }
             else
@@ -101,6 +103,8 @@ namespace MES_WATER.Repository
                     data.ERP_FIELD_CODE = comm.sGetString(reader["ERP_FIELD_CODE"].ToString());
                     data.ERP_FIELD_NAME = comm.sGetString(reader["ERP_FIELD_NAME"].ToString());
                     data.ERP_FIELD_VALUE = comm.sGetString(reader["ERP_FIELD_VALUE"].ToString());
+                    data.is_null = comm.sGetString(reader["is_null"].ToString());
+                    data.BACK_VALUE = comm.sGetString(reader["BACK_VALUE"].ToString());
                     data.EXCEL_CODE = comm.sGetString(reader["EXCEL_CODE"].ToString());
                     data.ERP_FORM_NAME = comm.sGetString(reader["ERP_FORM_NAME"].ToString());
 

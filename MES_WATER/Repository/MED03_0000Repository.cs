@@ -294,9 +294,15 @@ namespace MES_WATER.Repository
         /// <param name="MED03_0000">DTO</param>
         public void InsertData(MED03_0000 MED03_0000)
         {
-            string sSql = "INSERT INTO " +
-                          " MED03_0000 (  mo_code,  mac_code,  pro_code,  pro_lot_no,  ng_code,  ng_qty,   ins_date,  ins_time,  usr_code )   " +
-                          "     VALUES ( @mo_code, @mac_code, @pro_code, @pro_lot_no, @ng_code, @ng_qty,  @ins_date, @ins_time, @usr_code )   ";
+            string sSql = @"INSERT INTO 
+                           MED03_0000 (  mo_code,  wrk_code,  work_code,  station_code,  mac_code,  pro_code,   pro_lot_no,  
+                                        ng_code,  ng_qty, ng_unit, ins_date, ins_time, usr_code, des_memo, is_ng, is_end, 
+                                        end_memo, end_date, end_usr_code, user_field_01, user_field_02, user_field_03, user_field_04,
+                                        user_field_05, user_field_06, user_field_07, user_field_08, user_field_09, user_field_10)   
+                               VALUES ( @mo_code, @wrk_code, @work_code, @station_code, @mac_code, @pro_code,  @pro_lot_no, 
+                                        @ng_code, @ng_qty, @ng_unit , @ins_date, @ins_time, @usr_code, @des_memo , @is_ng, @is_end,
+                                        @end_memo, @end_date, @end_usr_code, @user_field_01, @user_field_02, @user_field_03, @user_field_04,
+                                        @user_field_05, @user_field_06, @user_field_07, @user_field_08, @user_field_09, @user_field_10)   ";
             using (SqlConnection con_db = comm.Set_DBConnection())
             {
                 con_db.Execute(sSql, MED03_0000);

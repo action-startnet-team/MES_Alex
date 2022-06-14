@@ -203,6 +203,8 @@ namespace MES_WATER.Controllers
                         {
                             drow[dr2["ERP_FIELD_NAME"].ToString()] = dr2["ERP_FIELD_VALUE"].ToString();
                         }
+                        else if(dr2["is_null"].ToString() == "Y") { drow[dr2["ERP_FIELD_NAME"].ToString()] = ""; }
+                        else if(dr2["BACK_VALUE"].ToString() != "") { drow[dr2["ERP_FIELD_NAME"].ToString()] = dr2["ERP_FIELD_NAME"].ToString() + dr2["BACK_VALUE"].ToString(); }
                         else { drow[dr2["ERP_FIELD_NAME"].ToString()] = dr[dr2["EXCEL_CODE"].ToString()].ToString(); }
 
 

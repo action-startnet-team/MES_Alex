@@ -4,7 +4,7 @@
     ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
     Comm comm = new Comm();
-    string sSql = "SELECT mac_code ,mac_name FROM MEB15_0000 ";
+    string sSql = "SELECT mac_code ,mac_name FROM MEB15_0000 where mac_code='1001-M1' or mac_code='1001-M2' ";
     DataTable dtTmp = comm.Get_DataTable(sSql);
 }
 <style>
@@ -42,6 +42,7 @@ display:inline-block;
 
         .mac-item-head .mo-div {
             float: right;
+            display: none;
         }
 
 

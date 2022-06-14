@@ -764,6 +764,7 @@
       <DesignTimeSharedInput>True</DesignTimeSharedInput>
       <DependentUpon>Settings.settings</DependentUpon>
     </Compile>
+    <Compile Include="Repository\DSB11_0200Repository.cs" />
     <Compile Include="Repository\ECB05_0000Repository.cs" />
     <Compile Include="Repository\AMB02_0000Repository.cs" />
     <Compile Include="Repository\AMB01_1000Repository.cs" />
@@ -2296,6 +2297,7 @@
     <Content Include="Views\RPT240A\Upload.cshtml" />
     <Content Include="Views\RPT250A\Index.cshtml" />
     <Content Include="Views\RPT232A\Index.cshtml" />
+    <Content Include="Views\MED030A\Insert.cshtml" />
     <None Include="Web References\WebReference\wmsapi.disco" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>
