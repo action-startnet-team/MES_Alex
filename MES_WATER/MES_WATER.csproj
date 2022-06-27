@@ -2246,7 +2246,6 @@
     <Content Include="Views\DSB200A\Index.cshtml" />
     <Content Include="Views\DSB210A\Index.cshtml" />
     <Content Include="Views\RPT230A\Index.cshtml" />
-    <Content Include="Views\DSB220A\Index.cshtml" />
     <Content Include="Views\DSB230A\Index.cshtml" />
     <Content Include="Views\WMB200A\Index.cshtml" />
     <Content Include="Views\WMB210A\Index.cshtml" />
@@ -2298,6 +2297,7 @@
     <Content Include="Views\RPT250A\Index.cshtml" />
     <Content Include="Views\RPT232A\Index.cshtml" />
     <Content Include="Views\MED030A\Insert.cshtml" />
+    <Content Include="Views\DSB220A\Index.cshtml" />
     <None Include="Web References\WebReference\wmsapi.disco" />
     <Content Include="Web.config">
       <SubType>Designer</SubType>

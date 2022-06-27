@@ -267,7 +267,7 @@ namespace MES_WATER.Controllers
                 data.bussiness_reply = dr["業務回覆"].ToString();
                 data.production_reply = dr["生管回覆"].ToString();
                 data.shipment_reply = dr["出貨回覆"].ToString();
-                data.update_at = DateTime.Now.ToString("yyyy/MM/dd");
+                data.update_at = DateTime.Now.ToString("yyyy/MM/dd HH:mm:ss");
                 data.usr_code = User.Identity.Name;
                 //透過DOC_NO取得iot的SALES_ORDER_DOC_D_ID
                 String ID = Get_AlexData(data.DOC_NO, "SALES_ORDER_DOC_D_ID");
@@ -284,11 +284,11 @@ namespace MES_WATER.Controllers
                     {
                         repoRPT23_0000.UpdateData(data);
                         //更新IOT的PLAN_DELIVERY_DATE
-                        string sSql = @" UPDATE SALES_ORDER_DOC_SD   set  PLAN_DELIVERY_DATE='" + data.PLAN_DELIVERY_DATE + "'"+
-                                         "WHERE SALES_ORDER_DOC_D_ID ='" + ID +  "'";
-                        using (SqlConnection con_db = comm.Set_AlexDBConnection())
+                        //string sSql = @" UPDATE SALES_ORDER_DOC_SD   set  PLAN_DELIVERY_DATE='" + data.PLAN_DELIVERY_DATE + "'"+
+                                         //"WHERE SALES_ORDER_DOC_D_ID ='" + ID +  "'";
+                        //using (SqlConnection con_db = comm.Set_AlexDBConnection())
                         {
-                            con_db.Execute(sSql);
+                            //con_db.Execute(sSql);
                         }
                         save_count += 1;
                     }

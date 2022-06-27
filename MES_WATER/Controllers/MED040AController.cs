@@ -185,9 +185,7 @@ namespace MES_WATER.Controllers
                 //二次
                 if (i == "Y")
                 {
-                    data.end_date = DateTime.Now.ToString("yyyy/MM/dd");
-                    data.end_time = DateTime.Now.ToString("HH:mm:ss");
-                    data.end_usr_code = User.Identity.Name;
+
                 }
 
                 MED04_0000 sBefore = comm.GetData<MED04_0000>(data);

@@ -1,16 +1,1150 @@
 ﻿@using MES_WATER.Models;
-
+@model System.Data.DataTable
+@using System.Data;
 @{
     //主檔頁面
     ViewBag.Title = "Index";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
+    // 功能代號，預設為controller的名稱
+    string sPrgCode = ViewContext.RouteData.Values["controller"].ToString();
+
+    Comm comm = new Comm();
+    GetModelValidation gmv = new GetModelValidation();
+
+    string today = DateTime.Now.ToString("yyyy/MM/dd");
+
+    //string[] columnList = { "製令單號", "產品品號", "OK數量", "NG數量", "生產時間" };
+    //DataTable TempTable = ViewBag.TempTable;
+    List<ECT02_0000> notSaveList = ViewBag.notSaveList ?? new List<ECT02_0000>();
+    List<DDLList> mac_code_list = comm.Get_DDLOption("MEB15_0000", "mac_code", "mac_name");
 }
 
+<style>
+    /*.no-search {
+        display: none !important;
+    }
+
+    .chosen-search:after .chosen-search:before {*/
+    /*display:none !important;*/
+    /*position: relative;
+        z-index: 1010;
+        margin: 0;
+        padding: 3px 4px;
+        white-space: nowrap;
+        box-sizing: border-box;
+        display: block;
+    }*/
+    #query_btn {
+        display: none;
+    }
+</style>
 
 @Html.Partial("pPrgName")
 
+@if (ViewBag.count > 0)
+{
+    <div class="alert alert-block alert-success">
+        <button type="button" class="close" data-dismiss="alert">
+            <i class="ace-icon fa fa-times"></i>
+        </button>
+
+        <p>
+            <strong>
+                <i class="ace-icon fa fa-check"></i>
+                上傳成功!
+            </strong>
+
+        </p>
+        <p>資料筆數: @ViewBag.count</p>
+    </div>
+}
+@using (Html.BeginForm("Index", sPrgCode, null, FormMethod.Post, new { @class = "form-horizontal", id = "validation_form", role = "form", enctype = "multipart/form-data" }))
+{
+    @*@Html.AntiForgeryToken()*@
+    @Html.ValidationSummary()
+
+    <div class="form-group ">
+        <div class="row">
+            <label class="col-sm-1 control-label no-padding-right" for="cal_date">設備名稱</label>
+            <div class="col-sm-3 chosen-search">
+                <div class="col-sm-10 no-padding-right no-padding-left">
+                    <select id="mac_code" name="mac_code" class="chosen-select" value="" style="width: 200px;">
+                        @CustomHelper.Get_Option(mac_code_list, "", true)
+                    </select>
+                </div>
+            </div>
+
+        </div>
+        <br />
+        <br />
+
+    </div>
+    <p>&nbsp;</p>
+    <div class="line_chart" style="height: 50vh;"></div>
+    <p>&nbsp;</p>
+
+    <p>&nbsp;</p>
+    <div class="line_chart_2" style="height: 50vh;"></div>
+    <p>&nbsp;</p>
+
+    <p>&nbsp;</p>
+    <div class="line_chart_3" style="height: 50vh;"></div>
+    <p>&nbsp;</p>
+
+    <p>&nbsp;</p>
+    <div class="line_chart_4" style="height: 50vh;"></div>
+    <p>&nbsp;</p>
+
+    <p>&nbsp;</p>
+    <div class="line_chart_5" style="height: 50vh;"></div>
+    <p>&nbsp;</p>
+
+    <p>&nbsp;</p>
+    <div class="line_chart_6" style="height: 50vh;"></div>
+    <p>&nbsp;</p>
+
+    <p>&nbsp;</p>
+    <div class="line_chart_7" style="height: 50vh;"></div>
+    <p>&nbsp;</p>
+
+    @*<div class="row">
+            <label class="col-sm-2" style="font-size:25px;">工單資訊</label>
+        </div>*@
+    <p>&nbsp;</p>
+
+}
+
+@section head_plugin {
+    <link rel="stylesheet" href="~/Content/assets/css/chosen.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-multiselect.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/jquery-ui.custom.min.css" />
+    <link rel="stylesheet" href="~/Content/assets/css/bootstrap-datepicker3.min.css" />
+
+}
+@section footer_plugin{
+    <script src="~/Scripts/echarts 5/echarts.min.js"></script>
+    <script src="~/Scripts/assets/js/jquery.jqGrid.min.js"></script>
+    <script src="~/Scripts/assets/js/chosen.jquery.min.js"></script>
+    <script src="~/Scripts/assets/js/colResizable-1.6.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.min.js"></script>
+    <script src="~/Scripts/assets/js/bootstrap-datepicker.zh-TW.min.js"></script>
+}
+@*@{
+        <script src="~/Scripts/assets/js/colResizable-1.6.js"></script>
+        <script src="~/Scripts/assets/js/jquery-1.8.0.min.js"></script>
+    }*@
+@section footer_script {
+    <script>
+        jQuery(function ($) {
+            $("input[name=query_date_s]").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr('autocomplete', 'off');
+            $("input[name=query_date_e]").datepicker({ language: 'zh-TW', format: "yyyy/mm/dd", autoclose: true }).attr('autocomplete', 'off');
+
+            //display_table();
+            display_chart();
+            display_chart_2();
+            display_chart_3();
+            display_chart_4();
+            display_chart_5();
+            display_chart_6();
+            display_chart_7();
+            $("#mac_code").change(function () {
+                //display_table();
+                display_chart();
+                display_chart_2();
+                display_chart_3();
+                display_chart_4();
+                display_chart_5();
+                display_chart_6();
+                display_chart_7();
+                $("#grid-table").jqGrid('setGridParam', { datatype: 'json', }).trigger('reloadGrid')
+            })
+        })
+
+
+        function display_chart() {
+            $.ajax({
+                method: 'post',
+                async: false,
+                url: '@Url.Action("GetData")',
+                data: {
+                    query_date_s: $('#query_date_s').val(),
+                    query_date_e: $('#query_date_e').val(),
+                    mac_code: $('#mac_code').val(),
+                },
+                success: function (data) {
+                    var obj1 = []
+                    var obj2 = []
+                    $.each(data, function (i, v) {
+                        obj1[i] = v.ins_date
+                        obj2[i] = v.totalqty
+                    })
+                    console.log("日期:" + obj1)
+                    console.log("量測值:" + obj2)
+                    var mychart = echarts.init(document.getElementsByClassName("line_chart")[0]);
+
+                    var option = {
+                        title: {
+                            text: '工件內寬趨勢圖',
+                            x: 'center',
+                            textStyle: {
+                                "fontSize": 25,
+                                color: "#62B4BB"
+                            }
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'shadow'
+                            },
+                            textStyle: {
+                                "fontSize": 20
+                            }
+                        },
+                        legend: {
+                            data: ["內寬"],
+                            padding: [10, 500, 0, 0],
+                            x: 'right',
+                            width: 100,
+                            height: 200,
+                            textStyle: {
+                                "fontSize": 20,
+                                color: "#62B4BB"
+                            }
+                        },
+                        xAxis: {
+                            data: obj1,
+                            axisLabel: {
+                                textStyle: {
+                                    fontSize: 10,
+                                    interval: 0,
+                                    rotate: 30,
+                                    color: "#62B4BB"
+                                }
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            axisLabel: {
+                                textStyle: {
+                                    fontSize: 12,
+                                    color: "#62B4BB"
+                                }
+                            }
+                        },
+                        dataZoom: [
+                            {
+                                show: true,
+                                realtime: true,
+                                start: 30,
+                                end: 70,
+                                xAxisIndex: [0, 1]
+                            },
+                            {
+                                type: 'inside',
+                                realtime: true,
+                                start: 30,
+                                end: 70,
+                                xAxisIndex: [0, 1]
+                            }
+                        ],
+                        series: [{
+                            name: '量測值',
+                            type: 'line',
+                            data: obj2,
+                            symbolSize: 15,
+                            symbol: 'circle',
+                            itemStyle: {
+                                normal: {
+                                    label: {
+                                        show: true,
+                                        fontSize: 12,
+                                        color: "#62B4BB"
+                                    },
+                                    lineStyle: {
+                                        width:5
+                                    }
+                                }
+                            }
+                        }]
+                    };
+                    mychart.setOption(option);
+                },
+                error: function () {
+                    alert("err")
+                }
+            })
+            immediateUpdate()
+        }
+
+        function display_chart_2() {
+            $.ajax({
+                method: 'post',
+                async: false,
+                url: '@Url.Action("GetData_2")',
+                data: {
+                    //query_date_s: $('#query_date_s').val(),
+                    //query_date_e: $('#query_date_e').val(),
+                    mac_code: $('#mac_code').val(),
+                },
+                success: function (data) {
+                    var obj1 = []
+                    var obj2 = []
+                    $.each(data, function (i, v) {
+                        obj1[i] = v.ins_date
+                        obj2[i] = v.totalqty
+                    })
+                    console.log("日期:" + obj1)
+                    console.log("量測值:" + obj2)
+                    var mychart = echarts.init(document.getElementsByClassName("line_chart_2")[0]);
+
+                    var option = {
+                        title: {
+                            text: '工件外寬趨勢圖',
+                            x: 'center',
+                            textStyle: {
+                                "fontSize": 25,
+                                color: "#62B4BB"
+                            }
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'shadow'
+                            },
+                            textStyle: {
+                                "fontSize": 20
+                            }
+                        },
+                        legend: {
+                            data: ["外寬"],
+                            padding: [10, 500, 0, 0],
+                            x: 'right',
+                            width: 100,
+                            height: 200,
+                            textStyle: {
+                                "fontSize": 20,
+                                color: "#62B4BB"
+                            }
+                        },
+                        xAxis: {
+                            data: obj1,
+                            axisLabel: {
+                                textStyle: {
+                                    fontSize: 10,
+                                    interval: 0,
+                                    rotate: 30,
+                                    color: "#62B4BB"
+                                }
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            axisLabel: {
+                                textStyle: {
+                                    fontSize: 12,
+                                    color: "#62B4BB"
+                                }
+                            }
+                        },
+                        dataZoom: [
+                            {
+                                show: true,
+                                realtime: true,
+                                start: 30,
+                                end: 70,
+                                xAxisIndex: [0, 1]
+                            },
+                            {
+                                type: 'inside',
+                                realtime: true,
+                                start: 30,
+                                end: 70,
+                                xAxisIndex: [0, 1]
+                            }
+                        ],
+                        series: [{
+                            name: '量測值',
+                            type: 'line',
+                            data: obj2,
+                            symbolSize: 15,
+                            symbol: 'circle',
+                            itemStyle: {
+                                normal: {
+                                    label: {
+                                        show: true,
+                                        fontSize: 12,
+                                        color: "#62B4BB"
+                                    },
+                                    lineStyle: {
+                                        width:5
+                                    }
+                                }
+                            }
+                        }]
+                    };
+                    mychart.setOption(option);
+                },
+                error: function () {
+                    alert("err")
+                }
+            })
+            immediateUpdate()
+        }
+        function display_chart_3() {
+            $.ajax({
+                method: 'post',
+                async: false,
+                url: '@Url.Action("GetData_3")',
+                data: {
+                    //query_date_s: $('#query_date_s').val(),
+                    //query_date_e: $('#query_date_e').val(),
+                    mac_code: $('#mac_code').val(),
+                },
+                success: function (data) {
+                    var obj1 = []
+                    var obj2 = []
+                    $.each(data, function (i, v) {
+                        obj1[i] = v.ins_date
+                        obj2[i] = v.totalqty
+                    })
+                    console.log("日期:" + obj1)
+                    console.log("量測值:" + obj2)
+                    var mychart = echarts.init(document.getElementsByClassName("line_chart_3")[0]);
+
+                    var option = {
+                        title: {
+                            text: '工件上檔高量測趨勢圖',
+                            x: 'center',
+                            textStyle: {
+                                "fontSize": 25,
+                                color: "#62B4BB"
+                            }
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'shadow'
+                            },
+                            textStyle: {
+                                "fontSize": 20
+                            }
+                        },
+                        legend: {
+                            data: ["上檔高"],
+                            padding: [10, 500, 0, 0],
+                            x: 'right',
+                            width: 100,
+                            height: 200,
+                            textStyle: {
+                                "fontSize": 20,
+                                color: "#62B4BB"
+                            }
+                        },
+                        xAxis: {
+                            data: obj1,
+                            axisLabel: {
+                                textStyle: {
+                                    fontSize: 10,
+                                    interval: 0,
+                                    rotate: 30,
+                                    color: "#62B4BB"
+                                }
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            axisLabel: {
+                                textStyle: {
+                                    fontSize: 12,
+                                    color: "#62B4BB"
+                                }
+                            }
+                        },
+                        dataZoom: [
+                            {
+                                show: true,
+                                realtime: true,
+                                start: 30,
+                                end: 70,
+                                xAxisIndex: [0, 1]
+                            },
+                            {
+                                type: 'inside',
+                                realtime: true,
+                                start: 30,
+                                end: 70,
+                                xAxisIndex: [0, 1]
+                            }
+                        ],
+                        series: [{
+                            name: '量測值',
+                            type: 'line',
+                            data: obj2,
+                            symbolSize: 15,
+                            symbol: 'circle',
+                            itemStyle: {
+                                normal: {
+                                    label: {
+                                        show: true,
+                                        fontSize: 12,
+                                        color: "#62B4BB"
+                                    },
+                                    lineStyle: {
+                                        width:5
+                                    }
+                                }
+                            }
+                        }]
+                    };
+                    mychart.setOption(option);
+                },
+                error: function () {
+                    alert("err")
+                }
+            })
+            immediateUpdate()
+        }
+
+        function display_chart_4() {
+            $.ajax({
+                method: 'post',
+                async: false,
+                url: '@Url.Action("GetData_4")',
+                data: {
+                    //query_date_s: $('#query_date_s').val(),
+                    //query_date_e: $('#query_date_e').val(),
+                    mac_code: $('#mac_code').val(),
+                },
+                success: function (data) {
+                    var obj1 = []
+                    var obj2 = []
+                    $.each(data, function (i, v) {
+                        obj1[i] = v.ins_date
+                        obj2[i] = v.totalqty
+                    })
+                    console.log("日期:" + obj1)
+                    console.log("量測值:" + obj2)
+                    var mychart = echarts.init(document.getElementsByClassName("line_chart_4")[0]);
+
+                    var option = {
+                        title: {
+                            text: '工件下檔高量測趨勢圖',
+                            x: 'center',
+                            textStyle: {
+                                "fontSize": 25,
+                                color: "#62B4BB"
+                            }
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'shadow'
+                            },
+                            textStyle: {
+                                "fontSize": 20
+                            }
+                        },
+                        legend: {
+                            data: ["下檔高"],
+                            padding: [10, 500, 0, 0],
+                            x: 'right',
+                            width: 100,
+                            height: 200,
+                            textStyle: {
+                                "fontSize": 20,
+                                color: "#62B4BB"
+                            }
+                        },
+                        xAxis: {
+                            data: obj1,
+                            axisLabel: {
+                                textStyle: {
+                                    fontSize: 10,
+                                    interval: 0,
+                                    rotate: 30,
+                                    color: "#62B4BB"
+                                }
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            axisLabel: {
+                                textStyle: {
+                                    fontSize: 12,
+                                    color: "#62B4BB"
+                                }
+                            }
+                        },
+                        dataZoom: [
+                            {
+                                show: true,
+                                realtime: true,
+                                start: 30,
+                                end: 70,
+                                xAxisIndex: [0, 1]
+                            },
+                            {
+                                type: 'inside',
+                                realtime: true,
+                                start: 30,
+                                end: 70,
+                                xAxisIndex: [0, 1]
+                            }
+                        ],
+                        series: [{
+                            name: '量測值',
+                            type: 'line',
+                            data: obj2,
+                            symbolSize: 15,
+                            symbol: 'circle',
+                            itemStyle: {
+                                normal: {
+                                    label: {
+                                        show: true,
+                                        fontSize: 12,
+                                        color: "#62B4BB"
+                                    },
+                                    lineStyle: {
+                                        width:5
+                                    }
+                                }
+                            }
+                        }]
+                    };
+                    mychart.setOption(option);
+                },
+                error: function () {
+                    alert("err")
+                }
+            })
+            immediateUpdate()
+        }
+
+
+        function display_chart_5() {
+            $.ajax({
+                method: 'post',
+                async: false,
+                url: '@Url.Action("GetData_5")',
+                data: {
+                    //query_date_s: $('#query_date_s').val(),
+                    //query_date_e: $('#query_date_e').val(),
+                    mac_code: $('#mac_code').val(),
+                },
+                success: function (data) {
+                    var obj1 = []
+                    var obj2 = []
+                    $.each(data, function (i, v) {
+                        obj1[i] = v.ins_date
+                        obj2[i] = v.totalqty
+                    })
+                    console.log("日期:" + obj1)
+                    console.log("量測值:" + obj2)
+                    var mychart = echarts.init(document.getElementsByClassName("line_chart_5")[0]);
+
+                    var option = {
+                        title: {
+                            text: '工件外徑量測趨勢圖',
+                            x: 'center',
+                            textStyle: {
+                                "fontSize": 25,
+                                color: "#62B4BB"
+                            }
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'shadow'
+                            },
+                            textStyle: {
+                                "fontSize": 20
+                            }
+                        },
+                        legend: {
+                            data: ["外徑"],
+                            padding: [10, 500, 0, 0],
+                            x: 'right',
+                            width: 100,
+                            height: 200,
+                            textStyle: {
+                                "fontSize": 20,
+                                color: "#62B4BB"
+                            }
+                        },
+                        xAxis: {
+                            data: obj1,
+                            axisLabel: {
+                                textStyle: {
+                                    fontSize: 10,
+                                    interval: 0,
+                                    rotate: 30,
+                                    color: "#62B4BB"
+                                }
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            axisLabel: {
+                                textStyle: {
+                                    fontSize: 12,
+                                    color: "#62B4BB"
+                                }
+                            }
+                        },
+                        dataZoom: [
+                            {
+                                show: true,
+                                realtime: true,
+                                start: 30,
+                                end: 70,
+                                xAxisIndex: [0, 1]
+                            },
+                            {
+                                type: 'inside',
+                                realtime: true,
+                                start: 30,
+                                end: 70,
+                                xAxisIndex: [0, 1]
+                            }
+                        ],
+                        series: [{
+                            name: '量測值',
+                            type: 'line',
+                            data: obj2,
+                            symbolSize: 15,
+                            symbol: 'circle',
+                            itemStyle: {
+                                normal: {
+                                    label: {
+                                        show: true,
+                                        fontSize: 12,
+                                        color: "#62B4BB"
+                                    },
+                                    lineStyle: {
+                                        width:5
+                                    }
+                                }
+                            }
+                        }]
+                    };
+                    mychart.setOption(option);
+                },
+                error: function () {
+                    alert("err")
+                }
+            })
+            immediateUpdate()
+        }
+
+        function display_chart_6() {
+            $.ajax({
+                method: 'post',
+                async: false,
+                url: '@Url.Action("GetData_6")',
+                data: {
+                    //query_date_s: $('#query_date_s').val(),
+                    //query_date_e: $('#query_date_e').val(),
+                    mac_code: $('#mac_code').val(),
+                },
+                success: function (data) {
+                    var obj1 = []
+                    var obj2 = []
+                    $.each(data, function (i, v) {
+                        obj1[i] = v.ins_date
+                        obj2[i] = v.totalqty
+                    })
+                    console.log("日期:" + obj1)
+                    console.log("量測值:" + obj2)
+                    var mychart = echarts.init(document.getElementsByClassName("line_chart_6")[0]);
+
+                    var option = {
+                        title: {
+                            text: '工件真圓度趨勢圖',
+                            x: 'center',
+                            textStyle: {
+                                "fontSize": 25,
+                                color: "#62B4BB"
+                            }
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'shadow'
+                            },
+                            textStyle: {
+                                "fontSize": 20
+                            }
+                        },
+                        legend: {
+                            data: ["真圓度"],
+                            padding: [10, 500, 0, 0],
+                            x: 'right',
+                            width: 100,
+                            height: 200,
+                            textStyle: {
+                                "fontSize": 20,
+                                color: "#62B4BB"
+                            }
+                        },
+                        xAxis: {
+                            data: obj1,
+                            axisLabel: {
+                                textStyle: {
+                                    fontSize: 10,
+                                    interval: 0,
+                                    rotate: 30,
+                                    color: "#62B4BB"
+                                }
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            axisLabel: {
+                                textStyle: {
+                                    fontSize: 12,
+                                    color: "#62B4BB"
+                                }
+                            }
+                        },
+                        dataZoom: [
+                            {
+                                show: true,
+                                realtime: true,
+                                start: 30,
+                                end: 70,
+                                xAxisIndex: [0, 1]
+                            },
+                            {
+                                type: 'inside',
+                                realtime: true,
+                                start: 30,
+                                end: 70,
+                                xAxisIndex: [0, 1]
+                            }
+                        ],
+                        series: [{
+                            name: '量測值',
+                            type: 'line',
+                            data: obj2,
+                            symbolSize: 15,
+                            symbol: 'circle',
+                            itemStyle: {
+                                normal: {
+                                    label: {
+                                        show: true,
+                                        fontSize: 12,
+                                        color: "#62B4BB"
+                                    },
+                                    lineStyle: {
+                                        width:5
+                                    }
+                                }
+                            }
+                        }]
+                    };
+                    mychart.setOption(option);
+                },
+                error: function () {
+                    alert("err")
+                }
+            })
+            immediateUpdate()
+        }
+
+        function display_chart_7() {
+            $.ajax({
+                method: 'post',
+                async: false,
+                url: '@Url.Action("GetData_7")',
+                data: {
+                    //query_date_s: $('#query_date_s').val(),
+                    //query_date_e: $('#query_date_e').val(),
+                    mac_code: $('#mac_code').val(),
+                },
+                success: function (data) {
+                    var obj1 = []
+                    var obj2 = []
+                    $.each(data, function (i, v) {
+                        obj1[i] = v.ins_date
+                        obj2[i] = v.totalqty
+                    })
+                    console.log("日期:" + obj1)
+                    console.log("量測值:" + obj2)
+                    var mychart = echarts.init(document.getElementsByClassName("line_chart_7")[0]);
+
+                    var option = {
+                        title: {
+                            text: '工件平行度趨勢圖',
+                            x: 'center',
+                            textStyle: {
+                                "fontSize": 25,
+                                color: "#62B4BB"
+                            }
+                        },
+                        tooltip: {
+                            trigger: 'axis',
+                            axisPointer: {
+                                type: 'shadow'
+                            },
+                            textStyle: {
+                                "fontSize": 20
+                            }
+                        },
+                        legend: {
+                            data: ["平行度"],
+                            padding: [10, 500, 0, 0],
+                            x: 'right',
+                            width: 100,
+                            height: 200,
+                            textStyle: {
+                                "fontSize": 20,
+                                color: "#62B4BB"
+                            }
+                        },
+                        xAxis: {
+                            data: obj1,
+                            axisLabel: {
+                                textStyle: {
+                                    fontSize: 10,
+                                    interval: 0,
+                                    rotate: 30,
+                                    color: "#62B4BB"
+                                }
+                            }
+                        },
+                        yAxis: {
+                            type: 'value',
+                            axisLabel: {
+                                textStyle: {
+                                    fontSize: 12,
+                                    color: "#62B4BB"
+                                }
+                            }
+                        },
+                        dataZoom: [
+                            {
+                                show: true,
+                                realtime: true,
+                                start: 30,
+                                end: 70,
+                                xAxisIndex: [0, 1]
+                            },
+                            {
+                                type: 'inside',
+                                realtime: true,
+                                start: 30,
+                                end: 70,
+                                xAxisIndex: [0, 1]
+                            }
+                        ],
+                        series: [{
+                            name: '量測值',
+                            type: 'line',
+                            data: obj2,
+                            symbolSize: 15,
+                            symbol: 'circle',
+                            itemStyle: {
+                                normal: {
+                                    label: {
+                                        show: true,
+                                        fontSize: 12,
+                                        color: "#62B4BB"
+                                    },
+                                    lineStyle: {
+                                        width:5
+                                    }
+                                }
+                            }
+                        }]
+                    };
+                    mychart.setOption(option);
+                },
+                error: function () {
+                    alert("err")
+                }
+            })
+            immediateUpdate()
+        }
+
+
+        $('form').submit(function () {
+            if ($("#cus_code").val() == "") {
+                alert("請選擇客戶編號")
+                return false
+            } else if ($("#edition").val() == "") {
+                alert("請選擇客戶版次")
+                return false
+            }else {
+                $('form input:submit').attr('disabled', 'disabled');
+            }
+        });
+
+        // 初始 - 定時更新
+        let currentTimer = setTimerUpdate()
+
+        function setTimerUpdate() {
+            let timer = Timer({
+                initSeconds: 30,
+                tick: 30000,
+                launch: {
+                    callback: function () {
+                        display_chart();
+                    }
+                }
+            })
+
+            return timer
+        }
+
+
+        function immediateUpdate() {
+
+
+            // 清除timer
+            clearTimeout(currentTimer)
+
+            // 重設timer
+            currentTimer = setTimerUpdate()
+        }
+
+        function Timer(options) {
+            let initSeconds = options.initSeconds // seconds // 初始總時間
+            let interval = options.interval || 1  // seconds // 發動一次的間隔
+            let tick = options.tick || 1000  // ms  // 每單位時間發動一次
+            let launch = options.launch  // callback函數和發動時間
+
+            launch.restTime = launch.restTime || 0  // 預設0秒callback
+
+            let count = initSeconds
+            $('#update_count').text(count)
+
+            let timer = setInterval(function () {
+                count -= interval
+                if (count <= launch.restTime) {
+                    if (typeof launch.callback === 'function') {
+                        launch.callback()
+                    }
+                    count = initSeconds
+                }
+                $('#update_count').text(count)
+            }, tick)
+
+            return timer
+        }
+
+
+        // chosen select
+        if (!ace.vars['touch']) {
+            $('.chosen-select').chosen({ allow_single_deselect: true });
+            //resize the chosen on window resize
+
+            $(window)
+            .off('resize.chosen')
+            .on('resize.chosen', function () {
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            }).trigger('resize.chosen');
+            //resize chosen on sidebar collapse/expand
+            $(document).on('settings.ace.chosen', function (e, event_name, event_val) {
+                if (event_name != 'sidebar_collapsed') return;
+                $('.chosen-select').each(function () {
+                    var $this = $(this);
+                    $this.next().css({ 'width': $this.parent().width() });
+                })
+            });
+
+            $('#chosen-multiple-style .btn').on('click', function (e) {
+                var target = $(this).find('input[type=radio]');
+                var which = parseInt(target.val());
+                if (which == 2) $('#form-field-select-4').addClass('tag-input-style');
+                else $('#form-field-select-4').removeClass('tag-input-style');
+            });
+        }
+
+
+    </script>
+
+    @*<style>
+            /*滾動條*/
+            .table thead, .table thead tr, .table thead th {
+                position: sticky;
+                top: -1px;
+                /*background: #343A40;*/
+                z-index: 1000;
+                height: 50px;
+                border: none;
+            }
+
+            .skin-1 .table thead, .skin-1 .table thead tr, .skin-1 .table thead th {
+                background: #343A40;
+            }
+
+            .table-body {
+                /*border-top:#fff solid 2px;*/
+                max-height: 60vh;
+                overflow-y: scroll;
+            }
+
+            /*按鈕樣式*/
+            .downbtn{
+                border-radius: 20px;
+                font-weight:bolder;
+                width: 60px;
+                height: 38px;
+                padding-top: 8px;
+            }
+            .btndiv{
+                    padding-bottom: 15px;
+            }
+
+            /*表格樣式*/
+            tbody{
+                background-color:lightgray;
+            }
+            tbody td{
+                color:#000000;
+
+            }
+            .table-bordered > tbody > tr > td, .table-bordered > tbody > tr > td{
+            border-color:gray;
+            }
+            .table-bordered > thead > tr > td, .table-bordered > thead > tr > th {
+            border-color:lightgray;
+            }
+            .skin-3 .table tbody,
+            .skin-3 .table tbody tr,
+            .skin-3 .table tbody td {
+            background-color: #E9E9E9 ;
+            }
+            .skin-3 .table thead tr,
+            .skin-3 .table thead th {
+            border-color:gray;
+            }
+        </style>*@
+}
+
+@{
+    //if (isDisplay == "Y")
+    //{
+    //    // 改對應的class
+    //    Html.RenderAction("pJqgrid_A", "jqgrid", new
+    //    {
+    //        pModelType = new ECT02_0000().GetType(),
+    //        pPrgCode = sPrgCode,
+    //        pCustomHtml_header = sHeaderBtns,
+    //    });
+
+    //}
+}
 
 @* 修改點 以下 *@
+@{
 
+
+}
 @* 修改點 以上 *@
+
+

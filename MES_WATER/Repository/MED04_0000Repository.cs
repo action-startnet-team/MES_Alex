@@ -27,7 +27,8 @@ namespace MES_WATER.Repository
 
             if (string.IsNullOrEmpty(pTkCode))
             {
-                sSql = "SELECT * FROM MED04_0000";
+                sSql = @"SELECT a.COLUMN_NAME as 'key',M.* FROM MEB15_0000 m 
+                    LEFT JOIN INFORMATION_SCHEMA.COLUMNS a  on a.TABLE_NAME = 'MEA_E02' and a.COLUMN_NAME = m.address_code";
             }
             else
             {
@@ -48,37 +49,11 @@ namespace MES_WATER.Repository
                         datas = new MED04_0000
                         {
 
-                            med04_0000 = comm.sGetInt32(reader["med04_0000"].ToString()),
-                            mo_code = comm.sGetString(reader["mo_code"].ToString()),
-                            wrk_code = comm.sGetString(reader["wrk_code"].ToString()),
-                            work_code = comm.sGetString(reader["work_code"].ToString()),
-                            station_code = comm.sGetString(reader["station_code"].ToString()),
-                            mac_code = comm.sGetString(reader["mac_code"].ToString()),
-                            stop_code = comm.sGetString(reader["stop_code"].ToString()),
-                            date_s = comm.sGetString(reader["date_s"].ToString()),
-                            time_s = comm.sGetString(reader["time_s"].ToString()),
-                            date_e = comm.sGetString(reader["date_e"].ToString()),
-                            time_e = comm.sGetString(reader["time_e"].ToString()),
-                            ins_date = comm.sGetString(reader["ins_date"].ToString()),
-                            ins_time = comm.sGetString(reader["ins_time"].ToString()),
-                            usr_code = comm.sGetString(reader["usr_code"].ToString()),
-                            des_memo = comm.sGetString(reader["des_memo"].ToString()),
-                            is_ng = comm.sGetString(reader["is_ng"].ToString()),
-                            is_end = comm.sGetString(reader["is_end"].ToString()),
-                            end_memo = comm.sGetString(reader["end_memo"].ToString()),
-                            end_date = comm.sGetString(reader["end_date"].ToString()),
-                            end_time = comm.sGetString(reader["end_time"].ToString()),
-                            end_usr_code = comm.sGetString(reader["end_usr_code"].ToString()),
-                            user_field_01 = comm.sGetString(reader["user_field_01"].ToString()),
-                            user_field_02 = comm.sGetString(reader["user_field_02"].ToString()),
-                            user_field_03 = comm.sGetString(reader["user_field_03"].ToString()),
-                            user_field_04 = comm.sGetString(reader["user_field_04"].ToString()),
-                            user_field_05 = comm.sGetString(reader["user_field_05"].ToString()),
-                            user_field_06 = comm.sGetString(reader["user_field_06"].ToString()),
-                            user_field_07 = comm.sGetString(reader["user_field_07"].ToString()),
-                            user_field_08 = comm.sGetString(reader["user_field_08"].ToString()),
-                            user_field_09 = comm.sGetString(reader["user_field_09"].ToString()),
-                            user_field_10 = comm.sGetString(reader["user_field_10"].ToString())
+                            //med04_0000 = comm.sGetInt32(reader["med04_0000"].ToString()),
+                            mac_name = comm.sGetString(reader["mac_name"].ToString()),
+                            time_s = comm.sGetString(reader["update_at"].ToString()),
+                            time_e = comm.sGetString(reader["update_at"].ToString()),
+                            ins_date = ""
 
                         };
                     }
@@ -100,7 +75,8 @@ namespace MES_WATER.Repository
 
             if (string.IsNullOrEmpty(pTkCode))
             {
-                sSql = "SELECT * FROM MED04_0000";
+                sSql = @"SELECT a.COLUMN_NAME as 'key',M.* FROM MEB15_0000 m 
+                    LEFT JOIN INFORMATION_SCHEMA.COLUMNS a  on a.TABLE_NAME = 'MEA_E02' and a.COLUMN_NAME = m.address_code";
             }
             else
             {
@@ -118,26 +94,11 @@ namespace MES_WATER.Repository
                 {
                     MED04_0000 data = new MED04_0000();
 
-                    data.med04_0000 = comm.sGetInt32(reader["med04_0000"].ToString());
-                    data.mo_code = comm.sGetString(reader["mo_code"].ToString());
-                    data.wrk_code = comm.sGetString(reader["wrk_code"].ToString());
-                    data.mac_code = comm.sGetString(reader["mac_code"].ToString());
-                    data.stop_code = comm.sGetString(reader["stop_code"].ToString());
-                    data.date_s = comm.sGetString(reader["date_s"].ToString());
-                    data.time_s = comm.sGetString(reader["time_s"].ToString());
-                    data.date_e = comm.sGetString(reader["date_e"].ToString());
-                    data.time_e = comm.sGetString(reader["time_e"].ToString());
-                    data.ins_date = comm.sGetString(reader["ins_date"].ToString());
-                    data.ins_time = comm.sGetString(reader["ins_time"].ToString());
-                    data.usr_code = comm.sGetString(reader["usr_code"].ToString());
-                    data.des_memo = comm.sGetString(reader["des_memo"].ToString());
-                    data.is_ng = comm.sGetString(reader["is_ng"].ToString());
-                    data.is_end = comm.sGetString(reader["is_end"].ToString());
-                    data.end_memo = comm.sGetString(reader["end_memo"].ToString());
-                    data.end_date = comm.sGetString(reader["end_date"].ToString());
-                    data.end_time = comm.sGetString(reader["end_time"].ToString());
-                    data.end_usr_code = comm.sGetString(reader["end_usr_code"].ToString());
-
+                    //data.med04_0000 = comm.sGetInt32(reader["med04_0000"].ToString());
+                    data.mac_name = comm.sGetString(reader["mac_name"].ToString());
+                    data.time_s = comm.sGetString(reader["update_at"].ToString());
+                    data.time_e = comm.sGetString(reader["update_at"].ToString());
+                    data.ins_date = "";
                     data.can_delete = "Y";
                     data.can_update = "Y";
                     list.Add(data);
@@ -164,7 +125,8 @@ namespace MES_WATER.Repository
 
             //取得該使用者可以看的資料
             //sSql = "SELECT * FROM MED04_0000";
-            sSql = "SELECT * FROM MED04_0000";
+            sSql = @"SELECT a.COLUMN_NAME as 'key',M.* FROM MEB15_0000 m 
+                    LEFT JOIN INFORMATION_SCHEMA.COLUMNS a  on a.TABLE_NAME = 'MEA_E02' and a.COLUMN_NAME = m.address_code";
 
             using (SqlConnection con_db = comm.Set_DBConnection())
             {
@@ -176,27 +138,11 @@ namespace MES_WATER.Repository
                 while (reader.Read())
                 {
                     MED04_0000 data = new MED04_0000();
-
-
-                    data.med04_0000 = comm.sGetInt32(reader["med04_0000"].ToString());
-                    data.mo_code = comm.sGetString(reader["mo_code"].ToString());
-                    data.wrk_code = comm.sGetString(reader["wrk_code"].ToString());
-                    data.mac_code = comm.sGetString(reader["mac_code"].ToString());
-                    data.stop_code = comm.sGetString(reader["stop_code"].ToString());
-                    data.date_s = comm.sGetString(reader["date_s"].ToString());
-                    data.time_s = comm.sGetString(reader["time_s"].ToString());
-                    data.date_e = comm.sGetString(reader["date_e"].ToString());
-                    data.time_e = comm.sGetString(reader["time_e"].ToString());
-                    data.ins_date = comm.sGetString(reader["ins_date"].ToString());
-                    data.ins_time = comm.sGetString(reader["ins_time"].ToString());
-                    data.usr_code = comm.sGetString(reader["usr_code"].ToString());
-                    data.des_memo = comm.sGetString(reader["des_memo"].ToString());
-                    data.is_ng = comm.sGetString(reader["is_ng"].ToString());
-                    data.is_end = comm.sGetString(reader["is_end"].ToString());
-                    data.end_memo = comm.sGetString(reader["end_memo"].ToString());
-                    data.end_date = comm.sGetString(reader["end_date"].ToString());
-                    data.end_time = comm.sGetString(reader["end_time"].ToString());
-                    data.end_usr_code = comm.sGetString(reader["end_usr_code"].ToString());
+                    //data.med04_0000 = comm.sGetInt32(reader["med04_0000"].ToString());
+                    data.mac_name = comm.sGetString(reader["mac_name"].ToString());
+                    data.time_s = comm.sGetString(reader["update_at"].ToString());
+                    data.time_e = comm.sGetString(reader["update_at"].ToString());
+                    data.ins_date = "";
 
                     //檢查授權刪除、修改
                     data.can_delete = sLimitStr.Contains("D") ? "Y" : "N";
@@ -226,18 +172,8 @@ namespace MES_WATER.Repository
         {
             List<MED04_0000> list = new List<MED04_0000>();
 
-            string sSql = " SELECT MED04_0000.*, "+
-                          " MEB29_0000.station_name as station_name,"+
-                          " MEB30_0000.work_name as work_name,"+
-                          " MEB15_0000.mac_name as mac_name, " +
-                          " MEB45_0000.stop_name as stop_name,"+
-                          " BDP08_0000.usr_name as usr_name " +
-                          " FROM MED04_0000" +
-                          " left join MEB29_0000 on MEB29_0000.station_code = MED04_0000.station_code"+
-                          " left join MEB30_0000 on MEB30_0000.work_code = MED04_0000.work_code"+
-                          " left join MEB15_0000 on MEB15_0000.mac_code = MED04_0000.mac_code " +
-                          " left join MEB45_0000 on MEB45_0000.stop_code = MED04_0000.stop_code " +
-                          " left join BDP08_0000 on BDP08_0000.usr_code = MED04_0000.usr_code ";
+            string sSql = @"SELECT a.COLUMN_NAME as 'key',M.* FROM MEB15_0000 m 
+                    LEFT JOIN INFORMATION_SCHEMA.COLUMNS a  on a.TABLE_NAME = 'MEA_E02' and a.COLUMN_NAME = m.address_code";
 
             // 取得資料
             list = comm.Get_ListByQuery<MED04_0000>(sSql, pWhere, pUsrCode, pPrgCode);
@@ -250,8 +186,7 @@ namespace MES_WATER.Repository
             for (int i = 0; i < list.Count; i++)
             {
                 //檢查授權刪除、修改
-                list[i].can_delete = sLimitStr.Contains("D") ? "Y" : "N";
-                list[i].can_update = sLimitStr.Contains("M") ? "Y" : "N";
+
 
                 //        // 特例 轉換
                 //        data.sup_name = data.sup_code + " - " + comm.sGetString(reader["sup_name"].ToString());
